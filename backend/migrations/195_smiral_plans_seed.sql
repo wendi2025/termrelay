@@ -1,7 +1,8 @@
 -- Migration 195: Smirel 默认产品线 + 12 个主套餐 Seed
 -- 数据来源：套餐定价方案 5.2 节（更新时间 2026-09-11）
-
-BEGIN;
+-- 事务由迁移执行器统一管理（internal/repository/migrations_runner.go）。
+-- 此处不得出现 BEGIN/COMMIT：显式提交会提前结束执行器事务，
+-- 使 seed 数据与 schema_migrations 记账失去原子性。
 
 -- 5 条产品线（Group）
 -- 注意：name 全局唯一，使用 Smirel 前缀避免与已有分组冲突
@@ -52,7 +53,8 @@ INSERT INTO groups (
  0.10, 'composite', 'subscription', 30,
  'domestic', 0.10, 0.50, 0.80, 0.15,
  0, false, false, false,
- false, 'active', 30, NOW(), NOW());
+ false, 'active', 30, NOW(), NOW())
+ON CONFLICT DO NOTHING;
 
 -- 12 个主套餐（SubscriptionPlan）
 -- 注：validity_days 统一为 30（一个月）；周控制额度在 group 上不设置，由用户订阅时按 group 限额执行
@@ -150,5 +152,3 @@ FROM (VALUES
 ) AS plan(group_name, name, description, price, original_price, product_name, features, sort_order)
 JOIN groups g ON g.name = plan.group_name
 ON CONFLICT DO NOTHING;
-
-COMMIT;
