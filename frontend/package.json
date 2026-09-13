@@ -2,6 +2,9 @@
   "name": "smirel-frontend",
   "private": true,
   "version": "1.0.0",
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "vue-demi"]
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

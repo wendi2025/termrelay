@@ -1,640 +1,538 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { previewMode } from '../core/api'
-import WorkspaceNavIcon from './WorkspaceNavIcon.vue'
+import { useRouter } from 'vue-router'
+import { useSession } from '../core/session'
+import { paymentApi, type PaymentOrder, type OrderStatus } from '../api/payment'
+import { getErrorMessage } from '../core/api'
+import PaymentStatusBadge from './payment/PaymentStatusBadge.vue'
 
-type OrderStatus = 'all' | 'paid' | 'pending' | 'failed' | 'refunded'
-type VisibleOrderStatus = Exclude<OrderStatus, 'all'>
+const { t } = useI18n()
+const router = useRouter()
+const { isAuthenticated } = useSession()
 
-type OrderRow = {
-  id: string
-  title: string
-  description: string
-  amount: number
-  channel: string
-  status: VisibleOrderStatus
-  createdAt: string
-}
-
-const { locale } = useI18n()
+const loading = ref(false)
+const error = ref('')
+const orders = ref<PaymentOrder[]>([])
+const total = ref(0)
 const query = ref('')
-const activeStatus = ref<OrderStatus>('all')
+const activeStatus = ref<'all' | OrderStatus>('all')
 
-const copy = computed(() => locale.value === 'zh-CN' ? {
-  title: '我的订单',
-  subtitle: '查看充值与服务购买记录，付款状态、金额和时间一目了然。',
-  recharge: '充值余额',
-  preview: '预览数据',
-  totalOrders: '全部订单',
-  completedOrders: '已完成',
-  paidAmount: '累计支付',
-  records: '订单记录',
-  recordsHint: '这里会保留你的充值和购买记录',
-  all: '全部',
-  paid: '已支付',
-  pending: '处理中',
-  failed: '失败',
-  refunded: '已退款',
-  search: '搜索订单号或订单内容',
-  order: '订单',
-  createdAt: '创建时间',
-  amount: '金额',
-  channel: '支付方式',
-  status: '状态',
-  noMatch: '没有找到匹配的订单',
-  noMatchHint: '尝试更换状态筛选或搜索关键词。',
-  empty: '还没有订单记录',
-  emptyHint: '完成充值或购买后，相关订单会统一显示在这里。',
-  goRecharge: '前往充值',
-  gatewayPending: '当前在线支付通道仍在接入中，正式订单产生后将自动同步到这里。',
-} : {
-  title: 'My orders',
-  subtitle: 'Review recharges and purchases with payment status, amount, and time at a glance.',
-  recharge: 'Add funds',
-  preview: 'Preview data',
-  totalOrders: 'All orders',
-  completedOrders: 'Completed',
-  paidAmount: 'Total paid',
-  records: 'Order history',
-  recordsHint: 'Recharge and purchase records are kept here',
-  all: 'All',
-  paid: 'Paid',
-  pending: 'Processing',
-  failed: 'Failed',
-  refunded: 'Refunded',
-  search: 'Search order ID or description',
-  order: 'Order',
-  createdAt: 'Created',
-  amount: 'Amount',
-  channel: 'Payment',
-  status: 'Status',
-  noMatch: 'No matching orders',
-  noMatchHint: 'Try another status or search term.',
-  empty: 'No orders yet',
-  emptyHint: 'Recharge and purchase orders will appear here once they are created.',
-  goRecharge: 'Add funds',
-  gatewayPending: 'Online payment is still being connected. New orders will sync here automatically once available.',
-})
-
-const statusMeta = computed<Record<VisibleOrderStatus, { label: string; tone: string }>>(() => ({
-  paid: { label: copy.value.paid, tone: 'success' },
-  pending: { label: copy.value.pending, tone: 'warning' },
-  failed: { label: copy.value.failed, tone: 'danger' },
-  refunded: { label: copy.value.refunded, tone: 'muted' },
-}))
-
-const previewOrders: OrderRow[] = previewMode ? [
-  {
-    id: 'SM202609070184',
-    title: 'API 余额充值',
-    description: '账户余额充值',
-    amount: 100,
-    channel: '在线支付',
-    status: 'paid',
-    createdAt: '2026-09-07 10:42',
-  },
-  {
-    id: 'SM202609050126',
-    title: 'API 余额充值',
-    description: '账户余额充值',
-    amount: 50,
-    channel: '在线支付',
-    status: 'paid',
-    createdAt: '2026-09-05 18:16',
-  },
-  {
-    id: 'SM202609030091',
-    title: 'API 余额充值',
-    description: '账户余额充值',
-    amount: 20,
-    channel: '在线支付',
-    status: 'refunded',
-    createdAt: '2026-09-03 09:24',
-  },
-] : []
-
-// The billing gateway is not connected yet. Keep production data empty rather than
-// presenting synthetic transactions as real orders. This array is the integration
-// point for the user order API when it becomes available.
-const orders = ref<OrderRow[]>(previewOrders)
-
-const filters = computed(() => [
-  { value: 'all' as const, label: copy.value.all, count: orders.value.length },
-  { value: 'paid' as const, label: copy.value.paid, count: orders.value.filter((item) => item.status === 'paid').length },
-  { value: 'pending' as const, label: copy.value.pending, count: orders.value.filter((item) => item.status === 'pending').length },
-  { value: 'refunded' as const, label: copy.value.refunded, count: orders.value.filter((item) => item.status === 'refunded').length },
+const statusFilters = computed(() => [
+  { key: 'all' as const, label: t('payment.ordersAll') },
+  { key: 'PAID' as const, label: t('payment.status.PAID') },
+  { key: 'PENDING' as const, label: t('payment.status.PENDING') },
+  { key: 'FAILED' as const, label: t('payment.status.FAILED') },
+  { key: 'REFUNDED' as const, label: t('payment.status.REFUNDED') },
 ])
 
-const filteredOrders = computed(() => {
-  const keyword = query.value.trim().toLowerCase()
-  return orders.value.filter((item) => {
-    const matchesStatus = activeStatus.value === 'all' || item.status === activeStatus.value
-    const matchesQuery = !keyword || [item.id, item.title, item.description, item.channel]
-      .some((value) => value.toLowerCase().includes(keyword))
-    return matchesStatus && matchesQuery
-  })
+async function load() {
+  if (!isAuthenticated.value) {
+    orders.value = []
+    total.value = 0
+    return
+  }
+  loading.value = true
+  error.value = ''
+  try {
+    const r = await paymentApi.listMyOrders({
+      status: activeStatus.value === 'all' ? undefined : activeStatus.value,
+      q: query.value.trim() || undefined,
+    })
+    orders.value = r?.items || []
+    total.value = r?.total || 0
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(load)
+
+function pickStatus(s: 'all' | OrderStatus) {
+  activeStatus.value = s
+  load()
+}
+
+async function cancelOrder(o: PaymentOrder) {
+  if (!confirm(t('payment.ordersActionCancelConfirm'))) return
+  try {
+    await paymentApi.cancelOrder(o.id)
+    await load()
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  }
+}
+
+const refundingOrder = ref<PaymentOrder | null>(null)
+const refundReason = ref('')
+const refundSubmitting = ref(false)
+
+function openRefund(o: PaymentOrder) {
+  refundingOrder.value = o
+  refundReason.value = ''
+}
+
+function closeRefund() {
+  refundingOrder.value = null
+  refundReason.value = ''
+}
+
+async function submitRefund() {
+  if (!refundingOrder.value) return
+  refundSubmitting.value = true
+  try {
+    await paymentApi.requestRefund(refundingOrder.value.id, { reason: refundReason.value })
+    error.value = ''
+    closeRefund()
+    await load()
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    refundSubmitting.value = false
+  }
+}
+
+const fmtAmount = (o: PaymentOrder) => {
+  const cur = o.currency || 'CNY'
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur }).format(o.pay_amount ?? o.amount)
+  } catch {
+    return `${cur} ${(o.pay_amount ?? o.amount).toFixed(2)}`
+  }
+}
+
+const fmtDate = (s: string) => {
+  try {
+    const d = new Date(s)
+    return d.toLocaleString()
+  } catch {
+    return s
+  }
+}
+
+const totalsByCurrency = computed(() => {
+  const map: Record<string, { count: number; total: number }> = {}
+  orders.value
+    .filter((o) => o.status === 'PAID' || o.status === 'COMPLETED' || o.status === 'PARTIALLY_REFUNDED' || o.status === 'RECHARGING')
+    .forEach((o) => {
+      const cur = o.currency || 'CNY'
+      const amt = o.pay_amount ?? o.amount
+      if (!map[cur]) map[cur] = { count: 0, total: 0 }
+      map[cur].count += 1
+      map[cur].total += amt
+    })
+  return map
 })
 
-const completedCount = computed(() => orders.value.filter((item) => item.status === 'paid').length)
-const paidAmount = computed(() => orders.value
-  .filter((item) => item.status === 'paid')
-  .reduce((sum, item) => sum + item.amount, 0))
+const completedCount = computed(() => {
+  return orders.value.filter((o) => ['PAID', 'COMPLETED', 'RECHARGING', 'PARTIALLY_REFUNDED'].includes(o.status)).length
+})
 
-function money(value: number) {
-  return `$${Number(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+function rowCanCancel(o: PaymentOrder) {
+  return o.status === 'PENDING' || o.status === 'RECHARGING'
+}
+
+function rowCanRefund(o: PaymentOrder) {
+  return o.status === 'PAID' || o.status === 'COMPLETED' || o.status === 'PARTIALLY_REFUNDED' || o.status === 'RECHARGING'
+}
+
+function viewOrder(o: PaymentOrder) {
+  router.push({ path: '/payment/result', query: { out_trade_no: o.out_trade_no } })
 }
 </script>
 
 <template>
-  <div class="user-orders-page">
-    <header class="orders-hero">
-      <div class="orders-hero-copy">
-        <div class="orders-title-line">
-          <h1>{{ copy.title }}</h1>
-          <span v-if="previewMode" class="preview-badge"><i></i>{{ copy.preview }}</span>
-        </div>
-        <p>{{ copy.subtitle }}</p>
+  <div class="orders-page">
+    <header class="page-head">
+      <div>
+        <h1>{{ t('payment.ordersTitle') }}</h1>
+        <p class="hint">{{ t('payment.ordersSubtitle') }}</p>
       </div>
-
-      <RouterLink class="recharge-link" to="/subscriptions">
-        <WorkspaceNavIcon name="wallet" />
-        <span>{{ copy.recharge }}</span>
-        <WorkspaceNavIcon name="arrow-up-right" />
-      </RouterLink>
+      <RouterLink class="primary" to="/subscriptions">{{ t('payment.tabRecharge') }}</RouterLink>
     </header>
 
-    <section class="orders-overview" aria-label="Order overview">
-      <article>
-        <span>{{ copy.totalOrders }}</span>
-        <strong>{{ orders.length }}</strong>
-      </article>
-      <article>
-        <span>{{ copy.completedOrders }}</span>
-        <strong>{{ completedCount }}</strong>
-      </article>
-      <article class="amount-overview">
-        <span>{{ copy.paidAmount }}</span>
-        <strong>{{ money(paidAmount) }}</strong>
-      </article>
-    </section>
-
-    <section class="orders-surface">
-      <header class="orders-toolbar">
-        <div class="orders-toolbar-copy">
-          <strong>{{ copy.records }}</strong>
-          <span>{{ copy.recordsHint }}</span>
-        </div>
-
-        <label v-if="orders.length" class="orders-search">
-          <WorkspaceNavIcon name="search" />
-          <input v-model="query" type="search" :placeholder="copy.search" :aria-label="copy.search" />
-          <button v-if="query" type="button" aria-label="Clear search" @click="query = ''">×</button>
-        </label>
-      </header>
-
-      <nav v-if="orders.length" class="orders-filters" aria-label="Order status filters">
-        <button
-          v-for="item in filters"
-          :key="item.value"
-          type="button"
-          :class="{ active: activeStatus === item.value }"
-          @click="activeStatus = item.value"
-        >
-          <span>{{ item.label }}</span>
-          <b>{{ item.count }}</b>
-        </button>
-      </nav>
-
-      <template v-if="orders.length">
-        <div class="orders-table" role="table">
-          <div class="orders-table-head" role="row">
-            <span role="columnheader">{{ copy.order }}</span>
-            <span role="columnheader">{{ copy.createdAt }}</span>
-            <span role="columnheader">{{ copy.amount }}</span>
-            <span role="columnheader">{{ copy.channel }}</span>
-            <span role="columnheader">{{ copy.status }}</span>
-          </div>
-
-          <div v-for="item in filteredOrders" :key="item.id" class="order-row" role="row">
-            <div class="order-identity" role="cell">
-              <span class="order-icon"><WorkspaceNavIcon name="receipt" /></span>
-              <div>
-                <strong>{{ item.title }}</strong>
-                <span>{{ item.id }}</span>
-              </div>
-            </div>
-            <time role="cell">{{ item.createdAt }}</time>
-            <strong class="order-amount" role="cell">{{ money(item.amount) }}</strong>
-            <span class="order-channel" role="cell">{{ item.channel }}</span>
-            <span role="cell">
-              <i class="order-status" :class="`tone-${statusMeta[item.status].tone}`">
-                <b></b>{{ statusMeta[item.status].label }}
-              </i>
-            </span>
-          </div>
-        </div>
-
-        <div v-if="!filteredOrders.length" class="orders-empty search-empty">
-          <span class="empty-icon"><WorkspaceNavIcon name="search" /></span>
-          <strong>{{ copy.noMatch }}</strong>
-          <p>{{ copy.noMatchHint }}</p>
-        </div>
-      </template>
-
-      <div v-else class="orders-empty">
-        <span class="empty-icon"><WorkspaceNavIcon name="receipt" /></span>
-        <strong>{{ copy.empty }}</strong>
-        <p>{{ copy.emptyHint }}</p>
-        <RouterLink to="/subscriptions">{{ copy.goRecharge }} <span>→</span></RouterLink>
+    <section class="stats">
+      <div class="stat">
+        <span class="eyebrow">{{ t('payment.ordersTotal') }}</span>
+        <strong>{{ total }}</strong>
       </div>
-
-      <footer v-if="!previewMode" class="orders-notice">
-        <WorkspaceNavIcon name="shield" />
-        <span>{{ copy.gatewayPending }}</span>
-      </footer>
+      <div class="stat">
+        <span class="eyebrow">{{ t('payment.ordersCompleted') }}</span>
+        <strong>{{ completedCount }}</strong>
+      </div>
+      <div class="stat">
+        <span class="eyebrow">{{ t('payment.ordersPaidAmount') }}</span>
+        <strong>
+          <span v-for="(v, k) in totalsByCurrency" :key="k">
+            {{ k }} {{ v.total.toFixed(2) }}
+          </span>
+          <span v-if="Object.keys(totalsByCurrency).length === 0">—</span>
+        </strong>
+      </div>
     </section>
+
+    <section class="filter-bar">
+      <div class="tabs">
+        <button
+          v-for="f in statusFilters"
+          :key="f.key"
+          type="button"
+          :class="{ active: activeStatus === f.key }"
+          @click="pickStatus(f.key)"
+        >
+          {{ f.label }}
+        </button>
+      </div>
+      <input
+        v-model="query"
+        type="search"
+        :placeholder="t('payment.ordersSearch')"
+        class="search"
+        @input="load"
+      />
+    </section>
+
+    <p v-if="error" class="error">{{ error }}</p>
+    <div v-if="loading" class="loading">{{ t('payment.loading') }}</div>
+
+    <section v-else-if="orders.length === 0" class="empty">
+      <p>{{ t('payment.ordersEmpty') }}</p>
+      <small>{{ t('payment.ordersEmptyHint') }}</small>
+      <RouterLink class="primary" to="/subscriptions">{{ t('payment.ordersGoRecharge') }}</RouterLink>
+    </section>
+
+    <section v-else class="orders-table">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t('payment.ordersTableOrder') }}</th>
+            <th>{{ t('payment.ordersTableCreatedAt') }}</th>
+            <th>{{ t('payment.ordersTableAmount') }}</th>
+            <th>{{ t('payment.ordersTableChannel') }}</th>
+            <th>{{ t('payment.ordersTableStatus') }}</th>
+            <th>{{ t('payment.ordersTableAction') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="o in orders" :key="o.id">
+            <td><code>{{ o.out_trade_no }}</code></td>
+            <td>{{ fmtDate(o.created_at) }}</td>
+            <td class="amount">{{ fmtAmount(o) }}</td>
+            <td>{{ o.payment_type }}</td>
+            <td><PaymentStatusBadge :status="o.status" /></td>
+            <td class="actions">
+              <button v-if="rowCanCancel(o)" class="ghost danger" type="button" @click="cancelOrder(o)">
+                {{ t('payment.ordersActionCancel') }}
+              </button>
+              <button v-if="rowCanRefund(o)" class="ghost" type="button" @click="openRefund(o)">
+                {{ t('payment.ordersActionRefundRequest') }}
+              </button>
+              <button class="ghost" type="button" @click="viewOrder(o)">
+                {{ t('payment.ordersTableAction') }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div v-if="refundingOrder" class="modal-mask" @click.self="closeRefund">
+      <div class="modal">
+        <h3>{{ t('payment.ordersActionRefundPrompt') }}</h3>
+        <textarea
+          v-model="refundReason"
+          rows="4"
+          :placeholder="t('payment.ordersActionRefundPrompt')"
+        ></textarea>
+        <div class="modal-actions">
+          <button class="ghost" type="button" @click="closeRefund">{{ t('payment.cancel') }}</button>
+          <button class="primary" type="button" :disabled="refundSubmitting" @click="submitRefund">
+            {{ refundSubmitting ? t('payment.submitting') : t('payment.confirm') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.user-orders-page {
-  width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 12px 0 44px;
-  color: #edf0f3;
-}
-
-.orders-hero {
-  min-height: 108px;
-  margin-bottom: 22px;
+.orders-page {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 28px;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 0 36px;
 }
-
-.orders-hero-copy { min-width: 0; }
-.orders-title-line { display: flex; align-items: center; gap: 12px; }
-.orders-title-line h1 {
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.page-head h1 {
   margin: 0;
-  color: #f7f8fa;
-  font-size: clamp(1.9rem, 2.4vw, 2.35rem);
-  line-height: 1.08;
-  font-weight: 680;
-  letter-spacing: -.043em;
+  font-size: 1.4rem;
+  font-weight: 640;
+  color: rgba(255, 255, 255, 0.92);
 }
-.orders-hero-copy > p {
-  max-width: 620px;
-  margin: 10px 0 0;
-  color: #858d97;
-  font-size: .88rem;
-  line-height: 1.6;
+.page-head .hint {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
 }
-
-.preview-badge {
-  height: 25px;
-  padding: 0 8px;
-  border: 1px solid #343840;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #121419;
-  color: #8d949e;
-  font-size: .66rem;
-  font-weight: 650;
-}
-.preview-badge i { width: 5px; height: 5px; border-radius: 50%; background: #c99a50; }
-
-.recharge-link {
-  height: 42px;
-  padding: 0 14px;
-  border: 1px solid #343a43;
-  border-radius: 9px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  background: #171a1f;
-  color: #e4e8ec;
-  font-size: .78rem;
-  font-weight: 650;
-  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
-}
-.recharge-link:hover { border-color: #484f59; background: #1d2127; color: #fff; }
-.recharge-link :deep(.workspace-nav-icon) { width: 15px; height: 15px; color: #9099a4; }
-.recharge-link :deep(.workspace-nav-icon:last-child) { width: 13px; height: 13px; }
-
-.orders-overview {
-  min-height: 92px;
-  margin-bottom: 14px;
-  border: 1px solid #252a31;
-  border-radius: 11px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  background: #0f1114;
-  overflow: hidden;
-}
-.orders-overview article {
-  min-width: 0;
-  padding: 19px 22px;
-  border-right: 1px solid #23272d;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-}
-.orders-overview article:last-child { border-right: 0; }
-.orders-overview span { color: #747d87; font-size: .71rem; font-weight: 620; }
-.orders-overview strong {
-  color: #eef1f4;
-  font-size: 1.26rem;
-  line-height: 1;
-  font-weight: 680;
-  letter-spacing: -.025em;
-  font-variant-numeric: tabular-nums;
-}
-.orders-overview .amount-overview strong { color: #f5f6f7; }
-
-.orders-surface {
-  border: 1px solid #252a31;
-  border-radius: 12px;
-  background: #0d0f12;
-  overflow: hidden;
-}
-
-.orders-toolbar {
-  min-height: 76px;
-  padding: 15px 17px 15px 20px;
-  border-bottom: 1px solid #22262c;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-.orders-toolbar-copy { min-width: 0; display: flex; align-items: baseline; gap: 10px; }
-.orders-toolbar-copy strong { color: #e8ebee; font-size: .9rem; font-weight: 650; }
-.orders-toolbar-copy span { color: #656e78; font-size: .69rem; }
-
-.orders-search {
-  width: min(310px, 36vw);
+.page-head .primary,
+.empty .primary {
+  background: #79c4f5;
+  color: #071019;
+  border: 1px solid #79c4f5;
+  border-radius: 10px;
+  padding: 0 16px;
   height: 38px;
-  padding: 0 9px 0 11px;
-  border: 1px solid #2b3037;
-  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 36px;
+}
+.stats {
   display: grid;
-  grid-template-columns: 15px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  background: #090b0e;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
-.orders-search:focus-within { border-color: #3b5369; box-shadow: 0 0 0 3px rgba(74,132,183,.07); }
-.orders-search :deep(.workspace-nav-icon) { width: 14px; height: 14px; color: #646e78; }
-.orders-search input { min-width: 0; border: 0; outline: 0; background: transparent; color: #dfe3e7; font: inherit; font-size: .74rem; }
-.orders-search input::placeholder { color: #555d66; }
-.orders-search button {
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: #69727c;
-  cursor: pointer;
-  font: inherit;
-  font-size: .95rem;
+.stat {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(18, 22, 28, 0.88), rgba(12, 16, 22, 0.94));
+  padding: 16px 18px;
 }
-.orders-search button:hover { background: #171a1f; color: #c5cbd1; }
-
-.orders-filters {
-  min-height: 49px;
-  padding: 8px 13px;
-  border-bottom: 1px solid #22262c;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #0f1114;
+.stat .eyebrow {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
 }
-.orders-filters button {
-  height: 32px;
-  padding: 0 9px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: transparent;
-  color: #777f89;
-  cursor: pointer;
-  font: inherit;
-  font-size: .71rem;
-  font-weight: 620;
-}
-.orders-filters button:hover { background: #16191d; color: #c1c6cc; }
-.orders-filters button.active { border-color: #30363e; background: #191c21; color: #eef1f4; }
-.orders-filters button b {
-  min-width: 19px;
-  height: 19px;
-  padding: 0 5px;
-  border-radius: 5px;
-  display: grid;
-  place-items: center;
-  background: #101216;
-  color: #69717b;
-  font-size: .61rem;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-}
-.orders-filters button.active b { background: #252a31; color: #aeb5bd; }
-
-.orders-table { width: 100%; }
-.orders-table-head,
-.order-row {
-  display: grid;
-  grid-template-columns: minmax(280px, 1.55fr) minmax(145px, .82fr) minmax(100px, .58fr) minmax(120px, .65fr) minmax(105px, .58fr);
-  gap: 18px;
-  align-items: center;
-}
-.orders-table-head {
-  min-height: 43px;
-  padding: 0 20px;
-  border-bottom: 1px solid #22262c;
-  background: #0a0c0f;
-  color: #606974;
-  font-size: .64rem;
-  font-weight: 650;
-}
-.order-row {
-  min-height: 82px;
-  padding: 14px 20px;
-  border-bottom: 1px solid #20242a;
-  color: #a6aeb7;
-  font-size: .75rem;
-  transition: background-color .14s ease;
-}
-.order-row:last-child { border-bottom: 0; }
-.order-row:hover { background: #111419; }
-
-.order-identity { min-width: 0; display: flex; align-items: center; gap: 12px; }
-.order-icon {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 auto;
-  border: 1px solid #2b3139;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: #13161a;
-  color: #8b949e;
-}
-.order-icon :deep(.workspace-nav-icon) { width: 15px; height: 15px; }
-.order-identity > div { min-width: 0; }
-.order-identity strong { display: block; color: #dce0e4; font-size: .78rem; font-weight: 630; }
-.order-identity div > span {
+.stat strong {
   display: block;
-  margin-top: 5px;
-  overflow: hidden;
-  color: #626b75;
-  font: 500 .64rem/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 1.4rem;
+  font-weight: 640;
+  color: rgba(255, 255, 255, 0.95);
+  font-variant-numeric: tabular-nums;
+  margin-top: 6px;
 }
-.order-row time { color: #7a838d; font-variant-numeric: tabular-nums; }
-.order-amount { color: #e9ecef; font-size: .79rem; font-weight: 650; font-variant-numeric: tabular-nums; }
-.order-channel { color: #8c949e; }
-
-.order-status {
-  width: fit-content;
-  min-height: 25px;
-  padding: 0 8px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  display: inline-flex;
+.filter-bar {
+  display: flex;
+  gap: 12px;
   align-items: center;
-  gap: 6px;
-  font-style: normal;
-  font-size: .67rem;
-  font-weight: 650;
-  white-space: nowrap;
 }
-.order-status b { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-.order-status.tone-success { border-color: rgba(77,176,133,.18); background: rgba(48,143,102,.08); color: #67c69f; }
-.order-status.tone-warning { border-color: rgba(195,148,72,.18); background: rgba(177,126,46,.08); color: #d0a35d; }
-.order-status.tone-danger { border-color: rgba(195,91,91,.18); background: rgba(170,68,68,.08); color: #d27c7c; }
-.order-status.tone-muted { border-color: #2c3036; background: #14161a; color: #777f88; }
-
-.orders-empty {
-  min-height: 330px;
-  padding: 52px 24px;
+.tabs {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.tabs button {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 18, 24, 0.78);
+  color: rgba(255, 255, 255, 0.62);
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.tabs button.active {
+  border-color: #79c4f5;
+  color: #fff;
+  background: rgba(120, 175, 230, 0.16);
+}
+.search {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 18, 24, 0.78);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.78rem;
+  min-width: 220px;
+}
+.error {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(244, 139, 139, 0.08);
+  border: 1px solid rgba(244, 139, 139, 0.32);
+  color: #f48b8b;
+  font-size: 0.84rem;
+}
+.loading,
+.empty {
+  padding: 36px 18px;
+  border-radius: 12px;
+  background: rgba(15, 18, 24, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  color: rgba(255, 255, 255, 0.55);
   display: flex;
   flex-direction: column;
+  gap: 10px;
   align-items: center;
-  justify-content: center;
-  text-align: center;
 }
-.empty-icon {
-  width: 46px;
-  height: 46px;
-  margin-bottom: 17px;
-  border: 1px solid #2a3037;
-  border-radius: 11px;
-  display: grid;
-  place-items: center;
-  background: #13161a;
-  color: #747e88;
+.empty p {
+  margin: 0;
+  font-size: 0.96rem;
+  color: rgba(255, 255, 255, 0.75);
 }
-.empty-icon :deep(.workspace-nav-icon) { width: 20px; height: 20px; }
-.orders-empty > strong { color: #d9dde1; font-size: .93rem; font-weight: 650; }
-.orders-empty > p { max-width: 390px; margin: 9px 0 0; color: #6f7882; font-size: .75rem; line-height: 1.6; }
-.orders-empty > a {
-  height: 36px;
-  margin-top: 21px;
-  padding: 0 12px;
-  border: 1px solid #30363e;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #171a1f;
-  color: #cdd2d7;
-  font-size: .72rem;
-  font-weight: 630;
+.empty small {
+  font-size: 0.74rem;
 }
-.orders-empty > a:hover { border-color: #424952; background: #1b1f25; color: #fff; }
-.search-empty { min-height: 220px; border-top: 1px solid #20242a; }
-
-.orders-notice {
-  min-height: 49px;
-  padding: 10px 17px;
-  border-top: 1px solid #22262c;
+.orders-table {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(15, 18, 24, 0.78);
+  overflow: hidden;
+}
+.orders-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.orders-table th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.orders-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.8);
+}
+.orders-table tr:last-child td {
+  border-bottom: 0;
+}
+.orders-table .amount {
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.95);
+}
+.orders-table code {
+  font: 0.74rem ui-monospace, monospace;
+  color: rgba(255, 255, 255, 0.7);
+}
+.orders-table .actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.orders-table .actions button {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.78);
+  font-family: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.orders-table .actions button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.orders-table .actions button.danger {
+  border-color: rgba(244, 139, 139, 0.32);
+  color: #f48b8b;
+}
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 18, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100;
+}
+.modal {
+  background: #0e141b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.92);
+}
+.modal textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 18, 24, 0.95);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.84rem;
+  resize: vertical;
+}
+.modal-actions {
+  display: flex;
   gap: 8px;
-  background: #0b0d10;
-  color: #5f6872;
-  font-size: .67rem;
-  line-height: 1.5;
-  text-align: center;
+  justify-content: flex-end;
 }
-.orders-notice :deep(.workspace-nav-icon) { width: 13px; height: 13px; flex: 0 0 auto; color: #67717b; }
-
-@media (max-width: 900px) {
-  .orders-table-head,
-  .order-row {
-    grid-template-columns: minmax(230px, 1.45fr) minmax(125px, .8fr) minmax(90px, .58fr) minmax(95px, .6fr);
-  }
-  .orders-table-head > :nth-child(4),
-  .order-row > :nth-child(4) { display: none; }
+.modal-actions button {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
 }
-
+.modal-actions .ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.78);
+}
+.modal-actions .primary {
+  background: #79c4f5;
+  border: 1px solid #79c4f5;
+  color: #071019;
+  font-weight: 600;
+}
 @media (max-width: 720px) {
-  .user-orders-page { padding-top: 0; padding-bottom: 30px; }
-  .orders-hero { min-height: 0; margin: 12px 0 18px; align-items: flex-start; }
-  .orders-title-line { align-items: flex-start; flex-direction: column; gap: 8px; }
-  .orders-title-line h1 { font-size: 1.8rem; }
-  .orders-hero-copy > p { margin-top: 8px; font-size: .79rem; }
-  .recharge-link { height: 38px; padding: 0 11px; }
-  .recharge-link :deep(.workspace-nav-icon:first-child) { display: none; }
-
-  .orders-overview { min-height: 80px; }
-  .orders-overview article { padding: 15px 14px; }
-  .orders-overview span { font-size: .65rem; }
-  .orders-overview strong { font-size: 1.05rem; }
-
-  .orders-toolbar { padding: 14px; align-items: stretch; flex-direction: column; gap: 12px; }
-  .orders-toolbar-copy { display: block; }
-  .orders-toolbar-copy span { display: block; margin-top: 5px; }
-  .orders-search { width: 100%; }
-  .orders-filters { overflow-x: auto; scrollbar-width: none; }
-  .orders-filters::-webkit-scrollbar { display: none; }
-
-  .orders-table-head { display: none; }
-  .order-row {
-    min-height: 0;
-    padding: 16px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 10px 16px;
+  .stats {
+    grid-template-columns: 1fr;
   }
-  .order-identity { grid-column: 1 / -1; padding-bottom: 4px; }
-  .order-row time { grid-column: 1; grid-row: 2; font-size: .69rem; }
-  .order-amount { grid-column: 2; grid-row: 2; text-align: right; }
-  .order-channel { display: none; }
-  .order-row > span:last-child { grid-column: 1 / -1; grid-row: 3; }
-  .order-status { margin-top: 2px; }
-  .orders-empty { min-height: 280px; }
-}
-
-@media (max-width: 470px) {
-  .orders-hero { flex-direction: column; gap: 15px; }
-  .recharge-link { width: 100%; justify-content: center; }
-  .orders-overview { grid-template-columns: 1fr 1fr; }
-  .orders-overview article { border-bottom: 1px solid #23272d; }
-  .orders-overview article:nth-child(2) { border-right: 0; }
-  .orders-overview .amount-overview { grid-column: 1 / -1; border-bottom: 0; border-right: 0; }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .orders-table table,
+  .orders-table thead,
+  .orders-table tbody,
+  .orders-table tr,
+  .orders-table td,
+  .orders-table th {
+    display: block;
+  }
+  .orders-table thead {
+    display: none;
+  }
+  .orders-table tr {
+    padding: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .orders-table td {
+    padding: 4px 0;
+    border: 0;
+  }
+  .orders-table .actions {
+    margin-top: 8px;
+  }
 }
 </style>

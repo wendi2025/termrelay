@@ -953,6 +953,167 @@ func (_u *GroupUpdate) AppendReasoningEffortMappings(v []domain.ReasoningEffortM
 	return _u
 }
 
+// SetProductLine sets the "product_line" field.
+func (_u *GroupUpdate) SetProductLine(v string) *GroupUpdate {
+	_u.mutation.SetProductLine(v)
+	return _u
+}
+
+// SetNillableProductLine sets the "product_line" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableProductLine(v *string) *GroupUpdate {
+	if v != nil {
+		_u.SetProductLine(*v)
+	}
+	return _u
+}
+
+// SetCostMultiplier sets the "cost_multiplier" field.
+func (_u *GroupUpdate) SetCostMultiplier(v float64) *GroupUpdate {
+	_u.mutation.ResetCostMultiplier()
+	_u.mutation.SetCostMultiplier(v)
+	return _u
+}
+
+// SetNillableCostMultiplier sets the "cost_multiplier" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableCostMultiplier(v *float64) *GroupUpdate {
+	if v != nil {
+		_u.SetCostMultiplier(*v)
+	}
+	return _u
+}
+
+// AddCostMultiplier adds value to the "cost_multiplier" field.
+func (_u *GroupUpdate) AddCostMultiplier(v float64) *GroupUpdate {
+	_u.mutation.AddCostMultiplier(v)
+	return _u
+}
+
+// SetPayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field.
+func (_u *GroupUpdate) SetPayAsYouGoPricePerUsd(v float64) *GroupUpdate {
+	_u.mutation.ResetPayAsYouGoPricePerUsd()
+	_u.mutation.SetPayAsYouGoPricePerUsd(v)
+	return _u
+}
+
+// SetNillablePayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillablePayAsYouGoPricePerUsd(v *float64) *GroupUpdate {
+	if v != nil {
+		_u.SetPayAsYouGoPricePerUsd(*v)
+	}
+	return _u
+}
+
+// AddPayAsYouGoPricePerUsd adds value to the "pay_as_you_go_price_per_usd" field.
+func (_u *GroupUpdate) AddPayAsYouGoPricePerUsd(v float64) *GroupUpdate {
+	_u.mutation.AddPayAsYouGoPricePerUsd(v)
+	return _u
+}
+
+// SetLossCoefficient sets the "loss_coefficient" field.
+func (_u *GroupUpdate) SetLossCoefficient(v float64) *GroupUpdate {
+	_u.mutation.ResetLossCoefficient()
+	_u.mutation.SetLossCoefficient(v)
+	return _u
+}
+
+// SetNillableLossCoefficient sets the "loss_coefficient" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableLossCoefficient(v *float64) *GroupUpdate {
+	if v != nil {
+		_u.SetLossCoefficient(*v)
+	}
+	return _u
+}
+
+// AddLossCoefficient adds value to the "loss_coefficient" field.
+func (_u *GroupUpdate) AddLossCoefficient(v float64) *GroupUpdate {
+	_u.mutation.AddLossCoefficient(v)
+	return _u
+}
+
+// SetMaxDiscountPct sets the "max_discount_pct" field.
+func (_u *GroupUpdate) SetMaxDiscountPct(v float64) *GroupUpdate {
+	_u.mutation.ResetMaxDiscountPct()
+	_u.mutation.SetMaxDiscountPct(v)
+	return _u
+}
+
+// SetNillableMaxDiscountPct sets the "max_discount_pct" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableMaxDiscountPct(v *float64) *GroupUpdate {
+	if v != nil {
+		_u.SetMaxDiscountPct(*v)
+	}
+	return _u
+}
+
+// AddMaxDiscountPct adds value to the "max_discount_pct" field.
+func (_u *GroupUpdate) AddMaxDiscountPct(v float64) *GroupUpdate {
+	_u.mutation.AddMaxDiscountPct(v)
+	return _u
+}
+
+// SetConcurrencyLimit sets the "concurrency_limit" field.
+func (_u *GroupUpdate) SetConcurrencyLimit(v int) *GroupUpdate {
+	_u.mutation.ResetConcurrencyLimit()
+	_u.mutation.SetConcurrencyLimit(v)
+	return _u
+}
+
+// SetNillableConcurrencyLimit sets the "concurrency_limit" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableConcurrencyLimit(v *int) *GroupUpdate {
+	if v != nil {
+		_u.SetConcurrencyLimit(*v)
+	}
+	return _u
+}
+
+// AddConcurrencyLimit adds value to the "concurrency_limit" field.
+func (_u *GroupUpdate) AddConcurrencyLimit(v int) *GroupUpdate {
+	_u.mutation.AddConcurrencyLimit(v)
+	return _u
+}
+
+// SetCircuitBreakerEnabled sets the "circuit_breaker_enabled" field.
+func (_u *GroupUpdate) SetCircuitBreakerEnabled(v bool) *GroupUpdate {
+	_u.mutation.SetCircuitBreakerEnabled(v)
+	return _u
+}
+
+// SetNillableCircuitBreakerEnabled sets the "circuit_breaker_enabled" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableCircuitBreakerEnabled(v *bool) *GroupUpdate {
+	if v != nil {
+		_u.SetCircuitBreakerEnabled(*v)
+	}
+	return _u
+}
+
+// SetExclusiveQuota sets the "exclusive_quota" field.
+func (_u *GroupUpdate) SetExclusiveQuota(v bool) *GroupUpdate {
+	_u.mutation.SetExclusiveQuota(v)
+	return _u
+}
+
+// SetNillableExclusiveQuota sets the "exclusive_quota" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableExclusiveQuota(v *bool) *GroupUpdate {
+	if v != nil {
+		_u.SetExclusiveQuota(*v)
+	}
+	return _u
+}
+
+// SetWhitelistOnly sets the "whitelist_only" field.
+func (_u *GroupUpdate) SetWhitelistOnly(v bool) *GroupUpdate {
+	_u.mutation.SetWhitelistOnly(v)
+	return _u
+}
+
+// SetNillableWhitelistOnly sets the "whitelist_only" field if the given value is not nil.
+func (_u *GroupUpdate) SetNillableWhitelistOnly(v *bool) *GroupUpdate {
+	if v != nil {
+		_u.SetWhitelistOnly(*v)
+	}
+	return _u
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_u *GroupUpdate) AddAPIKeyIDs(ids ...int64) *GroupUpdate {
 	_u.mutation.AddAPIKeyIDs(ids...)
@@ -1258,6 +1419,11 @@ func (_u *GroupUpdate) check() error {
 			return &ValidationError{Name: "max_reasoning_effort", err: fmt.Errorf(`ent: validator failed for field "Group.max_reasoning_effort": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ProductLine(); ok {
+		if err := group.ProductLineValidator(v); err != nil {
+			return &ValidationError{Name: "product_line", err: fmt.Errorf(`ent: validator failed for field "Group.product_line": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1543,6 +1709,48 @@ func (_u *GroupUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, group.FieldReasoningEffortMappings, value)
 		})
+	}
+	if value, ok := _u.mutation.ProductLine(); ok {
+		_spec.SetField(group.FieldProductLine, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CostMultiplier(); ok {
+		_spec.SetField(group.FieldCostMultiplier, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedCostMultiplier(); ok {
+		_spec.AddField(group.FieldCostMultiplier, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.PayAsYouGoPricePerUsd(); ok {
+		_spec.SetField(group.FieldPayAsYouGoPricePerUsd, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedPayAsYouGoPricePerUsd(); ok {
+		_spec.AddField(group.FieldPayAsYouGoPricePerUsd, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.LossCoefficient(); ok {
+		_spec.SetField(group.FieldLossCoefficient, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedLossCoefficient(); ok {
+		_spec.AddField(group.FieldLossCoefficient, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.MaxDiscountPct(); ok {
+		_spec.SetField(group.FieldMaxDiscountPct, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedMaxDiscountPct(); ok {
+		_spec.AddField(group.FieldMaxDiscountPct, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ConcurrencyLimit(); ok {
+		_spec.SetField(group.FieldConcurrencyLimit, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedConcurrencyLimit(); ok {
+		_spec.AddField(group.FieldConcurrencyLimit, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.CircuitBreakerEnabled(); ok {
+		_spec.SetField(group.FieldCircuitBreakerEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.ExclusiveQuota(); ok {
+		_spec.SetField(group.FieldExclusiveQuota, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.WhitelistOnly(); ok {
+		_spec.SetField(group.FieldWhitelistOnly, field.TypeBool, value)
 	}
 	if _u.mutation.APIKeysCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -2775,6 +2983,167 @@ func (_u *GroupUpdateOne) AppendReasoningEffortMappings(v []domain.ReasoningEffo
 	return _u
 }
 
+// SetProductLine sets the "product_line" field.
+func (_u *GroupUpdateOne) SetProductLine(v string) *GroupUpdateOne {
+	_u.mutation.SetProductLine(v)
+	return _u
+}
+
+// SetNillableProductLine sets the "product_line" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableProductLine(v *string) *GroupUpdateOne {
+	if v != nil {
+		_u.SetProductLine(*v)
+	}
+	return _u
+}
+
+// SetCostMultiplier sets the "cost_multiplier" field.
+func (_u *GroupUpdateOne) SetCostMultiplier(v float64) *GroupUpdateOne {
+	_u.mutation.ResetCostMultiplier()
+	_u.mutation.SetCostMultiplier(v)
+	return _u
+}
+
+// SetNillableCostMultiplier sets the "cost_multiplier" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableCostMultiplier(v *float64) *GroupUpdateOne {
+	if v != nil {
+		_u.SetCostMultiplier(*v)
+	}
+	return _u
+}
+
+// AddCostMultiplier adds value to the "cost_multiplier" field.
+func (_u *GroupUpdateOne) AddCostMultiplier(v float64) *GroupUpdateOne {
+	_u.mutation.AddCostMultiplier(v)
+	return _u
+}
+
+// SetPayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field.
+func (_u *GroupUpdateOne) SetPayAsYouGoPricePerUsd(v float64) *GroupUpdateOne {
+	_u.mutation.ResetPayAsYouGoPricePerUsd()
+	_u.mutation.SetPayAsYouGoPricePerUsd(v)
+	return _u
+}
+
+// SetNillablePayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillablePayAsYouGoPricePerUsd(v *float64) *GroupUpdateOne {
+	if v != nil {
+		_u.SetPayAsYouGoPricePerUsd(*v)
+	}
+	return _u
+}
+
+// AddPayAsYouGoPricePerUsd adds value to the "pay_as_you_go_price_per_usd" field.
+func (_u *GroupUpdateOne) AddPayAsYouGoPricePerUsd(v float64) *GroupUpdateOne {
+	_u.mutation.AddPayAsYouGoPricePerUsd(v)
+	return _u
+}
+
+// SetLossCoefficient sets the "loss_coefficient" field.
+func (_u *GroupUpdateOne) SetLossCoefficient(v float64) *GroupUpdateOne {
+	_u.mutation.ResetLossCoefficient()
+	_u.mutation.SetLossCoefficient(v)
+	return _u
+}
+
+// SetNillableLossCoefficient sets the "loss_coefficient" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableLossCoefficient(v *float64) *GroupUpdateOne {
+	if v != nil {
+		_u.SetLossCoefficient(*v)
+	}
+	return _u
+}
+
+// AddLossCoefficient adds value to the "loss_coefficient" field.
+func (_u *GroupUpdateOne) AddLossCoefficient(v float64) *GroupUpdateOne {
+	_u.mutation.AddLossCoefficient(v)
+	return _u
+}
+
+// SetMaxDiscountPct sets the "max_discount_pct" field.
+func (_u *GroupUpdateOne) SetMaxDiscountPct(v float64) *GroupUpdateOne {
+	_u.mutation.ResetMaxDiscountPct()
+	_u.mutation.SetMaxDiscountPct(v)
+	return _u
+}
+
+// SetNillableMaxDiscountPct sets the "max_discount_pct" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableMaxDiscountPct(v *float64) *GroupUpdateOne {
+	if v != nil {
+		_u.SetMaxDiscountPct(*v)
+	}
+	return _u
+}
+
+// AddMaxDiscountPct adds value to the "max_discount_pct" field.
+func (_u *GroupUpdateOne) AddMaxDiscountPct(v float64) *GroupUpdateOne {
+	_u.mutation.AddMaxDiscountPct(v)
+	return _u
+}
+
+// SetConcurrencyLimit sets the "concurrency_limit" field.
+func (_u *GroupUpdateOne) SetConcurrencyLimit(v int) *GroupUpdateOne {
+	_u.mutation.ResetConcurrencyLimit()
+	_u.mutation.SetConcurrencyLimit(v)
+	return _u
+}
+
+// SetNillableConcurrencyLimit sets the "concurrency_limit" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableConcurrencyLimit(v *int) *GroupUpdateOne {
+	if v != nil {
+		_u.SetConcurrencyLimit(*v)
+	}
+	return _u
+}
+
+// AddConcurrencyLimit adds value to the "concurrency_limit" field.
+func (_u *GroupUpdateOne) AddConcurrencyLimit(v int) *GroupUpdateOne {
+	_u.mutation.AddConcurrencyLimit(v)
+	return _u
+}
+
+// SetCircuitBreakerEnabled sets the "circuit_breaker_enabled" field.
+func (_u *GroupUpdateOne) SetCircuitBreakerEnabled(v bool) *GroupUpdateOne {
+	_u.mutation.SetCircuitBreakerEnabled(v)
+	return _u
+}
+
+// SetNillableCircuitBreakerEnabled sets the "circuit_breaker_enabled" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableCircuitBreakerEnabled(v *bool) *GroupUpdateOne {
+	if v != nil {
+		_u.SetCircuitBreakerEnabled(*v)
+	}
+	return _u
+}
+
+// SetExclusiveQuota sets the "exclusive_quota" field.
+func (_u *GroupUpdateOne) SetExclusiveQuota(v bool) *GroupUpdateOne {
+	_u.mutation.SetExclusiveQuota(v)
+	return _u
+}
+
+// SetNillableExclusiveQuota sets the "exclusive_quota" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableExclusiveQuota(v *bool) *GroupUpdateOne {
+	if v != nil {
+		_u.SetExclusiveQuota(*v)
+	}
+	return _u
+}
+
+// SetWhitelistOnly sets the "whitelist_only" field.
+func (_u *GroupUpdateOne) SetWhitelistOnly(v bool) *GroupUpdateOne {
+	_u.mutation.SetWhitelistOnly(v)
+	return _u
+}
+
+// SetNillableWhitelistOnly sets the "whitelist_only" field if the given value is not nil.
+func (_u *GroupUpdateOne) SetNillableWhitelistOnly(v *bool) *GroupUpdateOne {
+	if v != nil {
+		_u.SetWhitelistOnly(*v)
+	}
+	return _u
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_u *GroupUpdateOne) AddAPIKeyIDs(ids ...int64) *GroupUpdateOne {
 	_u.mutation.AddAPIKeyIDs(ids...)
@@ -3093,6 +3462,11 @@ func (_u *GroupUpdateOne) check() error {
 			return &ValidationError{Name: "max_reasoning_effort", err: fmt.Errorf(`ent: validator failed for field "Group.max_reasoning_effort": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ProductLine(); ok {
+		if err := group.ProductLineValidator(v); err != nil {
+			return &ValidationError{Name: "product_line", err: fmt.Errorf(`ent: validator failed for field "Group.product_line": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -3395,6 +3769,48 @@ func (_u *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error)
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, group.FieldReasoningEffortMappings, value)
 		})
+	}
+	if value, ok := _u.mutation.ProductLine(); ok {
+		_spec.SetField(group.FieldProductLine, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.CostMultiplier(); ok {
+		_spec.SetField(group.FieldCostMultiplier, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedCostMultiplier(); ok {
+		_spec.AddField(group.FieldCostMultiplier, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.PayAsYouGoPricePerUsd(); ok {
+		_spec.SetField(group.FieldPayAsYouGoPricePerUsd, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedPayAsYouGoPricePerUsd(); ok {
+		_spec.AddField(group.FieldPayAsYouGoPricePerUsd, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.LossCoefficient(); ok {
+		_spec.SetField(group.FieldLossCoefficient, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedLossCoefficient(); ok {
+		_spec.AddField(group.FieldLossCoefficient, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.MaxDiscountPct(); ok {
+		_spec.SetField(group.FieldMaxDiscountPct, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedMaxDiscountPct(); ok {
+		_spec.AddField(group.FieldMaxDiscountPct, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.ConcurrencyLimit(); ok {
+		_spec.SetField(group.FieldConcurrencyLimit, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedConcurrencyLimit(); ok {
+		_spec.AddField(group.FieldConcurrencyLimit, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.CircuitBreakerEnabled(); ok {
+		_spec.SetField(group.FieldCircuitBreakerEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.ExclusiveQuota(); ok {
+		_spec.SetField(group.FieldExclusiveQuota, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.WhitelistOnly(); ok {
+		_spec.SetField(group.FieldWhitelistOnly, field.TypeBool, value)
 	}
 	if _u.mutation.APIKeysCleared() {
 		edge := &sqlgraph.EdgeSpec{

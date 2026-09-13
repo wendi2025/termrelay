@@ -12,6 +12,9 @@ import AdminAccountsPage from '../smirel/pages/AdminAccountsPage.vue'
 import AdminGroupsPage from '../smirel/pages/AdminGroupsPage.vue'
 import AdminChannelsPage from '../smirel/pages/AdminChannelsPage.vue'
 import AdminPaymentDashboardPage from '../smirel/pages/AdminPaymentDashboardPage.vue'
+import AdminPaymentProvidersPage from '../smirel/pages/AdminPaymentProvidersPage.vue'
+import AdminPaymentPlansPage from '../smirel/pages/AdminPaymentPlansPage.vue'
+import AdminPaymentConfigPage from '../smirel/pages/AdminPaymentConfigPage.vue'
 import AdminOrdersPage from '../smirel/pages/AdminOrdersPage.vue'
 import ModelCatalogPage from '../smirel/pages/ModelCatalogPage.vue'
 import PublicPage from '../smirel/pages/PublicPage.vue'
@@ -49,7 +52,13 @@ const workspaceRoutes: RouteRecordRaw[] = [
             ? AdminPaymentDashboardPage
             : item.path === '/admin/orders'
               ? AdminOrdersPage
-              : WorkspacePage,
+              : item.path === '/admin/orders/plans'
+                ? AdminPaymentPlansPage
+                : item.path === '/admin/payment/providers'
+                  ? AdminPaymentProvidersPage
+                  : item.path === '/admin/payment/config'
+                    ? AdminPaymentConfigPage
+                    : WorkspacePage,
     meta: { shell: 'workspace', requiresAuth: true, requiresAdmin: true, title: item.label, feature: item.feature },
   })),
 ]
@@ -67,6 +76,8 @@ const routes: RouteRecordRaw[] = [
   { path: '/legal/:documentId', name: 'LegalDocument', component: PublicPage, meta: { title: '法律文档', publicKind: 'legal' } },
   { path: '/setup', name: 'Setup', component: PublicPage, meta: { title: '初始化', publicKind: 'setup' } },
   { path: '/payment/result', name: 'PaymentResult', component: PublicPage, meta: { title: '支付结果', publicKind: 'payment' } },
+  { path: '/payment/redirect', name: 'PaymentRedirect', component: PublicPage, meta: { title: '支付跳转', publicKind: 'payment' } },
+  { path: '/payment/wechat-oauth', name: 'PaymentWechatOAuth', component: PublicPage, meta: { title: '微信授权', publicKind: 'payment' } },
   { path: '/payment/qrcode', name: 'PaymentQRCode', component: PublicPage, meta: { title: '支付', publicKind: 'payment', requiresAuth: true } },
   { path: '/payment/stripe', name: 'StripePayment', component: PublicPage, meta: { title: '支付', publicKind: 'payment' } },
   { path: '/payment/stripe-popup', name: 'StripePayment', component: PublicPage, meta: { title: '支付', publicKind: 'payment' } },

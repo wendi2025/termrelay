@@ -1,441 +1,313 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import WorkspaceNavIcon from '../components/WorkspaceNavIcon.vue'
+// Admin Orders —— 真实订单列表 + 取消/重试/退款
+import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import {
+  paymentAdminApi,
+  type AdminPaymentOrder,
+  type OrderStatus,
+  type PaginatedResponse,
+} from '../api/payment'
+import { getErrorMessage } from '../core/api'
+import PaymentStatusBadge from '../components/payment/PaymentStatusBadge.vue'
 
-type OrderStatus = 'all' | 'paid' | 'pending' | 'failed' | 'refunded'
+const { t } = useI18n()
 
-type OrderRow = {
-  id: string
-  user: string
-  product: string
-  amount: number
-  channel: string
-  status: Exclude<OrderStatus, 'all'>
-  createdAt: string
-}
+type Filter = 'all' | 'paid' | 'pending' | 'failed' | 'refunded'
 
+const loading = ref(false)
+const error = ref('')
+const orders = ref<AdminPaymentOrder[]>([])
+const total = ref(0)
+const page = ref(1)
+const pageSize = ref(20)
 const query = ref('')
-const activeStatus = ref<OrderStatus>('all')
+const activeFilter = ref<Filter>('all')
 
-const orders: OrderRow[] = [
-  { id: 'SM202609070184', user: 'cheng@example.com', product: 'API 余额充值', amount: 299, channel: '支付宝', status: 'paid', createdAt: '09-07 10:42' },
-  { id: 'SM202609070183', user: 'lin@example.com', product: 'API 余额充值', amount: 99, channel: '微信支付', status: 'paid', createdAt: '09-07 10:38' },
-  { id: 'SM202609070182', user: 'alex@example.com', product: 'API 余额充值', amount: 499, channel: 'Stripe', status: 'pending', createdAt: '09-07 10:31' },
-  { id: 'SM202609070181', user: 'xu@example.com', product: 'API 余额充值', amount: 59, channel: '支付宝', status: 'failed', createdAt: '09-07 10:27' },
-  { id: 'SM202609070180', user: 'mika@example.com', product: 'API 余额充值', amount: 199, channel: 'Stripe', status: 'paid', createdAt: '09-07 10:18' },
-  { id: 'SM202609070179', user: 'ren@example.com', product: 'API 余额充值', amount: 129, channel: '微信支付', status: 'refunded', createdAt: '09-07 09:56' },
-  { id: 'SM202609070178', user: 'yang@example.com', product: 'API 余额充值', amount: 399, channel: '支付宝', status: 'paid', createdAt: '09-07 09:41' },
-]
-
-const statusMeta: Record<Exclude<OrderStatus, 'all'>, { label: string; tone: string }> = {
-  paid: { label: '已支付', tone: 'success' },
-  pending: { label: '处理中', tone: 'warning' },
-  failed: { label: '支付失败', tone: 'danger' },
-  refunded: { label: '已退款', tone: 'muted' },
-}
-
-const filters = computed(() => [
-  { value: 'all' as const, label: '全部', count: orders.length },
-  { value: 'paid' as const, label: '已支付', count: orders.filter((item) => item.status === 'paid').length },
-  { value: 'pending' as const, label: '处理中', count: orders.filter((item) => item.status === 'pending').length },
-  { value: 'failed' as const, label: '失败', count: orders.filter((item) => item.status === 'failed').length },
-  { value: 'refunded' as const, label: '退款', count: orders.filter((item) => item.status === 'refunded').length },
+const filterDefs = computed<{ key: Filter; label: string; status?: OrderStatus }[]>(() => [
+  { key: 'all', label: t('payment.adminOrders.filterAll') },
+  { key: 'paid', label: t('payment.adminOrders.filterPaid'), status: 'COMPLETED' },
+  { key: 'pending', label: t('payment.adminOrders.filterPending'), status: 'PENDING' },
+  { key: 'failed', label: t('payment.adminOrders.filterFailed'), status: 'FAILED' },
+  { key: 'refunded', label: t('payment.adminOrders.filterRefunded'), status: 'REFUNDED' },
 ])
 
-const filteredOrders = computed(() => {
-  const keyword = query.value.trim().toLowerCase()
-  return orders.filter((item) => {
-    const matchesStatus = activeStatus.value === 'all' || item.status === activeStatus.value
-    const matchesQuery = !keyword || [item.id, item.user, item.product, item.channel]
-      .some((value) => value.toLowerCase().includes(keyword))
-    return matchesStatus && matchesQuery
-  })
-})
+const refundModalOpen = ref(false)
+const refundTarget = ref<AdminPaymentOrder | null>(null)
+const refundAmount = ref<number | null>(null)
+const refundReason = ref('')
+const refundForce = ref(false)
+const refundSubmitting = ref(false)
 
-const paidOrders = computed(() => orders.filter((item) => item.status === 'paid'))
-const paidAmount = computed(() => paidOrders.value.reduce((sum, item) => sum + item.amount, 0))
-const attentionCount = computed(() => orders.filter((item) => item.status === 'pending' || item.status === 'failed').length)
+const actionBusyId = ref<number | null>(null)
 
-function money(value: number) {
-  return `¥${value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+async function load(): Promise<void> {
+  loading.value = true
+  error.value = ''
+  try {
+    const def = filterDefs.value.find((f) => f.key === activeFilter.value)
+    const r = (await paymentAdminApi.listOrders({
+      page: page.value,
+      page_size: pageSize.value,
+      status: def?.status,
+      q: query.value.trim() || undefined,
+    })) as PaginatedResponse<AdminPaymentOrder>
+    orders.value = r?.items || []
+    total.value = r?.total || 0
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(load)
+watch([activeFilter, page, pageSize], () => { load() })
+watch(query, () => { page.value = 1; load() })
+
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)))
+
+function channelOf(o: AdminPaymentOrder): string {
+  const p = o.provider_key || o.payment_type
+  return t('payment.method.' + p, p)
+}
+
+function fmtAmount(v: number | undefined): string {
+  const n = typeof v === 'number' ? v : 0
+  return `¥${n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function fmtDate(s: string | undefined): string {
+  if (!s) return '—'
+  return s.replace('T', ' ').slice(0, 19)
+}
+
+function userLabel(o: AdminPaymentOrder): string {
+  return o.user_email || o.user_name || `User #${o.user_id}`
+}
+
+async function doCancel(o: AdminPaymentOrder): Promise<void> {
+  if (!confirm(t('payment.adminOrders.cancelConfirm'))) return
+  actionBusyId.value = o.id
+  try {
+    await paymentAdminApi.cancelOrder(o.id)
+    await load()
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    actionBusyId.value = null
+  }
+}
+
+async function doRetry(o: AdminPaymentOrder): Promise<void> {
+  actionBusyId.value = o.id
+  try {
+    await paymentAdminApi.retryFulfillment(o.id)
+    await load()
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    actionBusyId.value = null
+  }
+}
+
+function openRefund(o: AdminPaymentOrder): void {
+  refundTarget.value = o
+  refundAmount.value = o.pay_amount
+  refundReason.value = ''
+  refundForce.value = false
+  refundModalOpen.value = true
+}
+
+function closeRefund(): void {
+  refundModalOpen.value = false
+  refundTarget.value = null
+  refundAmount.value = null
+  refundReason.value = ''
+  refundForce.value = false
+}
+
+async function submitRefund(): Promise<void> {
+  if (!refundTarget.value) return
+  refundSubmitting.value = true
+  try {
+    await paymentAdminApi.refund(refundTarget.value.id, {
+      amount: refundAmount.value,
+      reason: refundReason.value,
+      force: refundForce.value,
+    })
+    closeRefund()
+    await load()
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    refundSubmitting.value = false
+  }
 }
 </script>
 
 <template>
-  <section class="workspace-page admin-orders-page">
+  <section class="workspace-page payment-orders">
     <header class="orders-heading">
       <div>
-        <div class="orders-eyebrow"><i></i><span>ORDER OPERATIONS</span></div>
-        <h1>订单管理</h1>
-        <p>集中查看平台订单、支付状态与异常交易。</p>
+        <div class="orders-eyebrow"><i></i><span>ORDERS</span></div>
+        <h1>{{ t('payment.adminOrders.title') }}</h1>
+        <p>{{ t('payment.adminOrders.description') }}</p>
       </div>
       <div class="orders-heading-actions">
-        <span class="orders-demo-badge"><i></i>示例数据</span>
-        <RouterLink class="orders-outline-link" to="/admin/orders/dashboard">
-          支付概览 <WorkspaceNavIcon name="chart" />
-        </RouterLink>
+        <button type="button" class="refresh-btn" :disabled="loading" @click="load">
+          {{ loading ? t('payment.loading') : t('payment.refresh') }}
+        </button>
+        <input v-model="query" class="orders-search" type="search" :placeholder="t('payment.ordersSearch')" />
       </div>
     </header>
 
-    <section class="orders-summary" aria-label="订单概览">
-      <article>
-        <span>当前记录</span>
-        <strong>{{ orders.length }}</strong>
-        <small>ORDERS</small>
-      </article>
-      <article>
-        <span>已支付</span>
-        <strong>{{ paidOrders.length }}</strong>
-        <small>{{ Math.round((paidOrders.length / orders.length) * 100) }}% SUCCESS</small>
-      </article>
-      <article>
-        <span>实收金额</span>
-        <strong>{{ money(paidAmount) }}</strong>
-        <small>PAID AMOUNT</small>
-      </article>
-      <article :class="{ attention: attentionCount > 0 }">
-        <span>需要关注</span>
-        <strong>{{ attentionCount }}</strong>
-        <small>PENDING / FAILED</small>
-      </article>
-    </section>
+    <p v-if="error" class="error-banner">{{ error }}</p>
+
+    <nav class="orders-filters" role="tablist">
+      <button
+        v-for="f in filterDefs"
+        :key="f.key"
+        type="button"
+        role="tab"
+        :aria-selected="activeFilter === f.key"
+        :class="['filter-btn', { active: activeFilter === f.key }]"
+        @click="activeFilter = f.key"
+      >
+        {{ f.label }}
+      </button>
+    </nav>
 
     <section class="orders-panel">
-      <header class="orders-panel-head">
-        <div class="orders-panel-title">
-          <span>ORDERS</span>
-          <strong>全部订单</strong>
-          <small>{{ filteredOrders.length }} 条结果</small>
+      <div v-if="!orders.length && !loading" class="empty-state">{{ t('payment.adminOrders.empty') }}</div>
+      <table v-else class="orders-table">
+        <thead>
+          <tr>
+            <th>{{ t('payment.adminOrders.colOrder') }}</th>
+            <th>{{ t('payment.adminOrders.colUser') }}</th>
+            <th>{{ t('payment.adminOrders.colProduct') }}</th>
+            <th>{{ t('payment.adminOrders.colAmount') }}</th>
+            <th>{{ t('payment.adminOrders.colChannel') }}</th>
+            <th>{{ t('payment.adminOrders.colStatus') }}</th>
+            <th>{{ t('payment.adminOrders.colCreatedAt') }}</th>
+            <th>{{ t('payment.adminOrders.colAction') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="o in orders" :key="o.id">
+            <td class="mono">{{ o.out_trade_no }}</td>
+            <td>{{ userLabel(o) }}</td>
+            <td>{{ o.plan_id ? `Plan #${o.plan_id}` : t('payment.tabRecharge') }}</td>
+            <td>{{ fmtAmount(o.pay_amount) }}</td>
+            <td>{{ channelOf(o) }}</td>
+            <td><PaymentStatusBadge :status="o.status" /></td>
+            <td class="mono">{{ fmtDate(o.created_at) }}</td>
+            <td class="action-cell">
+              <button v-if="o.status === 'PENDING' || o.status === 'FAILED'" type="button" class="action danger" :disabled="actionBusyId === o.id" @click="doCancel(o)">
+                {{ t('payment.adminOrders.actionCancel') }}
+              </button>
+              <button v-if="o.status === 'FAILED' || o.status === 'RECHARGING' || o.status === 'REFUND_FAILED'" type="button" class="action" :disabled="actionBusyId === o.id" @click="doRetry(o)">
+                {{ t('payment.adminOrders.actionRetry') }}
+              </button>
+              <button v-if="o.status === 'COMPLETED' || o.status === 'PAID' || o.status === 'PARTIALLY_REFUNDED'" type="button" class="action primary" @click="openRefund(o)">
+                {{ t('payment.adminOrders.actionRefund') }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <footer v-if="totalPages > 1" class="orders-pager">
+        <span>{{ total }} {{ t('payment.ordersTotal') }}</span>
+        <div class="pager-buttons">
+          <button type="button" class="pager-btn" :disabled="page <= 1" @click="page = Math.max(1, page - 1)">‹</button>
+          <span>{{ page }} / {{ totalPages }}</span>
+          <button type="button" class="pager-btn" :disabled="page >= totalPages" @click="page = Math.min(totalPages, page + 1)">›</button>
         </div>
-
-        <label class="orders-search">
-          <WorkspaceNavIcon name="search" />
-          <input v-model="query" type="search" placeholder="搜索订单号、用户或渠道" aria-label="搜索订单" />
-          <button v-if="query" type="button" aria-label="清空搜索" @click="query = ''">×</button>
-        </label>
-      </header>
-
-      <nav class="orders-filters" aria-label="订单状态筛选">
-        <button
-          v-for="item in filters"
-          :key="item.value"
-          type="button"
-          :class="{ active: activeStatus === item.value }"
-          @click="activeStatus = item.value"
-        >
-          <span>{{ item.label }}</span>
-          <b>{{ item.count }}</b>
-        </button>
-      </nav>
-
-      <div class="orders-table-wrap">
-        <div class="orders-table">
-          <div class="orders-row orders-table-head">
-            <span>订单号</span>
-            <span>用户</span>
-            <span>订单内容</span>
-            <span>金额</span>
-            <span>支付渠道</span>
-            <span>状态</span>
-            <span>创建时间</span>
-          </div>
-
-          <div v-for="item in filteredOrders" :key="item.id" class="orders-row">
-            <code>{{ item.id }}</code>
-            <span class="order-user">{{ item.user }}</span>
-            <span>{{ item.product }}</span>
-            <strong class="order-amount">{{ money(item.amount) }}</strong>
-            <span class="order-channel">{{ item.channel }}</span>
-            <span>
-              <i class="order-status" :class="`tone-${statusMeta[item.status].tone}`">
-                <b></b>{{ statusMeta[item.status].label }}
-              </i>
-            </span>
-            <time>{{ item.createdAt }}</time>
-          </div>
-
-          <div v-if="!filteredOrders.length" class="orders-empty">
-            <span><WorkspaceNavIcon name="receipt" /></span>
-            <strong>没有匹配的订单</strong>
-            <small>调整搜索条件或订单状态后重试。</small>
-          </div>
-        </div>
-      </div>
-
-      <footer class="orders-panel-foot">
-        <span>当前展示商业版订单管理 UI 示例。</span>
-        <span>真实订单接口接入后，此处直接替换为实时数据，不改变页面结构。</span>
       </footer>
     </section>
+
+    <div v-if="refundModalOpen" class="modal-mask" @click.self="closeRefund">
+      <div class="modal-card">
+        <header><h3>{{ t('payment.adminOrders.refundPrompt') }}</h3></header>
+        <p class="modal-sub">订单 {{ refundTarget?.out_trade_no }}</p>
+        <label class="field">
+          <span>{{ t('payment.adminOrders.refundAmount') }}</span>
+          <input v-model.number="refundAmount" type="number" step="0.01" min="0" :max="refundTarget?.pay_amount || 0" />
+        </label>
+        <label class="field">
+          <span>{{ t('payment.adminOrders.refundReason') }}</span>
+          <textarea v-model="refundReason" rows="3" />
+        </label>
+        <label class="checkbox">
+          <input v-model="refundForce" type="checkbox" />
+          <span>{{ t('payment.adminOrders.refundForce') }}</span>
+        </label>
+        <footer class="modal-actions">
+          <button type="button" class="btn ghost" :disabled="refundSubmitting" @click="closeRefund">{{ t('payment.cancel') }}</button>
+          <button type="button" class="btn primary" :disabled="refundSubmitting" @click="submitRefund">
+            {{ refundSubmitting ? t('payment.submitting') : t('payment.adminOrders.actionRefund') }}
+          </button>
+        </footer>
+      </div>
+    </div>
   </section>
 </template>
 
 <style scoped>
-.admin-orders-page {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding-bottom: 36px;
-  color: #e9ecf0;
-}
-
-.orders-heading {
-  min-height: 112px;
-  margin-bottom: 26px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.orders-eyebrow {
-  margin-bottom: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #69717b;
-  font: 700 .65rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  letter-spacing: .12em;
-}
-
-.orders-eyebrow i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #4fc99b;
-}
-
-.orders-heading h1 {
-  margin: 0;
-  color: #f7f8fa;
-  font-size: 2.15rem;
-  line-height: 1.05;
-  font-weight: 680;
-  letter-spacing: -.042em;
-}
-
-.orders-heading p {
-  margin: 9px 0 0;
-  color: #7d8590;
-  font-size: .88rem;
-  line-height: 1.55;
-}
-
-.orders-heading-actions {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.orders-demo-badge,
-.orders-outline-link {
-  height: 38px;
-  padding: 0 13px;
-  border: 1px solid #272b32;
-  border-radius: 9px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: #0e1014;
-  color: #9199a3;
-  font-size: .73rem;
-}
-
-.orders-demo-badge i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #d3a04f;
-}
-
-.orders-outline-link {
-  color: #c5cad0;
-  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
-}
-
-.orders-outline-link :deep(.workspace-nav-icon) { width: 14px; height: 14px; color: #707984; }
-.orders-outline-link:hover { border-color: #3a4048; background: #14171b; color: #fff; }
-
-.orders-summary {
-  margin-bottom: 14px;
-  border: 1px solid #22262d;
-  border-radius: 12px;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  overflow: hidden;
-  background: #0f1115;
-}
-
-.orders-summary article {
-  min-height: 126px;
-  padding: 20px 22px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border-right: 1px solid #22262d;
-}
-
-.orders-summary article:last-child { border-right: 0; }
-.orders-summary article > span { color: #858d97; font-size: .76rem; font-weight: 600; }
-.orders-summary article > strong { margin-top: 10px; color: #f1f3f5; font-size: 1.62rem; line-height: 1; font-weight: 670; letter-spacing: -.035em; }
-.orders-summary article > small { margin-top: 10px; color: #5f6873; font: 650 .59rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .09em; }
-.orders-summary article.attention > strong { color: #e1b15f; }
-
-.orders-panel {
-  border: 1px solid #22262d;
-  border-radius: 12px;
-  background: #0d0f13;
-  overflow: hidden;
-}
-
-.orders-panel-head {
-  min-height: 82px;
-  padding: 16px 18px 16px 21px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  border-bottom: 1px solid #20242a;
-}
-
-.orders-panel-title { display: flex; align-items: baseline; gap: 9px; }
-.orders-panel-title > span { color: #626b75; font: 700 .6rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; }
-.orders-panel-title > strong { color: #e9ecf0; font-size: .96rem; font-weight: 650; }
-.orders-panel-title > small { color: #646d77; font-size: .68rem; }
-
-.orders-search {
-  width: min(330px, 36vw);
-  height: 40px;
-  padding: 0 10px 0 12px;
-  border: 1px solid #2a2f37;
-  border-radius: 8px;
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  background: #0a0c0f;
-  transition: border-color .15s ease, box-shadow .15s ease;
-}
-
-.orders-search:focus-within { border-color: #385d79; box-shadow: 0 0 0 3px rgba(47,150,232,.07); }
-.orders-search :deep(.workspace-nav-icon) { width: 15px; height: 15px; color: #68717b; }
-.orders-search input { width: 100%; border: 0; outline: 0; background: transparent; color: #dfe3e7; font: inherit; font-size: .78rem; }
-.orders-search input::placeholder { color: #59616b; }
-.orders-search button { width: 22px; height: 22px; border: 0; border-radius: 5px; background: transparent; color: #66707a; cursor: pointer; font-size: 1rem; }
-.orders-search button:hover { background: #171a20; color: #bdc3ca; }
-
-.orders-filters {
-  min-height: 54px;
-  padding: 9px 14px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  border-bottom: 1px solid #20242a;
-  background: #0f1115;
-}
-
-.orders-filters button {
-  min-height: 34px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: transparent;
-  color: #7d8590;
-  cursor: pointer;
-  font: inherit;
-  font-size: .73rem;
-  font-weight: 600;
-}
-
-.orders-filters button:hover { background: #15181d; color: #c8cdd3; }
-.orders-filters button.active { border-color: #2c3946; background: #111a23; color: #dce9f4; }
-.orders-filters button b { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; display: grid; place-items: center; background: #171a1f; color: #68717b; font-size: .63rem; }
-.orders-filters button.active b { background: #1a2a38; color: #80bde7; }
-
-.orders-table-wrap { width: 100%; overflow-x: auto; }
-.orders-table { min-width: 1040px; }
-.orders-row {
-  min-height: 58px;
-  padding: 0 20px;
-  display: grid;
-  grid-template-columns: 1.3fr 1.35fr 1.15fr .72fr .8fr .78fr .82fr;
-  gap: 16px;
-  align-items: center;
-  border-bottom: 1px solid #1d2026;
-  color: #9ca3ac;
-  font-size: .74rem;
-}
-
-.orders-row:not(.orders-table-head):hover { background: #111419; }
-.orders-row:last-of-type { border-bottom: 0; }
-.orders-table-head { min-height: 43px; background: #0b0d11; color: #626a74; font-size: .64rem; font-weight: 700; letter-spacing: .04em; }
-.orders-row code { color: #b9c1ca; font: 600 .7rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; }
-.order-user { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #aeb5bd; }
-.order-amount { color: #e5e8eb; font-size: .77rem; font-weight: 650; }
-.order-channel { color: #a7aeb7; }
-.orders-row time { color: #717a84; font: .68rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; }
-
-.order-status {
-  min-height: 25px;
-  width: max-content;
-  padding: 0 8px;
-  border: 1px solid #2b3037;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #12151a;
-  color: #929aa4;
-  font-size: .65rem;
-  font-style: normal;
-  font-weight: 620;
-}
-
-.order-status > b { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-.order-status.tone-success { border-color: rgba(76,195,148,.22); background: rgba(76,195,148,.06); color: #68cda7; }
-.order-status.tone-warning { border-color: rgba(211,160,79,.24); background: rgba(211,160,79,.06); color: #d4a75e; }
-.order-status.tone-danger { border-color: rgba(210,100,100,.22); background: rgba(210,100,100,.06); color: #d87979; }
-.order-status.tone-muted { color: #78818b; }
-
-.orders-empty { min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #6c7580; }
-.orders-empty > span { width: 40px; height: 40px; margin-bottom: 12px; border: 1px solid #282d34; border-radius: 10px; display: grid; place-items: center; background: #111419; }
-.orders-empty :deep(.workspace-nav-icon) { width: 18px; height: 18px; }
-.orders-empty strong { color: #b9c0c8; font-size: .8rem; }
-.orders-empty small { margin-top: 6px; font-size: .69rem; }
-
-.orders-panel-foot {
-  min-height: 48px;
-  padding: 0 20px;
-  border-top: 1px solid #20242a;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  color: #5f6872;
-  background: #0b0d11;
-  font-size: .65rem;
-}
-
-@media (max-width: 900px) {
-  .orders-heading { min-height: auto; align-items: flex-start; flex-direction: column; }
-  .orders-heading-actions { width: 100%; }
-  .orders-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .orders-summary article:nth-child(2) { border-right: 0; }
-  .orders-summary article:nth-child(-n+2) { border-bottom: 1px solid #22262d; }
-  .orders-panel-head { align-items: flex-start; flex-direction: column; }
-  .orders-search { width: 100%; }
-  .orders-panel-foot { padding: 12px 16px; align-items: flex-start; flex-direction: column; gap: 4px; }
-}
-
-@media (max-width: 560px) {
-  .orders-heading h1 { font-size: 1.8rem; }
-  .orders-summary { grid-template-columns: 1fr; }
-  .orders-summary article { min-height: 105px; border-right: 0; border-bottom: 1px solid #22262d; }
-  .orders-summary article:last-child { border-bottom: 0; }
-  .orders-heading-actions { flex-wrap: wrap; }
-  .orders-filters { overflow-x: auto; }
-}
+.payment-orders { width: 100%; max-width: 1280px; margin: 0 auto; padding: 12px 0 44px; }
+.orders-heading { display: flex; align-items: center; justify-content: space-between; min-height: 92px; margin-bottom: 22px; gap: 24px; }
+.orders-heading h1 { margin: 0; color: #f7f8fa; font-size: clamp(1.9rem, 2.4vw, 2.35rem); line-height: 1.08; font-weight: 680; letter-spacing: -.043em; }
+.orders-heading p { max-width: 640px; margin: 10px 0 0; color: #858d97; font-size: .88rem; line-height: 1.6; }
+.orders-eyebrow { display: inline-flex; align-items: center; gap: 8px; color: #6ec0f5; font: 700 .67rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .13em; }
+.orders-eyebrow i { width: 5px; height: 5px; border-radius: 50%; background: #6ec0f5; }
+.orders-heading-actions { display: inline-flex; align-items: center; gap: 10px; }
+.refresh-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; background: #16191f; border: 1px solid #2a2f37; color: #d6dbe1; font: 500 .8rem/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: border-color .2s; }
+.refresh-btn:hover:not(:disabled) { border-color: #3d4754; }
+.refresh-btn:disabled { opacity: .6; cursor: not-allowed; }
+.orders-search { width: 240px; padding: 8px 12px; border-radius: 8px; background: #0d0f12; border: 1px solid #2a2f37; color: #f7f8fa; font: 400 .82rem/1 ui-sans-serif, system-ui, sans-serif; }
+.orders-search:focus { outline: none; border-color: #4a93c5; }
+.orders-filters { display: flex; gap: 6px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #1d2128; }
+.filter-btn { padding: 7px 14px; border-radius: 7px; background: transparent; border: 1px solid transparent; color: #858d97; font: 500 .8rem/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: all .15s; }
+.filter-btn:hover { color: #d6dbe1; background: #16191f; }
+.filter-btn.active { color: #f7f8fa; background: #1d2128; border-color: #2a2f37; }
+.error-banner { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; background: rgba(239, 68, 68, .12); border: 1px solid rgba(239, 68, 68, .35); color: #fca5a5; font-size: .85rem; }
+.orders-panel { padding: 0; border-radius: 14px; background: #11141a; border: 1px solid #1d2128; overflow: hidden; }
+.orders-table { width: 100%; border-collapse: collapse; }
+.orders-table th { text-align: left; padding: 12px 14px; color: #6c727b; font: 500 .72rem/1 ui-sans-serif, system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid #1d2128; background: #0f1217; }
+.orders-table td { padding: 12px 14px; color: #d6dbe1; font-size: .82rem; border-bottom: 1px solid #161a20; }
+.orders-table tr:last-child td { border-bottom: 0; }
+.orders-table tr:hover td { background: #131820; }
+.mono { font: 500 .78rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; color: #b8bfc7; }
+.action-cell { white-space: nowrap; }
+.action { display: inline-block; padding: 5px 10px; margin-right: 6px; border-radius: 6px; background: #16191f; border: 1px solid #2a2f37; color: #d6dbe1; font: 500 .72rem/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: all .15s; }
+.action:hover:not(:disabled) { background: #1d2128; border-color: #3d4754; }
+.action:disabled { opacity: .5; cursor: not-allowed; }
+.action.danger { color: #fca5a5; border-color: rgba(239, 68, 68, .35); }
+.action.danger:hover:not(:disabled) { background: rgba(239, 68, 68, .1); }
+.action.primary { color: #6ec0f5; border-color: rgba(110, 192, 245, .35); }
+.action.primary:hover:not(:disabled) { background: rgba(110, 192, 245, .1); }
+.orders-pager { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-top: 1px solid #1d2128; color: #6c727b; font-size: .78rem; }
+.pager-buttons { display: inline-flex; align-items: center; gap: 12px; }
+.pager-btn { width: 30px; height: 30px; border-radius: 6px; background: #16191f; border: 1px solid #2a2f37; color: #d6dbe1; cursor: pointer; }
+.pager-btn:hover:not(:disabled) { border-color: #3d4754; }
+.pager-btn:disabled { opacity: .4; cursor: not-allowed; }
+.empty-state { padding: 56px 0; text-align: center; color: #6c727b; font-size: .85rem; }
+.modal-mask { position: fixed; inset: 0; background: rgba(8, 10, 14, .7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-card { width: min(440px, 90vw); padding: 24px; background: #11141a; border: 1px solid #1d2128; border-radius: 14px; }
+.modal-card h3 { margin: 0 0 4px; color: #f7f8fa; font-size: 1.05rem; font-weight: 600; }
+.modal-sub { margin: 0 0 16px; color: #6c727b; font-size: .78rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.field { display: block; margin-bottom: 14px; }
+.field span { display: block; margin-bottom: 6px; color: #b8bfc7; font-size: .78rem; }
+.field input, .field textarea { width: 100%; padding: 8px 12px; border-radius: 7px; background: #0d0f12; border: 1px solid #2a2f37; color: #f7f8fa; font: 400 .85rem/1.4 ui-sans-serif, system-ui, sans-serif; box-sizing: border-box; }
+.field input:focus, .field textarea:focus { outline: none; border-color: #4a93c5; }
+.checkbox { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #b8bfc7; font-size: .82rem; cursor: pointer; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.btn { padding: 8px 18px; border-radius: 7px; border: 1px solid transparent; font: 500 .82rem/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; }
+.btn.ghost { background: #16191f; border-color: #2a2f37; color: #d6dbe1; }
+.btn.ghost:hover:not(:disabled) { border-color: #3d4754; }
+.btn.primary { background: #4a93c5; color: #0d0f12; }
+.btn.primary:hover:not(:disabled) { background: #5fa3d5; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+@media (max-width: 900px) { .orders-heading { flex-direction: column; align-items: flex-start; } .orders-search { width: 100%; } .orders-table th, .orders-table td { padding: 8px; font-size: .72rem; } .action-cell { white-space: normal; } .action { margin-bottom: 4px; } }
 </style>

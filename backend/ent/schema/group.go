@@ -234,6 +234,58 @@ func (Group) Fields() []ent.Field {
 			Default([]domain.ReasoningEffortMapping{}).
 			SchemaType(map[string]string{dialect.Postgres: "jsonb"}).
 			Comment("OpenAI reasoning effort 自定义精确映射；先映射再应用上限"),
+
+		// ===== Smirel 订阅/定价扩展字段（migration 193） =====
+		// 产品线标识（与 platform 字段不同：platform 表示上游账号类型，product_line 表示面向用户的产品线）
+		// 取值：gpt_plus / gpt_pro / claude_no_fable / claude_fable / domestic / custom
+		field.String("product_line").
+			MaxLen(32).
+			Default("custom").
+			Comment("产品线标识：gpt_plus/gpt_pro/claude_no_fable/claude_fable/domestic/custom"),
+
+		// 上游成本倍率（¥/官方$）：用于财务压力测试与盈亏平衡计算
+		field.Float("cost_multiplier").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(10,4)"}).
+			Default(0.10).
+			Comment("上游成本倍率（¥/官方$），用于毛利率与盈亏平衡测算"),
+
+		// 按量计费对外报价（¥/官方$）：用户充值后按官方 × 此值扣费
+		field.Float("pay_as_you_go_price_per_usd").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(10,4)"}).
+			Default(0.50).
+			Comment("按量计费对外报价（¥/官方$），充值余额扣费时使用"),
+
+		// 综合损耗系数（用于财务测算）：0.80 表示 80% 的额度能成功兑付
+		field.Float("loss_coefficient").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(10,4)"}).
+			Default(0.80).
+			Comment("综合损耗系数，用于财务压力测试与盈亏平衡测算"),
+
+		// 最高折扣比例（0~1）：大客折扣、返利等不与该字段叠加
+		field.Float("max_discount_pct").
+			SchemaType(map[string]string{dialect.Postgres: "decimal(5,4)"}).
+			Default(0.15).
+			Comment("最高折扣比例，返利和大客折扣不叠加"),
+
+		// 并发数限制（0 表示不限制）
+		field.Int("concurrency_limit").
+			Default(0).
+			Comment("该分组用户最大并发数，0 表示不限制；与 user_allowed_groups 配合做白名单"),
+
+		// 是否启用异常熔断（基于错误率/RPM 抖动自动降级）
+		field.Bool("circuit_breaker_enabled").
+			Default(false).
+			Comment("是否启用异常熔断；启用后上游错误率过高时自动暂停调度"),
+
+		// 是否独享 quota（不与其他用户/分组共享上游账号池）
+		field.Bool("exclusive_quota").
+			Default(false).
+			Comment("是否独享 quota（企业试运行档用，不与其他用户共享上游账号）"),
+
+		// 白名单销售：仅允许 user_allowed_groups 中存在的用户购买
+		field.Bool("whitelist_only").
+			Default(false).
+			Comment("白名单销售：仅 user_allowed_groups 白名单内用户可订阅"),
 	}
 }
 

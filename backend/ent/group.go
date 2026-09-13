@@ -123,6 +123,24 @@ type Group struct {
 	MaxReasoningEffort string `json:"max_reasoning_effort,omitempty"`
 	// OpenAI reasoning effort 自定义精确映射；先映射再应用上限
 	ReasoningEffortMappings []domain.ReasoningEffortMapping `json:"reasoning_effort_mappings,omitempty"`
+	// 产品线标识：gpt_plus/gpt_pro/claude_no_fable/claude_fable/domestic/custom
+	ProductLine string `json:"product_line,omitempty"`
+	// 上游成本倍率（¥/官方$），用于毛利率与盈亏平衡测算
+	CostMultiplier float64 `json:"cost_multiplier,omitempty"`
+	// 按量计费对外报价（¥/官方$），充值余额扣费时使用
+	PayAsYouGoPricePerUsd float64 `json:"pay_as_you_go_price_per_usd,omitempty"`
+	// 综合损耗系数，用于财务压力测试与盈亏平衡测算
+	LossCoefficient float64 `json:"loss_coefficient,omitempty"`
+	// 最高折扣比例，返利和大客折扣不叠加
+	MaxDiscountPct float64 `json:"max_discount_pct,omitempty"`
+	// 该分组用户最大并发数，0 表示不限制；与 user_allowed_groups 配合做白名单
+	ConcurrencyLimit int `json:"concurrency_limit,omitempty"`
+	// 是否启用异常熔断；启用后上游错误率过高时自动暂停调度
+	CircuitBreakerEnabled bool `json:"circuit_breaker_enabled,omitempty"`
+	// 是否独享 quota（企业试运行档用，不与其他用户共享上游账号）
+	ExclusiveQuota bool `json:"exclusive_quota,omitempty"`
+	// 白名单销售：仅 user_allowed_groups 白名单内用户可订阅
+	WhitelistOnly bool `json:"whitelist_only,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GroupQuery when eager-loading is set.
 	Edges        GroupEdges `json:"edges"`
@@ -231,13 +249,13 @@ func (*Group) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case group.FieldModelRouting, group.FieldSupportedModelScopes, group.FieldMessagesDispatchModelConfig, group.FieldModelsListConfig, group.FieldReasoningEffortMappings:
 			values[i] = new([]byte)
-		case group.FieldPeakRateEnabled, group.FieldIsExclusive, group.FieldAllowImageGeneration, group.FieldAllowBatchImageGeneration, group.FieldImageRateIndependent, group.FieldVideoRateIndependent, group.FieldClaudeCodeOnly, group.FieldModelRoutingEnabled, group.FieldMcpXMLInject, group.FieldAllowMessagesDispatch, group.FieldAllowLive, group.FieldRequireOauthOnly, group.FieldRequirePrivacySet:
+		case group.FieldPeakRateEnabled, group.FieldIsExclusive, group.FieldAllowImageGeneration, group.FieldAllowBatchImageGeneration, group.FieldImageRateIndependent, group.FieldVideoRateIndependent, group.FieldClaudeCodeOnly, group.FieldModelRoutingEnabled, group.FieldMcpXMLInject, group.FieldAllowMessagesDispatch, group.FieldAllowLive, group.FieldRequireOauthOnly, group.FieldRequirePrivacySet, group.FieldCircuitBreakerEnabled, group.FieldExclusiveQuota, group.FieldWhitelistOnly:
 			values[i] = new(sql.NullBool)
-		case group.FieldRateMultiplier, group.FieldPeakRateMultiplier, group.FieldDailyLimitUsd, group.FieldWeeklyLimitUsd, group.FieldMonthlyLimitUsd, group.FieldImageRateMultiplier, group.FieldImagePrice1k, group.FieldImagePrice2k, group.FieldImagePrice4k, group.FieldBatchImageDiscountMultiplier, group.FieldBatchImageHoldMultiplier, group.FieldVideoRateMultiplier, group.FieldVideoPrice480p, group.FieldVideoPrice720p, group.FieldVideoPrice1080p, group.FieldWebSearchPricePerCall:
+		case group.FieldRateMultiplier, group.FieldPeakRateMultiplier, group.FieldDailyLimitUsd, group.FieldWeeklyLimitUsd, group.FieldMonthlyLimitUsd, group.FieldImageRateMultiplier, group.FieldImagePrice1k, group.FieldImagePrice2k, group.FieldImagePrice4k, group.FieldBatchImageDiscountMultiplier, group.FieldBatchImageHoldMultiplier, group.FieldVideoRateMultiplier, group.FieldVideoPrice480p, group.FieldVideoPrice720p, group.FieldVideoPrice1080p, group.FieldWebSearchPricePerCall, group.FieldCostMultiplier, group.FieldPayAsYouGoPricePerUsd, group.FieldLossCoefficient, group.FieldMaxDiscountPct:
 			values[i] = new(sql.NullFloat64)
-		case group.FieldID, group.FieldDefaultValidityDays, group.FieldFallbackGroupID, group.FieldFallbackGroupIDOnInvalidRequest, group.FieldSortOrder, group.FieldRpmLimit:
+		case group.FieldID, group.FieldDefaultValidityDays, group.FieldFallbackGroupID, group.FieldFallbackGroupIDOnInvalidRequest, group.FieldSortOrder, group.FieldRpmLimit, group.FieldConcurrencyLimit:
 			values[i] = new(sql.NullInt64)
-		case group.FieldName, group.FieldDescription, group.FieldPeakStart, group.FieldPeakEnd, group.FieldStatus, group.FieldDuplicateOperationID, group.FieldPlatform, group.FieldSubscriptionType, group.FieldDefaultMappedModel, group.FieldMaxReasoningEffort:
+		case group.FieldName, group.FieldDescription, group.FieldPeakStart, group.FieldPeakEnd, group.FieldStatus, group.FieldDuplicateOperationID, group.FieldPlatform, group.FieldSubscriptionType, group.FieldDefaultMappedModel, group.FieldMaxReasoningEffort, group.FieldProductLine:
 			values[i] = new(sql.NullString)
 		case group.FieldCreatedAt, group.FieldUpdatedAt, group.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -599,6 +617,60 @@ func (_m *Group) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field reasoning_effort_mappings: %w", err)
 				}
 			}
+		case group.FieldProductLine:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field product_line", values[i])
+			} else if value.Valid {
+				_m.ProductLine = value.String
+			}
+		case group.FieldCostMultiplier:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field cost_multiplier", values[i])
+			} else if value.Valid {
+				_m.CostMultiplier = value.Float64
+			}
+		case group.FieldPayAsYouGoPricePerUsd:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field pay_as_you_go_price_per_usd", values[i])
+			} else if value.Valid {
+				_m.PayAsYouGoPricePerUsd = value.Float64
+			}
+		case group.FieldLossCoefficient:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field loss_coefficient", values[i])
+			} else if value.Valid {
+				_m.LossCoefficient = value.Float64
+			}
+		case group.FieldMaxDiscountPct:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field max_discount_pct", values[i])
+			} else if value.Valid {
+				_m.MaxDiscountPct = value.Float64
+			}
+		case group.FieldConcurrencyLimit:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field concurrency_limit", values[i])
+			} else if value.Valid {
+				_m.ConcurrencyLimit = int(value.Int64)
+			}
+		case group.FieldCircuitBreakerEnabled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field circuit_breaker_enabled", values[i])
+			} else if value.Valid {
+				_m.CircuitBreakerEnabled = value.Bool
+			}
+		case group.FieldExclusiveQuota:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field exclusive_quota", values[i])
+			} else if value.Valid {
+				_m.ExclusiveQuota = value.Bool
+			}
+		case group.FieldWhitelistOnly:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field whitelist_only", values[i])
+			} else if value.Valid {
+				_m.WhitelistOnly = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -860,6 +932,33 @@ func (_m *Group) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("reasoning_effort_mappings=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ReasoningEffortMappings))
+	builder.WriteString(", ")
+	builder.WriteString("product_line=")
+	builder.WriteString(_m.ProductLine)
+	builder.WriteString(", ")
+	builder.WriteString("cost_multiplier=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CostMultiplier))
+	builder.WriteString(", ")
+	builder.WriteString("pay_as_you_go_price_per_usd=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PayAsYouGoPricePerUsd))
+	builder.WriteString(", ")
+	builder.WriteString("loss_coefficient=")
+	builder.WriteString(fmt.Sprintf("%v", _m.LossCoefficient))
+	builder.WriteString(", ")
+	builder.WriteString("max_discount_pct=")
+	builder.WriteString(fmt.Sprintf("%v", _m.MaxDiscountPct))
+	builder.WriteString(", ")
+	builder.WriteString("concurrency_limit=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ConcurrencyLimit))
+	builder.WriteString(", ")
+	builder.WriteString("circuit_breaker_enabled=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CircuitBreakerEnabled))
+	builder.WriteString(", ")
+	builder.WriteString("exclusive_quota=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ExclusiveQuota))
+	builder.WriteString(", ")
+	builder.WriteString("whitelist_only=")
+	builder.WriteString(fmt.Sprintf("%v", _m.WhitelistOnly))
 	builder.WriteByte(')')
 	return builder.String()
 }

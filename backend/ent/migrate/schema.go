@@ -947,6 +947,15 @@ var (
 		{Name: "rpm_limit", Type: field.TypeInt, Default: 0},
 		{Name: "max_reasoning_effort", Type: field.TypeString, Size: 20, Default: ""},
 		{Name: "reasoning_effort_mappings", Type: field.TypeJSON, SchemaType: map[string]string{"postgres": "jsonb"}},
+		{Name: "product_line", Type: field.TypeString, Size: 32, Default: "custom"},
+		{Name: "cost_multiplier", Type: field.TypeFloat64, Default: 0.1, SchemaType: map[string]string{"postgres": "decimal(10,4)"}},
+		{Name: "pay_as_you_go_price_per_usd", Type: field.TypeFloat64, Default: 0.5, SchemaType: map[string]string{"postgres": "decimal(10,4)"}},
+		{Name: "loss_coefficient", Type: field.TypeFloat64, Default: 0.8, SchemaType: map[string]string{"postgres": "decimal(10,4)"}},
+		{Name: "max_discount_pct", Type: field.TypeFloat64, Default: 0.15, SchemaType: map[string]string{"postgres": "decimal(5,4)"}},
+		{Name: "concurrency_limit", Type: field.TypeInt, Default: 0},
+		{Name: "circuit_breaker_enabled", Type: field.TypeBool, Default: false},
+		{Name: "exclusive_quota", Type: field.TypeBool, Default: false},
+		{Name: "whitelist_only", Type: field.TypeBool, Default: false},
 	}
 	// GroupsTable holds the schema information for the "groups" table.
 	GroupsTable = &schema.Table{
@@ -1925,6 +1934,63 @@ var (
 			},
 		},
 	}
+	// UserBalanceLedgerColumns holds the columns for the "user_balance_ledger" table.
+	UserBalanceLedgerColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "entry_type", Type: field.TypeString, Size: 16, Default: "principal"},
+		{Name: "direction", Type: field.TypeString, Size: 8, Default: "credit"},
+		{Name: "amount", Type: field.TypeFloat64, Default: 0, SchemaType: map[string]string{"postgres": "decimal(20,8)"}},
+		{Name: "balance_after", Type: field.TypeFloat64, Default: 0, SchemaType: map[string]string{"postgres": "decimal(20,8)"}},
+		{Name: "memo", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "frozen", Type: field.TypeBool, Default: false},
+		{Name: "refund_batch_id", Type: field.TypeString, Nullable: true, Size: 64},
+		{Name: "order_id", Type: field.TypeInt64, Unique: true},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// UserBalanceLedgerTable holds the schema information for the "user_balance_ledger" table.
+	UserBalanceLedgerTable = &schema.Table{
+		Name:       "user_balance_ledger",
+		Columns:    UserBalanceLedgerColumns,
+		PrimaryKey: []*schema.Column{UserBalanceLedgerColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_balance_ledger_payment_orders_balance_ledger",
+				Columns:    []*schema.Column{UserBalanceLedgerColumns[10]},
+				RefColumns: []*schema.Column{PaymentOrdersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "user_balance_ledger_users_balance_ledger",
+				Columns:    []*schema.Column{UserBalanceLedgerColumns[11]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userbalanceledger_user_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserBalanceLedgerColumns[11], UserBalanceLedgerColumns[1]},
+			},
+			{
+				Name:    "userbalanceledger_order_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserBalanceLedgerColumns[10]},
+			},
+			{
+				Name:    "userbalanceledger_user_id_entry_type_frozen",
+				Unique:  false,
+				Columns: []*schema.Column{UserBalanceLedgerColumns[11], UserBalanceLedgerColumns[3], UserBalanceLedgerColumns[8]},
+			},
+			{
+				Name:    "userbalanceledger_refund_batch_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserBalanceLedgerColumns[9]},
+			},
+		},
+	}
 	// UserPlatformQuotasColumns holds the columns for the "user_platform_quotas" table.
 	UserPlatformQuotasColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2100,6 +2166,7 @@ var (
 		UserAllowedGroupsTable,
 		UserAttributeDefinitionsTable,
 		UserAttributeValuesTable,
+		UserBalanceLedgerTable,
 		UserPlatformQuotasTable,
 		UserSubscriptionsTable,
 	}
@@ -2248,6 +2315,11 @@ func init() {
 	UserAttributeValuesTable.ForeignKeys[1].RefTable = UserAttributeDefinitionsTable
 	UserAttributeValuesTable.Annotation = &entsql.Annotation{
 		Table: "user_attribute_values",
+	}
+	UserBalanceLedgerTable.ForeignKeys[0].RefTable = PaymentOrdersTable
+	UserBalanceLedgerTable.ForeignKeys[1].RefTable = UsersTable
+	UserBalanceLedgerTable.Annotation = &entsql.Annotation{
+		Table: "user_balance_ledger",
 	}
 	UserPlatformQuotasTable.ForeignKeys[0].RefTable = UsersTable
 	UserPlatformQuotasTable.Annotation = &entsql.Annotation{

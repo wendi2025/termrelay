@@ -180,6 +180,8 @@ func (PaymentOrder) Edges() []ent.Edge {
 			Field("user_id").
 			Unique().
 			Required(),
+		edge.To("balance_ledger", UserBalanceLedger.Type).
+			Unique(),
 	}
 }
 
@@ -197,3 +199,5 @@ func (PaymentOrder) Indexes() []ent.Index {
 		index.Fields("order_type"),
 	}
 }
+
+

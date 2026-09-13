@@ -48,6 +48,8 @@ export const adminNavigation: NavItem[] = [
   { path: '/admin/orders/dashboard', name: 'AdminPaymentDashboard', label: '支付概览', feature: 'admin-payment-dashboard', short: 'PD' },
   { path: '/admin/orders', name: 'AdminOrders', label: '订单管理', feature: 'admin-orders', short: 'OR' },
   { path: '/admin/orders/plans', name: 'AdminPaymentPlans', label: '订阅计划', feature: 'admin-plans', short: 'PL' },
+  { path: '/admin/payment/providers', name: 'AdminPaymentProviders', label: '支付渠道', feature: 'admin-payment-providers', short: 'PV' },
+  { path: '/admin/payment/config', name: 'AdminPaymentConfig', label: '支付配置', feature: 'admin-payment-config', short: 'PC' },
   { path: '/admin/redeem', name: 'AdminRedeem', label: '兑换码', feature: 'admin-redeem', short: 'RD' },
   { path: '/admin/promo-codes', name: 'AdminPromo', label: '优惠码', feature: 'admin-promo', short: 'PC' },
   { path: '/admin/affiliates/invites', name: 'AdminAffiliateInvites', label: '邀请记录', feature: 'admin-affiliate-invites', short: 'AI' },

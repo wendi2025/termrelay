@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSession } from '../core/session'
+import PaymentPublicShell from '../components/payment/PaymentPublicShell.vue'
 
 type ProviderKey = 'openai' | 'anthropic' | 'google'
 
@@ -200,6 +201,10 @@ const copy = computed(() => {
           <span><b>03</b> 查看实际费率</span>
         </div>
       </section>
+    </main>
+
+    <main v-else-if="kind === 'payment'" class="payment-public-main">
+      <PaymentPublicShell />
     </main>
 
     <main v-else class="public-surface glass">

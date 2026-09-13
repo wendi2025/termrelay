@@ -50,6 +50,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/userallowedgroup"
 	"github.com/Wei-Shaw/sub2api/ent/userattributedefinition"
 	"github.com/Wei-Shaw/sub2api/ent/userattributevalue"
+	"github.com/Wei-Shaw/sub2api/ent/userbalanceledger"
 	"github.com/Wei-Shaw/sub2api/ent/userplatformquota"
 	"github.com/Wei-Shaw/sub2api/ent/usersubscription"
 	"github.com/Wei-Shaw/sub2api/internal/domain"
@@ -101,6 +102,7 @@ const (
 	TypeUserAllowedGroup              = "UserAllowedGroup"
 	TypeUserAttributeDefinition       = "UserAttributeDefinition"
 	TypeUserAttributeValue            = "UserAttributeValue"
+	TypeUserBalanceLedger             = "UserBalanceLedger"
 	TypeUserPlatformQuota             = "UserPlatformQuota"
 	TypeUserSubscription              = "UserSubscription"
 )
@@ -21922,6 +21924,20 @@ type GroupMutation struct {
 	max_reasoning_effort                    *string
 	reasoning_effort_mappings               *[]domain.ReasoningEffortMapping
 	appendreasoning_effort_mappings         []domain.ReasoningEffortMapping
+	product_line                            *string
+	cost_multiplier                         *float64
+	addcost_multiplier                      *float64
+	pay_as_you_go_price_per_usd             *float64
+	addpay_as_you_go_price_per_usd          *float64
+	loss_coefficient                        *float64
+	addloss_coefficient                     *float64
+	max_discount_pct                        *float64
+	addmax_discount_pct                     *float64
+	concurrency_limit                       *int
+	addconcurrency_limit                    *int
+	circuit_breaker_enabled                 *bool
+	exclusive_quota                         *bool
+	whitelist_only                          *bool
 	clearedFields                           map[string]struct{}
 	api_keys                                map[int64]struct{}
 	removedapi_keys                         map[int64]struct{}
@@ -24586,6 +24602,430 @@ func (m *GroupMutation) ResetReasoningEffortMappings() {
 	m.appendreasoning_effort_mappings = nil
 }
 
+// SetProductLine sets the "product_line" field.
+func (m *GroupMutation) SetProductLine(s string) {
+	m.product_line = &s
+}
+
+// ProductLine returns the value of the "product_line" field in the mutation.
+func (m *GroupMutation) ProductLine() (r string, exists bool) {
+	v := m.product_line
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProductLine returns the old "product_line" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldProductLine(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProductLine is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProductLine requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProductLine: %w", err)
+	}
+	return oldValue.ProductLine, nil
+}
+
+// ResetProductLine resets all changes to the "product_line" field.
+func (m *GroupMutation) ResetProductLine() {
+	m.product_line = nil
+}
+
+// SetCostMultiplier sets the "cost_multiplier" field.
+func (m *GroupMutation) SetCostMultiplier(f float64) {
+	m.cost_multiplier = &f
+	m.addcost_multiplier = nil
+}
+
+// CostMultiplier returns the value of the "cost_multiplier" field in the mutation.
+func (m *GroupMutation) CostMultiplier() (r float64, exists bool) {
+	v := m.cost_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCostMultiplier returns the old "cost_multiplier" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldCostMultiplier(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCostMultiplier is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCostMultiplier requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCostMultiplier: %w", err)
+	}
+	return oldValue.CostMultiplier, nil
+}
+
+// AddCostMultiplier adds f to the "cost_multiplier" field.
+func (m *GroupMutation) AddCostMultiplier(f float64) {
+	if m.addcost_multiplier != nil {
+		*m.addcost_multiplier += f
+	} else {
+		m.addcost_multiplier = &f
+	}
+}
+
+// AddedCostMultiplier returns the value that was added to the "cost_multiplier" field in this mutation.
+func (m *GroupMutation) AddedCostMultiplier() (r float64, exists bool) {
+	v := m.addcost_multiplier
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCostMultiplier resets all changes to the "cost_multiplier" field.
+func (m *GroupMutation) ResetCostMultiplier() {
+	m.cost_multiplier = nil
+	m.addcost_multiplier = nil
+}
+
+// SetPayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field.
+func (m *GroupMutation) SetPayAsYouGoPricePerUsd(f float64) {
+	m.pay_as_you_go_price_per_usd = &f
+	m.addpay_as_you_go_price_per_usd = nil
+}
+
+// PayAsYouGoPricePerUsd returns the value of the "pay_as_you_go_price_per_usd" field in the mutation.
+func (m *GroupMutation) PayAsYouGoPricePerUsd() (r float64, exists bool) {
+	v := m.pay_as_you_go_price_per_usd
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPayAsYouGoPricePerUsd returns the old "pay_as_you_go_price_per_usd" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldPayAsYouGoPricePerUsd(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPayAsYouGoPricePerUsd is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPayAsYouGoPricePerUsd requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPayAsYouGoPricePerUsd: %w", err)
+	}
+	return oldValue.PayAsYouGoPricePerUsd, nil
+}
+
+// AddPayAsYouGoPricePerUsd adds f to the "pay_as_you_go_price_per_usd" field.
+func (m *GroupMutation) AddPayAsYouGoPricePerUsd(f float64) {
+	if m.addpay_as_you_go_price_per_usd != nil {
+		*m.addpay_as_you_go_price_per_usd += f
+	} else {
+		m.addpay_as_you_go_price_per_usd = &f
+	}
+}
+
+// AddedPayAsYouGoPricePerUsd returns the value that was added to the "pay_as_you_go_price_per_usd" field in this mutation.
+func (m *GroupMutation) AddedPayAsYouGoPricePerUsd() (r float64, exists bool) {
+	v := m.addpay_as_you_go_price_per_usd
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPayAsYouGoPricePerUsd resets all changes to the "pay_as_you_go_price_per_usd" field.
+func (m *GroupMutation) ResetPayAsYouGoPricePerUsd() {
+	m.pay_as_you_go_price_per_usd = nil
+	m.addpay_as_you_go_price_per_usd = nil
+}
+
+// SetLossCoefficient sets the "loss_coefficient" field.
+func (m *GroupMutation) SetLossCoefficient(f float64) {
+	m.loss_coefficient = &f
+	m.addloss_coefficient = nil
+}
+
+// LossCoefficient returns the value of the "loss_coefficient" field in the mutation.
+func (m *GroupMutation) LossCoefficient() (r float64, exists bool) {
+	v := m.loss_coefficient
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLossCoefficient returns the old "loss_coefficient" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldLossCoefficient(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLossCoefficient is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLossCoefficient requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLossCoefficient: %w", err)
+	}
+	return oldValue.LossCoefficient, nil
+}
+
+// AddLossCoefficient adds f to the "loss_coefficient" field.
+func (m *GroupMutation) AddLossCoefficient(f float64) {
+	if m.addloss_coefficient != nil {
+		*m.addloss_coefficient += f
+	} else {
+		m.addloss_coefficient = &f
+	}
+}
+
+// AddedLossCoefficient returns the value that was added to the "loss_coefficient" field in this mutation.
+func (m *GroupMutation) AddedLossCoefficient() (r float64, exists bool) {
+	v := m.addloss_coefficient
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLossCoefficient resets all changes to the "loss_coefficient" field.
+func (m *GroupMutation) ResetLossCoefficient() {
+	m.loss_coefficient = nil
+	m.addloss_coefficient = nil
+}
+
+// SetMaxDiscountPct sets the "max_discount_pct" field.
+func (m *GroupMutation) SetMaxDiscountPct(f float64) {
+	m.max_discount_pct = &f
+	m.addmax_discount_pct = nil
+}
+
+// MaxDiscountPct returns the value of the "max_discount_pct" field in the mutation.
+func (m *GroupMutation) MaxDiscountPct() (r float64, exists bool) {
+	v := m.max_discount_pct
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxDiscountPct returns the old "max_discount_pct" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldMaxDiscountPct(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMaxDiscountPct is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMaxDiscountPct requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxDiscountPct: %w", err)
+	}
+	return oldValue.MaxDiscountPct, nil
+}
+
+// AddMaxDiscountPct adds f to the "max_discount_pct" field.
+func (m *GroupMutation) AddMaxDiscountPct(f float64) {
+	if m.addmax_discount_pct != nil {
+		*m.addmax_discount_pct += f
+	} else {
+		m.addmax_discount_pct = &f
+	}
+}
+
+// AddedMaxDiscountPct returns the value that was added to the "max_discount_pct" field in this mutation.
+func (m *GroupMutation) AddedMaxDiscountPct() (r float64, exists bool) {
+	v := m.addmax_discount_pct
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxDiscountPct resets all changes to the "max_discount_pct" field.
+func (m *GroupMutation) ResetMaxDiscountPct() {
+	m.max_discount_pct = nil
+	m.addmax_discount_pct = nil
+}
+
+// SetConcurrencyLimit sets the "concurrency_limit" field.
+func (m *GroupMutation) SetConcurrencyLimit(i int) {
+	m.concurrency_limit = &i
+	m.addconcurrency_limit = nil
+}
+
+// ConcurrencyLimit returns the value of the "concurrency_limit" field in the mutation.
+func (m *GroupMutation) ConcurrencyLimit() (r int, exists bool) {
+	v := m.concurrency_limit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConcurrencyLimit returns the old "concurrency_limit" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldConcurrencyLimit(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConcurrencyLimit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConcurrencyLimit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConcurrencyLimit: %w", err)
+	}
+	return oldValue.ConcurrencyLimit, nil
+}
+
+// AddConcurrencyLimit adds i to the "concurrency_limit" field.
+func (m *GroupMutation) AddConcurrencyLimit(i int) {
+	if m.addconcurrency_limit != nil {
+		*m.addconcurrency_limit += i
+	} else {
+		m.addconcurrency_limit = &i
+	}
+}
+
+// AddedConcurrencyLimit returns the value that was added to the "concurrency_limit" field in this mutation.
+func (m *GroupMutation) AddedConcurrencyLimit() (r int, exists bool) {
+	v := m.addconcurrency_limit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetConcurrencyLimit resets all changes to the "concurrency_limit" field.
+func (m *GroupMutation) ResetConcurrencyLimit() {
+	m.concurrency_limit = nil
+	m.addconcurrency_limit = nil
+}
+
+// SetCircuitBreakerEnabled sets the "circuit_breaker_enabled" field.
+func (m *GroupMutation) SetCircuitBreakerEnabled(b bool) {
+	m.circuit_breaker_enabled = &b
+}
+
+// CircuitBreakerEnabled returns the value of the "circuit_breaker_enabled" field in the mutation.
+func (m *GroupMutation) CircuitBreakerEnabled() (r bool, exists bool) {
+	v := m.circuit_breaker_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCircuitBreakerEnabled returns the old "circuit_breaker_enabled" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldCircuitBreakerEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCircuitBreakerEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCircuitBreakerEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCircuitBreakerEnabled: %w", err)
+	}
+	return oldValue.CircuitBreakerEnabled, nil
+}
+
+// ResetCircuitBreakerEnabled resets all changes to the "circuit_breaker_enabled" field.
+func (m *GroupMutation) ResetCircuitBreakerEnabled() {
+	m.circuit_breaker_enabled = nil
+}
+
+// SetExclusiveQuota sets the "exclusive_quota" field.
+func (m *GroupMutation) SetExclusiveQuota(b bool) {
+	m.exclusive_quota = &b
+}
+
+// ExclusiveQuota returns the value of the "exclusive_quota" field in the mutation.
+func (m *GroupMutation) ExclusiveQuota() (r bool, exists bool) {
+	v := m.exclusive_quota
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExclusiveQuota returns the old "exclusive_quota" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldExclusiveQuota(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExclusiveQuota is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExclusiveQuota requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExclusiveQuota: %w", err)
+	}
+	return oldValue.ExclusiveQuota, nil
+}
+
+// ResetExclusiveQuota resets all changes to the "exclusive_quota" field.
+func (m *GroupMutation) ResetExclusiveQuota() {
+	m.exclusive_quota = nil
+}
+
+// SetWhitelistOnly sets the "whitelist_only" field.
+func (m *GroupMutation) SetWhitelistOnly(b bool) {
+	m.whitelist_only = &b
+}
+
+// WhitelistOnly returns the value of the "whitelist_only" field in the mutation.
+func (m *GroupMutation) WhitelistOnly() (r bool, exists bool) {
+	v := m.whitelist_only
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWhitelistOnly returns the old "whitelist_only" field's value of the Group entity.
+// If the Group object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GroupMutation) OldWhitelistOnly(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWhitelistOnly is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWhitelistOnly requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWhitelistOnly: %w", err)
+	}
+	return oldValue.WhitelistOnly, nil
+}
+
+// ResetWhitelistOnly resets all changes to the "whitelist_only" field.
+func (m *GroupMutation) ResetWhitelistOnly() {
+	m.whitelist_only = nil
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by ids.
 func (m *GroupMutation) AddAPIKeyIDs(ids ...int64) {
 	if m.api_keys == nil {
@@ -24944,7 +25384,7 @@ func (m *GroupMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GroupMutation) Fields() []string {
-	fields := make([]string, 0, 52)
+	fields := make([]string, 0, 61)
 	if m.created_at != nil {
 		fields = append(fields, group.FieldCreatedAt)
 	}
@@ -25101,6 +25541,33 @@ func (m *GroupMutation) Fields() []string {
 	if m.reasoning_effort_mappings != nil {
 		fields = append(fields, group.FieldReasoningEffortMappings)
 	}
+	if m.product_line != nil {
+		fields = append(fields, group.FieldProductLine)
+	}
+	if m.cost_multiplier != nil {
+		fields = append(fields, group.FieldCostMultiplier)
+	}
+	if m.pay_as_you_go_price_per_usd != nil {
+		fields = append(fields, group.FieldPayAsYouGoPricePerUsd)
+	}
+	if m.loss_coefficient != nil {
+		fields = append(fields, group.FieldLossCoefficient)
+	}
+	if m.max_discount_pct != nil {
+		fields = append(fields, group.FieldMaxDiscountPct)
+	}
+	if m.concurrency_limit != nil {
+		fields = append(fields, group.FieldConcurrencyLimit)
+	}
+	if m.circuit_breaker_enabled != nil {
+		fields = append(fields, group.FieldCircuitBreakerEnabled)
+	}
+	if m.exclusive_quota != nil {
+		fields = append(fields, group.FieldExclusiveQuota)
+	}
+	if m.whitelist_only != nil {
+		fields = append(fields, group.FieldWhitelistOnly)
+	}
 	return fields
 }
 
@@ -25213,6 +25680,24 @@ func (m *GroupMutation) Field(name string) (ent.Value, bool) {
 		return m.MaxReasoningEffort()
 	case group.FieldReasoningEffortMappings:
 		return m.ReasoningEffortMappings()
+	case group.FieldProductLine:
+		return m.ProductLine()
+	case group.FieldCostMultiplier:
+		return m.CostMultiplier()
+	case group.FieldPayAsYouGoPricePerUsd:
+		return m.PayAsYouGoPricePerUsd()
+	case group.FieldLossCoefficient:
+		return m.LossCoefficient()
+	case group.FieldMaxDiscountPct:
+		return m.MaxDiscountPct()
+	case group.FieldConcurrencyLimit:
+		return m.ConcurrencyLimit()
+	case group.FieldCircuitBreakerEnabled:
+		return m.CircuitBreakerEnabled()
+	case group.FieldExclusiveQuota:
+		return m.ExclusiveQuota()
+	case group.FieldWhitelistOnly:
+		return m.WhitelistOnly()
 	}
 	return nil, false
 }
@@ -25326,6 +25811,24 @@ func (m *GroupMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldMaxReasoningEffort(ctx)
 	case group.FieldReasoningEffortMappings:
 		return m.OldReasoningEffortMappings(ctx)
+	case group.FieldProductLine:
+		return m.OldProductLine(ctx)
+	case group.FieldCostMultiplier:
+		return m.OldCostMultiplier(ctx)
+	case group.FieldPayAsYouGoPricePerUsd:
+		return m.OldPayAsYouGoPricePerUsd(ctx)
+	case group.FieldLossCoefficient:
+		return m.OldLossCoefficient(ctx)
+	case group.FieldMaxDiscountPct:
+		return m.OldMaxDiscountPct(ctx)
+	case group.FieldConcurrencyLimit:
+		return m.OldConcurrencyLimit(ctx)
+	case group.FieldCircuitBreakerEnabled:
+		return m.OldCircuitBreakerEnabled(ctx)
+	case group.FieldExclusiveQuota:
+		return m.OldExclusiveQuota(ctx)
+	case group.FieldWhitelistOnly:
+		return m.OldWhitelistOnly(ctx)
 	}
 	return nil, fmt.Errorf("unknown Group field %s", name)
 }
@@ -25699,6 +26202,69 @@ func (m *GroupMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetReasoningEffortMappings(v)
 		return nil
+	case group.FieldProductLine:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProductLine(v)
+		return nil
+	case group.FieldCostMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCostMultiplier(v)
+		return nil
+	case group.FieldPayAsYouGoPricePerUsd:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPayAsYouGoPricePerUsd(v)
+		return nil
+	case group.FieldLossCoefficient:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLossCoefficient(v)
+		return nil
+	case group.FieldMaxDiscountPct:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxDiscountPct(v)
+		return nil
+	case group.FieldConcurrencyLimit:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConcurrencyLimit(v)
+		return nil
+	case group.FieldCircuitBreakerEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCircuitBreakerEnabled(v)
+		return nil
+	case group.FieldExclusiveQuota:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExclusiveQuota(v)
+		return nil
+	case group.FieldWhitelistOnly:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWhitelistOnly(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Group field %s", name)
 }
@@ -25770,6 +26336,21 @@ func (m *GroupMutation) AddedFields() []string {
 	if m.addrpm_limit != nil {
 		fields = append(fields, group.FieldRpmLimit)
 	}
+	if m.addcost_multiplier != nil {
+		fields = append(fields, group.FieldCostMultiplier)
+	}
+	if m.addpay_as_you_go_price_per_usd != nil {
+		fields = append(fields, group.FieldPayAsYouGoPricePerUsd)
+	}
+	if m.addloss_coefficient != nil {
+		fields = append(fields, group.FieldLossCoefficient)
+	}
+	if m.addmax_discount_pct != nil {
+		fields = append(fields, group.FieldMaxDiscountPct)
+	}
+	if m.addconcurrency_limit != nil {
+		fields = append(fields, group.FieldConcurrencyLimit)
+	}
 	return fields
 }
 
@@ -25820,6 +26401,16 @@ func (m *GroupMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedSortOrder()
 	case group.FieldRpmLimit:
 		return m.AddedRpmLimit()
+	case group.FieldCostMultiplier:
+		return m.AddedCostMultiplier()
+	case group.FieldPayAsYouGoPricePerUsd:
+		return m.AddedPayAsYouGoPricePerUsd()
+	case group.FieldLossCoefficient:
+		return m.AddedLossCoefficient()
+	case group.FieldMaxDiscountPct:
+		return m.AddedMaxDiscountPct()
+	case group.FieldConcurrencyLimit:
+		return m.AddedConcurrencyLimit()
 	}
 	return nil, false
 }
@@ -25975,6 +26566,41 @@ func (m *GroupMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRpmLimit(v)
+		return nil
+	case group.FieldCostMultiplier:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCostMultiplier(v)
+		return nil
+	case group.FieldPayAsYouGoPricePerUsd:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPayAsYouGoPricePerUsd(v)
+		return nil
+	case group.FieldLossCoefficient:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLossCoefficient(v)
+		return nil
+	case group.FieldMaxDiscountPct:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxDiscountPct(v)
+		return nil
+	case group.FieldConcurrencyLimit:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddConcurrencyLimit(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Group numeric field %s", name)
@@ -26257,6 +26883,33 @@ func (m *GroupMutation) ResetField(name string) error {
 		return nil
 	case group.FieldReasoningEffortMappings:
 		m.ResetReasoningEffortMappings()
+		return nil
+	case group.FieldProductLine:
+		m.ResetProductLine()
+		return nil
+	case group.FieldCostMultiplier:
+		m.ResetCostMultiplier()
+		return nil
+	case group.FieldPayAsYouGoPricePerUsd:
+		m.ResetPayAsYouGoPricePerUsd()
+		return nil
+	case group.FieldLossCoefficient:
+		m.ResetLossCoefficient()
+		return nil
+	case group.FieldMaxDiscountPct:
+		m.ResetMaxDiscountPct()
+		return nil
+	case group.FieldConcurrencyLimit:
+		m.ResetConcurrencyLimit()
+		return nil
+	case group.FieldCircuitBreakerEnabled:
+		m.ResetCircuitBreakerEnabled()
+		return nil
+	case group.FieldExclusiveQuota:
+		m.ResetExclusiveQuota()
+		return nil
+	case group.FieldWhitelistOnly:
+		m.ResetWhitelistOnly()
 		return nil
 	}
 	return fmt.Errorf("unknown Group field %s", name)
@@ -28829,6 +29482,8 @@ type PaymentOrderMutation struct {
 	clearedFields            map[string]struct{}
 	user                     *int64
 	cleareduser              bool
+	balance_ledger           *int64
+	clearedbalance_ledger    bool
 	done                     bool
 	oldValue                 func(context.Context) (*PaymentOrder, error)
 	predicates               []predicate.PaymentOrder
@@ -30766,6 +31421,45 @@ func (m *PaymentOrderMutation) ResetUser() {
 	m.cleareduser = false
 }
 
+// SetBalanceLedgerID sets the "balance_ledger" edge to the UserBalanceLedger entity by id.
+func (m *PaymentOrderMutation) SetBalanceLedgerID(id int64) {
+	m.balance_ledger = &id
+}
+
+// ClearBalanceLedger clears the "balance_ledger" edge to the UserBalanceLedger entity.
+func (m *PaymentOrderMutation) ClearBalanceLedger() {
+	m.clearedbalance_ledger = true
+}
+
+// BalanceLedgerCleared reports if the "balance_ledger" edge to the UserBalanceLedger entity was cleared.
+func (m *PaymentOrderMutation) BalanceLedgerCleared() bool {
+	return m.clearedbalance_ledger
+}
+
+// BalanceLedgerID returns the "balance_ledger" edge ID in the mutation.
+func (m *PaymentOrderMutation) BalanceLedgerID() (id int64, exists bool) {
+	if m.balance_ledger != nil {
+		return *m.balance_ledger, true
+	}
+	return
+}
+
+// BalanceLedgerIDs returns the "balance_ledger" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// BalanceLedgerID instead. It exists only for internal usage by the builders.
+func (m *PaymentOrderMutation) BalanceLedgerIDs() (ids []int64) {
+	if id := m.balance_ledger; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetBalanceLedger resets all changes to the "balance_ledger" edge.
+func (m *PaymentOrderMutation) ResetBalanceLedger() {
+	m.balance_ledger = nil
+	m.clearedbalance_ledger = false
+}
+
 // Where appends a list predicates to the PaymentOrderMutation builder.
 func (m *PaymentOrderMutation) Where(ps ...predicate.PaymentOrder) {
 	m.predicates = append(m.predicates, ps...)
@@ -31755,9 +32449,12 @@ func (m *PaymentOrderMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PaymentOrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, paymentorder.EdgeUser)
+	}
+	if m.balance_ledger != nil {
+		edges = append(edges, paymentorder.EdgeBalanceLedger)
 	}
 	return edges
 }
@@ -31770,13 +32467,17 @@ func (m *PaymentOrderMutation) AddedIDs(name string) []ent.Value {
 		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
+	case paymentorder.EdgeBalanceLedger:
+		if id := m.balance_ledger; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PaymentOrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -31788,9 +32489,12 @@ func (m *PaymentOrderMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PaymentOrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, paymentorder.EdgeUser)
+	}
+	if m.clearedbalance_ledger {
+		edges = append(edges, paymentorder.EdgeBalanceLedger)
 	}
 	return edges
 }
@@ -31801,6 +32505,8 @@ func (m *PaymentOrderMutation) EdgeCleared(name string) bool {
 	switch name {
 	case paymentorder.EdgeUser:
 		return m.cleareduser
+	case paymentorder.EdgeBalanceLedger:
+		return m.clearedbalance_ledger
 	}
 	return false
 }
@@ -31812,6 +32518,9 @@ func (m *PaymentOrderMutation) ClearEdge(name string) error {
 	case paymentorder.EdgeUser:
 		m.ClearUser()
 		return nil
+	case paymentorder.EdgeBalanceLedger:
+		m.ClearBalanceLedger()
+		return nil
 	}
 	return fmt.Errorf("unknown PaymentOrder unique edge %s", name)
 }
@@ -31822,6 +32531,9 @@ func (m *PaymentOrderMutation) ResetEdge(name string) error {
 	switch name {
 	case paymentorder.EdgeUser:
 		m.ResetUser()
+		return nil
+	case paymentorder.EdgeBalanceLedger:
+		m.ResetBalanceLedger()
 		return nil
 	}
 	return fmt.Errorf("unknown PaymentOrder edge %s", name)
@@ -47209,6 +47921,9 @@ type UserMutation struct {
 	payment_orders                map[int64]struct{}
 	removedpayment_orders         map[int64]struct{}
 	clearedpayment_orders         bool
+	balance_ledger                map[int64]struct{}
+	removedbalance_ledger         map[int64]struct{}
+	clearedbalance_ledger         bool
 	auth_identities               map[int64]struct{}
 	removedauth_identities        map[int64]struct{}
 	clearedauth_identities        bool
@@ -48924,6 +49639,60 @@ func (m *UserMutation) ResetPaymentOrders() {
 	m.removedpayment_orders = nil
 }
 
+// AddBalanceLedgerIDs adds the "balance_ledger" edge to the UserBalanceLedger entity by ids.
+func (m *UserMutation) AddBalanceLedgerIDs(ids ...int64) {
+	if m.balance_ledger == nil {
+		m.balance_ledger = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.balance_ledger[ids[i]] = struct{}{}
+	}
+}
+
+// ClearBalanceLedger clears the "balance_ledger" edge to the UserBalanceLedger entity.
+func (m *UserMutation) ClearBalanceLedger() {
+	m.clearedbalance_ledger = true
+}
+
+// BalanceLedgerCleared reports if the "balance_ledger" edge to the UserBalanceLedger entity was cleared.
+func (m *UserMutation) BalanceLedgerCleared() bool {
+	return m.clearedbalance_ledger
+}
+
+// RemoveBalanceLedgerIDs removes the "balance_ledger" edge to the UserBalanceLedger entity by IDs.
+func (m *UserMutation) RemoveBalanceLedgerIDs(ids ...int64) {
+	if m.removedbalance_ledger == nil {
+		m.removedbalance_ledger = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.balance_ledger, ids[i])
+		m.removedbalance_ledger[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBalanceLedger returns the removed IDs of the "balance_ledger" edge to the UserBalanceLedger entity.
+func (m *UserMutation) RemovedBalanceLedgerIDs() (ids []int64) {
+	for id := range m.removedbalance_ledger {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// BalanceLedgerIDs returns the "balance_ledger" edge IDs in the mutation.
+func (m *UserMutation) BalanceLedgerIDs() (ids []int64) {
+	for id := range m.balance_ledger {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetBalanceLedger resets all changes to the "balance_ledger" edge.
+func (m *UserMutation) ResetBalanceLedger() {
+	m.balance_ledger = nil
+	m.clearedbalance_ledger = false
+	m.removedbalance_ledger = nil
+}
+
 // AddAuthIdentityIDs adds the "auth_identities" edge to the AuthIdentity entity by ids.
 func (m *UserMutation) AddAuthIdentityIDs(ids ...int64) {
 	if m.auth_identities == nil {
@@ -49724,7 +50493,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.api_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -49754,6 +50523,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.payment_orders != nil {
 		edges = append(edges, user.EdgePaymentOrders)
+	}
+	if m.balance_ledger != nil {
+		edges = append(edges, user.EdgeBalanceLedger)
 	}
 	if m.auth_identities != nil {
 		edges = append(edges, user.EdgeAuthIdentities)
@@ -49831,6 +50603,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeBalanceLedger:
+		ids := make([]ent.Value, 0, len(m.balance_ledger))
+		for id := range m.balance_ledger {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeAuthIdentities:
 		ids := make([]ent.Value, 0, len(m.auth_identities))
 		for id := range m.auth_identities {
@@ -49855,7 +50633,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.removedapi_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -49885,6 +50663,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedpayment_orders != nil {
 		edges = append(edges, user.EdgePaymentOrders)
+	}
+	if m.removedbalance_ledger != nil {
+		edges = append(edges, user.EdgeBalanceLedger)
 	}
 	if m.removedauth_identities != nil {
 		edges = append(edges, user.EdgeAuthIdentities)
@@ -49962,6 +50743,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeBalanceLedger:
+		ids := make([]ent.Value, 0, len(m.removedbalance_ledger))
+		for id := range m.removedbalance_ledger {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeAuthIdentities:
 		ids := make([]ent.Value, 0, len(m.removedauth_identities))
 		for id := range m.removedauth_identities {
@@ -49986,7 +50773,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.clearedapi_keys {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -50016,6 +50803,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedpayment_orders {
 		edges = append(edges, user.EdgePaymentOrders)
+	}
+	if m.clearedbalance_ledger {
+		edges = append(edges, user.EdgeBalanceLedger)
 	}
 	if m.clearedauth_identities {
 		edges = append(edges, user.EdgeAuthIdentities)
@@ -50053,6 +50843,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedpromo_code_usages
 	case user.EdgePaymentOrders:
 		return m.clearedpayment_orders
+	case user.EdgeBalanceLedger:
+		return m.clearedbalance_ledger
 	case user.EdgeAuthIdentities:
 		return m.clearedauth_identities
 	case user.EdgePendingAuthSessions:
@@ -50104,6 +50896,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgePaymentOrders:
 		m.ResetPaymentOrders()
+		return nil
+	case user.EdgeBalanceLedger:
+		m.ResetBalanceLedger()
 		return nil
 	case user.EdgeAuthIdentities:
 		m.ResetAuthIdentities()
@@ -52332,6 +53127,1082 @@ func (m *UserAttributeValueMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown UserAttributeValue edge %s", name)
+}
+
+// UserBalanceLedgerMutation represents an operation that mutates the UserBalanceLedger nodes in the graph.
+type UserBalanceLedgerMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int64
+	created_at       *time.Time
+	updated_at       *time.Time
+	entry_type       *string
+	direction        *string
+	amount           *float64
+	addamount        *float64
+	balance_after    *float64
+	addbalance_after *float64
+	memo             *string
+	frozen           *bool
+	refund_batch_id  *string
+	clearedFields    map[string]struct{}
+	user             *int64
+	cleareduser      bool
+	_order           *int64
+	cleared_order    bool
+	done             bool
+	oldValue         func(context.Context) (*UserBalanceLedger, error)
+	predicates       []predicate.UserBalanceLedger
+}
+
+var _ ent.Mutation = (*UserBalanceLedgerMutation)(nil)
+
+// userbalanceledgerOption allows management of the mutation configuration using functional options.
+type userbalanceledgerOption func(*UserBalanceLedgerMutation)
+
+// newUserBalanceLedgerMutation creates new mutation for the UserBalanceLedger entity.
+func newUserBalanceLedgerMutation(c config, op Op, opts ...userbalanceledgerOption) *UserBalanceLedgerMutation {
+	m := &UserBalanceLedgerMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserBalanceLedger,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserBalanceLedgerID sets the ID field of the mutation.
+func withUserBalanceLedgerID(id int64) userbalanceledgerOption {
+	return func(m *UserBalanceLedgerMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserBalanceLedger
+		)
+		m.oldValue = func(ctx context.Context) (*UserBalanceLedger, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserBalanceLedger.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserBalanceLedger sets the old UserBalanceLedger of the mutation.
+func withUserBalanceLedger(node *UserBalanceLedger) userbalanceledgerOption {
+	return func(m *UserBalanceLedgerMutation) {
+		m.oldValue = func(context.Context) (*UserBalanceLedger, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserBalanceLedgerMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserBalanceLedgerMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserBalanceLedgerMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserBalanceLedgerMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UserBalanceLedger.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *UserBalanceLedgerMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *UserBalanceLedgerMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *UserBalanceLedgerMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *UserBalanceLedgerMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *UserBalanceLedgerMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *UserBalanceLedgerMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *UserBalanceLedgerMutation) SetUserID(i int64) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UserBalanceLedgerMutation) UserID() (r int64, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UserBalanceLedgerMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetOrderID sets the "order_id" field.
+func (m *UserBalanceLedgerMutation) SetOrderID(i int64) {
+	m._order = &i
+}
+
+// OrderID returns the value of the "order_id" field in the mutation.
+func (m *UserBalanceLedgerMutation) OrderID() (r int64, exists bool) {
+	v := m._order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOrderID returns the old "order_id" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldOrderID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOrderID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOrderID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOrderID: %w", err)
+	}
+	return oldValue.OrderID, nil
+}
+
+// ResetOrderID resets all changes to the "order_id" field.
+func (m *UserBalanceLedgerMutation) ResetOrderID() {
+	m._order = nil
+}
+
+// SetEntryType sets the "entry_type" field.
+func (m *UserBalanceLedgerMutation) SetEntryType(s string) {
+	m.entry_type = &s
+}
+
+// EntryType returns the value of the "entry_type" field in the mutation.
+func (m *UserBalanceLedgerMutation) EntryType() (r string, exists bool) {
+	v := m.entry_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntryType returns the old "entry_type" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldEntryType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntryType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntryType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntryType: %w", err)
+	}
+	return oldValue.EntryType, nil
+}
+
+// ResetEntryType resets all changes to the "entry_type" field.
+func (m *UserBalanceLedgerMutation) ResetEntryType() {
+	m.entry_type = nil
+}
+
+// SetDirection sets the "direction" field.
+func (m *UserBalanceLedgerMutation) SetDirection(s string) {
+	m.direction = &s
+}
+
+// Direction returns the value of the "direction" field in the mutation.
+func (m *UserBalanceLedgerMutation) Direction() (r string, exists bool) {
+	v := m.direction
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDirection returns the old "direction" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldDirection(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDirection is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDirection requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDirection: %w", err)
+	}
+	return oldValue.Direction, nil
+}
+
+// ResetDirection resets all changes to the "direction" field.
+func (m *UserBalanceLedgerMutation) ResetDirection() {
+	m.direction = nil
+}
+
+// SetAmount sets the "amount" field.
+func (m *UserBalanceLedgerMutation) SetAmount(f float64) {
+	m.amount = &f
+	m.addamount = nil
+}
+
+// Amount returns the value of the "amount" field in the mutation.
+func (m *UserBalanceLedgerMutation) Amount() (r float64, exists bool) {
+	v := m.amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAmount returns the old "amount" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldAmount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAmount: %w", err)
+	}
+	return oldValue.Amount, nil
+}
+
+// AddAmount adds f to the "amount" field.
+func (m *UserBalanceLedgerMutation) AddAmount(f float64) {
+	if m.addamount != nil {
+		*m.addamount += f
+	} else {
+		m.addamount = &f
+	}
+}
+
+// AddedAmount returns the value that was added to the "amount" field in this mutation.
+func (m *UserBalanceLedgerMutation) AddedAmount() (r float64, exists bool) {
+	v := m.addamount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAmount resets all changes to the "amount" field.
+func (m *UserBalanceLedgerMutation) ResetAmount() {
+	m.amount = nil
+	m.addamount = nil
+}
+
+// SetBalanceAfter sets the "balance_after" field.
+func (m *UserBalanceLedgerMutation) SetBalanceAfter(f float64) {
+	m.balance_after = &f
+	m.addbalance_after = nil
+}
+
+// BalanceAfter returns the value of the "balance_after" field in the mutation.
+func (m *UserBalanceLedgerMutation) BalanceAfter() (r float64, exists bool) {
+	v := m.balance_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBalanceAfter returns the old "balance_after" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldBalanceAfter(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBalanceAfter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBalanceAfter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBalanceAfter: %w", err)
+	}
+	return oldValue.BalanceAfter, nil
+}
+
+// AddBalanceAfter adds f to the "balance_after" field.
+func (m *UserBalanceLedgerMutation) AddBalanceAfter(f float64) {
+	if m.addbalance_after != nil {
+		*m.addbalance_after += f
+	} else {
+		m.addbalance_after = &f
+	}
+}
+
+// AddedBalanceAfter returns the value that was added to the "balance_after" field in this mutation.
+func (m *UserBalanceLedgerMutation) AddedBalanceAfter() (r float64, exists bool) {
+	v := m.addbalance_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBalanceAfter resets all changes to the "balance_after" field.
+func (m *UserBalanceLedgerMutation) ResetBalanceAfter() {
+	m.balance_after = nil
+	m.addbalance_after = nil
+}
+
+// SetMemo sets the "memo" field.
+func (m *UserBalanceLedgerMutation) SetMemo(s string) {
+	m.memo = &s
+}
+
+// Memo returns the value of the "memo" field in the mutation.
+func (m *UserBalanceLedgerMutation) Memo() (r string, exists bool) {
+	v := m.memo
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMemo returns the old "memo" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldMemo(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMemo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMemo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMemo: %w", err)
+	}
+	return oldValue.Memo, nil
+}
+
+// ClearMemo clears the value of the "memo" field.
+func (m *UserBalanceLedgerMutation) ClearMemo() {
+	m.memo = nil
+	m.clearedFields[userbalanceledger.FieldMemo] = struct{}{}
+}
+
+// MemoCleared returns if the "memo" field was cleared in this mutation.
+func (m *UserBalanceLedgerMutation) MemoCleared() bool {
+	_, ok := m.clearedFields[userbalanceledger.FieldMemo]
+	return ok
+}
+
+// ResetMemo resets all changes to the "memo" field.
+func (m *UserBalanceLedgerMutation) ResetMemo() {
+	m.memo = nil
+	delete(m.clearedFields, userbalanceledger.FieldMemo)
+}
+
+// SetFrozen sets the "frozen" field.
+func (m *UserBalanceLedgerMutation) SetFrozen(b bool) {
+	m.frozen = &b
+}
+
+// Frozen returns the value of the "frozen" field in the mutation.
+func (m *UserBalanceLedgerMutation) Frozen() (r bool, exists bool) {
+	v := m.frozen
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFrozen returns the old "frozen" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldFrozen(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFrozen is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFrozen requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFrozen: %w", err)
+	}
+	return oldValue.Frozen, nil
+}
+
+// ResetFrozen resets all changes to the "frozen" field.
+func (m *UserBalanceLedgerMutation) ResetFrozen() {
+	m.frozen = nil
+}
+
+// SetRefundBatchID sets the "refund_batch_id" field.
+func (m *UserBalanceLedgerMutation) SetRefundBatchID(s string) {
+	m.refund_batch_id = &s
+}
+
+// RefundBatchID returns the value of the "refund_batch_id" field in the mutation.
+func (m *UserBalanceLedgerMutation) RefundBatchID() (r string, exists bool) {
+	v := m.refund_batch_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRefundBatchID returns the old "refund_batch_id" field's value of the UserBalanceLedger entity.
+// If the UserBalanceLedger object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserBalanceLedgerMutation) OldRefundBatchID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRefundBatchID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRefundBatchID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRefundBatchID: %w", err)
+	}
+	return oldValue.RefundBatchID, nil
+}
+
+// ClearRefundBatchID clears the value of the "refund_batch_id" field.
+func (m *UserBalanceLedgerMutation) ClearRefundBatchID() {
+	m.refund_batch_id = nil
+	m.clearedFields[userbalanceledger.FieldRefundBatchID] = struct{}{}
+}
+
+// RefundBatchIDCleared returns if the "refund_batch_id" field was cleared in this mutation.
+func (m *UserBalanceLedgerMutation) RefundBatchIDCleared() bool {
+	_, ok := m.clearedFields[userbalanceledger.FieldRefundBatchID]
+	return ok
+}
+
+// ResetRefundBatchID resets all changes to the "refund_batch_id" field.
+func (m *UserBalanceLedgerMutation) ResetRefundBatchID() {
+	m.refund_batch_id = nil
+	delete(m.clearedFields, userbalanceledger.FieldRefundBatchID)
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *UserBalanceLedgerMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[userbalanceledger.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *UserBalanceLedgerMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *UserBalanceLedgerMutation) UserIDs() (ids []int64) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *UserBalanceLedgerMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// ClearOrder clears the "order" edge to the PaymentOrder entity.
+func (m *UserBalanceLedgerMutation) ClearOrder() {
+	m.cleared_order = true
+	m.clearedFields[userbalanceledger.FieldOrderID] = struct{}{}
+}
+
+// OrderCleared reports if the "order" edge to the PaymentOrder entity was cleared.
+func (m *UserBalanceLedgerMutation) OrderCleared() bool {
+	return m.cleared_order
+}
+
+// OrderIDs returns the "order" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrderID instead. It exists only for internal usage by the builders.
+func (m *UserBalanceLedgerMutation) OrderIDs() (ids []int64) {
+	if id := m._order; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrder resets all changes to the "order" edge.
+func (m *UserBalanceLedgerMutation) ResetOrder() {
+	m._order = nil
+	m.cleared_order = false
+}
+
+// Where appends a list predicates to the UserBalanceLedgerMutation builder.
+func (m *UserBalanceLedgerMutation) Where(ps ...predicate.UserBalanceLedger) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserBalanceLedgerMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserBalanceLedgerMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserBalanceLedger, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserBalanceLedgerMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserBalanceLedgerMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UserBalanceLedger).
+func (m *UserBalanceLedgerMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserBalanceLedgerMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, userbalanceledger.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, userbalanceledger.FieldUpdatedAt)
+	}
+	if m.user != nil {
+		fields = append(fields, userbalanceledger.FieldUserID)
+	}
+	if m._order != nil {
+		fields = append(fields, userbalanceledger.FieldOrderID)
+	}
+	if m.entry_type != nil {
+		fields = append(fields, userbalanceledger.FieldEntryType)
+	}
+	if m.direction != nil {
+		fields = append(fields, userbalanceledger.FieldDirection)
+	}
+	if m.amount != nil {
+		fields = append(fields, userbalanceledger.FieldAmount)
+	}
+	if m.balance_after != nil {
+		fields = append(fields, userbalanceledger.FieldBalanceAfter)
+	}
+	if m.memo != nil {
+		fields = append(fields, userbalanceledger.FieldMemo)
+	}
+	if m.frozen != nil {
+		fields = append(fields, userbalanceledger.FieldFrozen)
+	}
+	if m.refund_batch_id != nil {
+		fields = append(fields, userbalanceledger.FieldRefundBatchID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserBalanceLedgerMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case userbalanceledger.FieldCreatedAt:
+		return m.CreatedAt()
+	case userbalanceledger.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case userbalanceledger.FieldUserID:
+		return m.UserID()
+	case userbalanceledger.FieldOrderID:
+		return m.OrderID()
+	case userbalanceledger.FieldEntryType:
+		return m.EntryType()
+	case userbalanceledger.FieldDirection:
+		return m.Direction()
+	case userbalanceledger.FieldAmount:
+		return m.Amount()
+	case userbalanceledger.FieldBalanceAfter:
+		return m.BalanceAfter()
+	case userbalanceledger.FieldMemo:
+		return m.Memo()
+	case userbalanceledger.FieldFrozen:
+		return m.Frozen()
+	case userbalanceledger.FieldRefundBatchID:
+		return m.RefundBatchID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserBalanceLedgerMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case userbalanceledger.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case userbalanceledger.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case userbalanceledger.FieldUserID:
+		return m.OldUserID(ctx)
+	case userbalanceledger.FieldOrderID:
+		return m.OldOrderID(ctx)
+	case userbalanceledger.FieldEntryType:
+		return m.OldEntryType(ctx)
+	case userbalanceledger.FieldDirection:
+		return m.OldDirection(ctx)
+	case userbalanceledger.FieldAmount:
+		return m.OldAmount(ctx)
+	case userbalanceledger.FieldBalanceAfter:
+		return m.OldBalanceAfter(ctx)
+	case userbalanceledger.FieldMemo:
+		return m.OldMemo(ctx)
+	case userbalanceledger.FieldFrozen:
+		return m.OldFrozen(ctx)
+	case userbalanceledger.FieldRefundBatchID:
+		return m.OldRefundBatchID(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserBalanceLedger field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserBalanceLedgerMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case userbalanceledger.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case userbalanceledger.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case userbalanceledger.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case userbalanceledger.FieldOrderID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOrderID(v)
+		return nil
+	case userbalanceledger.FieldEntryType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntryType(v)
+		return nil
+	case userbalanceledger.FieldDirection:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDirection(v)
+		return nil
+	case userbalanceledger.FieldAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAmount(v)
+		return nil
+	case userbalanceledger.FieldBalanceAfter:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBalanceAfter(v)
+		return nil
+	case userbalanceledger.FieldMemo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMemo(v)
+		return nil
+	case userbalanceledger.FieldFrozen:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFrozen(v)
+		return nil
+	case userbalanceledger.FieldRefundBatchID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRefundBatchID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserBalanceLedger field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserBalanceLedgerMutation) AddedFields() []string {
+	var fields []string
+	if m.addamount != nil {
+		fields = append(fields, userbalanceledger.FieldAmount)
+	}
+	if m.addbalance_after != nil {
+		fields = append(fields, userbalanceledger.FieldBalanceAfter)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserBalanceLedgerMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case userbalanceledger.FieldAmount:
+		return m.AddedAmount()
+	case userbalanceledger.FieldBalanceAfter:
+		return m.AddedBalanceAfter()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserBalanceLedgerMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case userbalanceledger.FieldAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAmount(v)
+		return nil
+	case userbalanceledger.FieldBalanceAfter:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBalanceAfter(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserBalanceLedger numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserBalanceLedgerMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(userbalanceledger.FieldMemo) {
+		fields = append(fields, userbalanceledger.FieldMemo)
+	}
+	if m.FieldCleared(userbalanceledger.FieldRefundBatchID) {
+		fields = append(fields, userbalanceledger.FieldRefundBatchID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserBalanceLedgerMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserBalanceLedgerMutation) ClearField(name string) error {
+	switch name {
+	case userbalanceledger.FieldMemo:
+		m.ClearMemo()
+		return nil
+	case userbalanceledger.FieldRefundBatchID:
+		m.ClearRefundBatchID()
+		return nil
+	}
+	return fmt.Errorf("unknown UserBalanceLedger nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserBalanceLedgerMutation) ResetField(name string) error {
+	switch name {
+	case userbalanceledger.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case userbalanceledger.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case userbalanceledger.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case userbalanceledger.FieldOrderID:
+		m.ResetOrderID()
+		return nil
+	case userbalanceledger.FieldEntryType:
+		m.ResetEntryType()
+		return nil
+	case userbalanceledger.FieldDirection:
+		m.ResetDirection()
+		return nil
+	case userbalanceledger.FieldAmount:
+		m.ResetAmount()
+		return nil
+	case userbalanceledger.FieldBalanceAfter:
+		m.ResetBalanceAfter()
+		return nil
+	case userbalanceledger.FieldMemo:
+		m.ResetMemo()
+		return nil
+	case userbalanceledger.FieldFrozen:
+		m.ResetFrozen()
+		return nil
+	case userbalanceledger.FieldRefundBatchID:
+		m.ResetRefundBatchID()
+		return nil
+	}
+	return fmt.Errorf("unknown UserBalanceLedger field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserBalanceLedgerMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.user != nil {
+		edges = append(edges, userbalanceledger.EdgeUser)
+	}
+	if m._order != nil {
+		edges = append(edges, userbalanceledger.EdgeOrder)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserBalanceLedgerMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case userbalanceledger.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	case userbalanceledger.EdgeOrder:
+		if id := m._order; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserBalanceLedgerMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserBalanceLedgerMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserBalanceLedgerMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.cleareduser {
+		edges = append(edges, userbalanceledger.EdgeUser)
+	}
+	if m.cleared_order {
+		edges = append(edges, userbalanceledger.EdgeOrder)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserBalanceLedgerMutation) EdgeCleared(name string) bool {
+	switch name {
+	case userbalanceledger.EdgeUser:
+		return m.cleareduser
+	case userbalanceledger.EdgeOrder:
+		return m.cleared_order
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserBalanceLedgerMutation) ClearEdge(name string) error {
+	switch name {
+	case userbalanceledger.EdgeUser:
+		m.ClearUser()
+		return nil
+	case userbalanceledger.EdgeOrder:
+		m.ClearOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown UserBalanceLedger unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserBalanceLedgerMutation) ResetEdge(name string) error {
+	switch name {
+	case userbalanceledger.EdgeUser:
+		m.ResetUser()
+		return nil
+	case userbalanceledger.EdgeOrder:
+		m.ResetOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown UserBalanceLedger edge %s", name)
 }
 
 // UserPlatformQuotaMutation represents an operation that mutates the UserPlatformQuota nodes in the graph.
