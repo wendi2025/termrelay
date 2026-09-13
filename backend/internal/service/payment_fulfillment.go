@@ -376,6 +376,10 @@ func (s *PaymentService) markCompleted(ctx context.Context, o *dbent.PaymentOrde
 		}
 		return infraerrors.Conflict("CONFLICT", "fulfillment lease was lost before completion")
 	}
+	// 充值成功：登记余额账本本金入账（方案 9.2），幂等
+	if auditAction == "RECHARGE_SUCCESS" {
+		s.recordRechargeLedger(ctx, o)
+	}
 	if !s.hasAuditLog(ctx, o.ID, auditAction) {
 		s.writeAuditLog(ctx, o.ID, auditAction, "system", map[string]any{
 			"rechargeCode":   o.RechargeCode,
@@ -385,6 +389,17 @@ func (s *PaymentService) markCompleted(ctx context.Context, o *dbent.PaymentOrde
 		s.dispatchPaymentFulfillmentNotification(o, auditAction)
 	}
 	return nil
+}
+
+// recordRechargeLedger 登记充值本金入账（幂等：同一订单只登记一次）。
+// 账本写入失败不阻断履约 —— 履约重试会再次调用本方法补登记。
+func (s *PaymentService) recordRechargeLedger(ctx context.Context, o *dbent.PaymentOrder) {
+	if s == nil || s.balanceLedger == nil || o == nil {
+		return
+	}
+	if err := s.balanceLedger.RecordRechargeCredit(ctx, o); err != nil {
+		slog.Warn("payment: record balance ledger credit failed", "orderID", o.ID, "error", err)
+	}
 }
 
 func (s *PaymentService) dispatchPaymentFulfillmentNotification(o *dbent.PaymentOrder, auditAction string) {

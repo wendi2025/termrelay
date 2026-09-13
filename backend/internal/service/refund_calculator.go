@@ -27,6 +27,9 @@ import (
 //   平台故障/重复扣款/错误计费 → 不受 24h 时限限制，由管理员走 force_refund
 
 // RefundQuote 退款报价（纯计算结果，不发起任何网关/数据库写入）
+//
+// 单位约定：RefundableAmount 与 CalculationBreakdown 中的金额口径统一为
+// "支付币种"（订单实付金额 PayAmount 的币种，如 CNY）。
 type RefundQuote struct {
 	OrderID              int64              `json:"order_id"`
 	OrderType            string             `json:"order_type"`
@@ -39,9 +42,10 @@ type RefundQuote struct {
 }
 
 // RefundDataLoader 数据加载器接口（由调用方实现，从 ent 拉数据）
-//   本接口把"计算逻辑"和"数据访问"解耦：
-//   - 计算逻辑用纯函数（无 DB 依赖），易于单元测试
-//   - 数据加载在生产代码里通过 ent client 实现，新表 UserBalanceLedger 在 ent 重新生成后接入
+//
+//	本接口把"计算逻辑"和"数据访问"解耦：
+//	- 计算逻辑用纯函数（无 DB 依赖），易于单元测试
+//	- 数据加载在生产代码里通过 ent client 实现，新表 UserBalanceLedger 在 ent 重新生成后接入
 type RefundDataLoader interface {
 	// HasUsageIn24hWindow 检查订单 paid_at 后 24h 内是否有任何消费
 	HasUsageIn24hWindow(ctx context.Context, order *dbent.PaymentOrder) (bool, error)
@@ -121,7 +125,9 @@ func (c *RefundCalculator) CalculateRefund(ctx context.Context, order *dbent.Pay
 		return quote, nil
 	}
 
-	paidAmount := order.PayAmount
+	// 实付金额口径：PayAmount 缺失的存量订单退化为记账金额（Amount），
+	// 避免 force / 24h 窗口两条路径对存量订单报价为 0。
+	paidAmount := refundOrderPaidAmount(order)
 
 	// 3. force_refund 路径：跳过公式，按实付金额退
 	if force {
@@ -167,7 +173,12 @@ func (c *RefundCalculator) CalculateRefund(ctx context.Context, order *dbent.Pay
 }
 
 // safePaidAt 防止 *time.Time 为 nil
-func safePaidAt(t *time.Time) time.Time { if t == nil { return time.Time{} }; return *t }
+func safePaidAt(t *time.Time) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return *t
+}
 
 // within24h 订单 paid_at 距今是否在 24 小时内
 func (c *RefundCalculator) within24h(paidAt time.Time) bool {
@@ -178,9 +189,10 @@ func (c *RefundCalculator) within24h(paidAt time.Time) bool {
 }
 
 // calculateSubscriptionRefund 周期套餐双重结算
-//   可退金额 = max(0, 实付 - max(按时间应扣, 已用 USD × 按量价))
+//
+//	可退金额 = max(0, 实付 - max(按时间应扣, 已用 USD × 按量价))
 func (c *RefundCalculator) calculateSubscriptionRefund(ctx context.Context, order *dbent.PaymentOrder, quote *RefundQuote) (*RefundQuote, error) {
-	paidAmount := order.PayAmount
+	paidAmount := refundOrderPaidAmount(order)
 	quote.CalculationBreakdown["paid_amount"] = paidAmount
 
 	// 已使用 USD（按订单 paid_at 之后至 now 的 usage_log.actual_cost 求和）
@@ -234,11 +246,14 @@ func (c *RefundCalculator) calculateSubscriptionRefund(ctx context.Context, orde
 }
 
 // calculateBalanceRefund 按量充值退款
-//   可退金额 = max(0, 订单本金 - 已扣本金)
-//   赠送余额退款时由调用方同步撤销（不在本计算结果中体现金额）
+//
+//	可退金额 = max(0, 订单充值本金 - 该订单已实际扣费金额)
+//	本金与已扣金额均为"记账单位"（订单 Amount 口径），最终折算为支付币种返回。
+//	赠送余额不参与退款计算，由调用方在退款完成时同步撤销。
 func (c *RefundCalculator) calculateBalanceRefund(ctx context.Context, order *dbent.PaymentOrder, quote *RefundQuote) (*RefundQuote, error) {
-	paidAmount := order.PayAmount
-	quote.CalculationBreakdown["paid_amount"] = paidAmount
+	principal := refundOrderPrincipalAmount(order)
+	quote.CalculationBreakdown["order_principal"] = principal
+	quote.CalculationBreakdown["paid_amount"] = refundOrderPaidAmount(order)
 
 	usedPrincipal, err := c.loader.LoadBalanceOrderUsedPrincipal(ctx, order)
 	if err != nil {
@@ -246,7 +261,14 @@ func (c *RefundCalculator) calculateBalanceRefund(ctx context.Context, order *db
 	}
 	quote.CalculationBreakdown["used_principal"] = usedPrincipal
 
-	refundable := paidAmount - usedPrincipal
+	refundablePrincipal := principal - usedPrincipal
+	if refundablePrincipal < 0 {
+		refundablePrincipal = 0
+	}
+	quote.CalculationBreakdown["refundable_principal"] = refundablePrincipal
+	quote.CalculationBreakdown["credit_unit_price"] = refundCreditUnitPrice(order)
+
+	refundable := refundPrincipalToPaidAmount(order, refundablePrincipal)
 	if refundable < 0 {
 		refundable = 0
 	}
@@ -255,5 +277,50 @@ func (c *RefundCalculator) calculateBalanceRefund(ctx context.Context, order *db
 	return quote, nil
 }
 
+// --- 金额单位换算 ---
+//
+// 支付订单同时存在两个金额口径：
+//   - PayAmount：用户实际支付的金额（支付币种，如 CNY）
+//   - Amount：入账到用户余额的金额（记账单位，含充值倍率与手续费口径）
+//
+// 退款公式（9.1 / 9.2）在"支付币种"口径下计算并对外报价；而余额扣减与
+// user_balance_ledger 账本使用"记账单位"。两个口径通过订单自身的
+// Amount/PayAmount 比例互相换算，换算系数无法确定时按 1:1 处理（存量订单）。
 
+// refundOrderPaidAmount 返回实付金额（支付币种）；缺失时退化为记账金额。
+func refundOrderPaidAmount(order *dbent.PaymentOrder) float64 {
+	if order == nil {
+		return 0
+	}
+	if order.PayAmount > 0 {
+		return order.PayAmount
+	}
+	return refundOrderPrincipalAmount(order)
+}
 
+// refundOrderPrincipalAmount 返回订单入账本金（记账单位）。
+func refundOrderPrincipalAmount(order *dbent.PaymentOrder) float64 {
+	if order == nil {
+		return 0
+	}
+	if order.Amount > 0 {
+		return order.Amount
+	}
+	return order.PayAmount
+}
+
+// refundCreditUnitPrice 返回 1 记账单位对应的支付币种金额。
+func refundCreditUnitPrice(order *dbent.PaymentOrder) float64 {
+	if order == nil || order.Amount <= 0 || order.PayAmount <= 0 {
+		return 1
+	}
+	return order.PayAmount / order.Amount
+}
+
+// refundPrincipalToPaidAmount 记账单位金额 → 支付币种金额。
+func refundPrincipalToPaidAmount(order *dbent.PaymentOrder, principal float64) float64 {
+	if principal <= 0 {
+		return 0
+	}
+	return principal * refundCreditUnitPrice(order)
+}

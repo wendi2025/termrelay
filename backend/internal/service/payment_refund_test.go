@@ -119,6 +119,104 @@ func TestPrepareRefundRejectsLegacyGuessedProviderInstance(t *testing.T) {
 	require.Equal(t, "REFUND_DISABLED", infraerrors.Reason(err))
 }
 
+// newRefundCapTestOrder 构造一笔已完成的按量充值订单（含可退款的支付渠道实例）
+func newRefundCapTestOrder(t *testing.T, client *dbent.Client, email string, balance, amount float64) (*dbent.PaymentOrder, *User) {
+	t.Helper()
+	ctx := context.Background()
+
+	user, err := client.User.Create().
+		SetEmail(email).
+		SetPasswordHash("hash").
+		SetUsername(email).
+		SetBalance(balance).
+		Save(ctx)
+	require.NoError(t, err)
+
+	inst, err := client.PaymentProviderInstance.Create().
+		SetProviderKey(payment.TypeAlipay).
+		SetName("refund-cap-instance-" + email).
+		SetConfig("{}").
+		SetSupportedTypes("alipay").
+		SetEnabled(true).
+		SetAllowUserRefund(true).
+		SetRefundEnabled(true).
+		Save(ctx)
+	require.NoError(t, err)
+
+	order, err := client.PaymentOrder.Create().
+		SetUserID(user.ID).
+		SetUserEmail(user.Email).
+		SetUserName(user.Username).
+		SetProviderInstanceID(strconv.FormatInt(inst.ID, 10)).
+		SetAmount(amount).
+		SetPayAmount(amount).
+		SetFeeRate(0).
+		SetRechargeCode("REFUND-CAP-" + email).
+		SetOutTradeNo("sub2_refund_cap_" + email).
+		SetPaymentType(payment.TypeAlipay).
+		SetPaymentTradeNo("trade-refund-cap-" + email).
+		SetOrderType(payment.OrderTypeBalance).
+		SetStatus(OrderStatusCompleted).
+		SetExpiresAt(time.Now().Add(time.Hour)).
+		SetPaidAt(time.Now()).
+		SetClientIP("127.0.0.1").
+		SetSrcHost("api.example.com").
+		Save(ctx)
+	require.NoError(t, err)
+	return order, &User{ID: user.ID, Balance: balance}
+}
+
+// 管理员退款同样必须以用户当前余额封顶：否则会退出现金却不扣减余额（平台损失）。
+func TestPrepareRefundCapsAmountByUserBalance(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	order, user := newRefundCapTestOrder(t, client, "refund-cap@example.com", 30, 100)
+
+	svc := &PaymentService{entClient: client, userRepo: &userRepoStub{user: user}}
+
+	// 未注入退款计算器 → amt 回落到订单记账金额 100，必须被余额 30 封顶
+	plan, _, err := svc.PrepareRefund(ctx, order.ID, 0, "", false, false)
+	require.NoError(t, err)
+	require.NotNil(t, plan)
+	require.InDelta(t, 30, plan.RefundAmount, 0.01)
+	require.InDelta(t, 30, plan.GatewayAmount, 0.01)
+}
+
+// force_refund（平台故障/重复扣款）由管理员显式授权，不受余额封顶限制。
+func TestPrepareRefundForceBypassesBalanceCap(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	order, user := newRefundCapTestOrder(t, client, "refund-cap-force@example.com", 30, 100)
+
+	svc := &PaymentService{entClient: client, userRepo: &userRepoStub{user: user}}
+
+	plan, _, err := svc.PrepareRefund(ctx, order.ID, 0, "", true, false)
+	require.NoError(t, err)
+	require.NotNil(t, plan)
+	require.InDelta(t, 100, plan.RefundAmount, 0.01)
+}
+
+func TestBalanceRefundCapForOrder(t *testing.T) {
+	ctx := context.Background()
+
+	// 未注入用户仓储（仅测试构造）：无法判定，调用方跳过封顶
+	if _, known, err := (&PaymentService{}).balanceRefundCapForOrder(ctx, &dbent.PaymentOrder{ID: 1}, 50, "CNY"); err != nil || known {
+		t.Fatalf("want known=false without user repo, got known=%v err=%v", known, err)
+	}
+
+	low := &PaymentService{userRepo: &userRepoStub{user: &User{ID: 1, Balance: 20}}}
+	cap, known, err := low.balanceRefundCapForOrder(ctx, &dbent.PaymentOrder{ID: 1, UserID: 1}, 50, "CNY")
+	require.NoError(t, err)
+	require.True(t, known)
+	require.InDelta(t, 20, cap, 0.01)
+
+	high := &PaymentService{userRepo: &userRepoStub{user: &User{ID: 1, Balance: 100}}}
+	cap, known, err = high.balanceRefundCapForOrder(ctx, &dbent.PaymentOrder{ID: 1, UserID: 1}, 50, "CNY")
+	require.NoError(t, err)
+	require.True(t, known)
+	require.InDelta(t, 50, cap, 0.01)
+}
+
 func TestGwRefundRejectsAlipayMerchantIdentitySnapshotMismatch(t *testing.T) {
 	ctx := context.Background()
 	client := newPaymentConfigServiceTestClient(t)

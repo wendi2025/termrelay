@@ -100,7 +100,7 @@ func (_q *UserBalanceLedgerQuery) QueryOrder() *PaymentOrderQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(userbalanceledger.Table, userbalanceledger.FieldID, selector),
 			sqlgraph.To(paymentorder.Table, paymentorder.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, userbalanceledger.OrderTable, userbalanceledger.OrderColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, userbalanceledger.OrderTable, userbalanceledger.OrderColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil

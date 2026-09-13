@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/ent/user"
-	"github.com/Wei-Shaw/sub2api/ent/userbalanceledger"
 )
 
 // PaymentOrder is the model entity for the PaymentOrder schema.
@@ -109,7 +108,7 @@ type PaymentOrderEdges struct {
 	// User holds the value of the user edge.
 	User *User `json:"user,omitempty"`
 	// BalanceLedger holds the value of the balance_ledger edge.
-	BalanceLedger *UserBalanceLedger `json:"balance_ledger,omitempty"`
+	BalanceLedger []*UserBalanceLedger `json:"balance_ledger,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
@@ -127,12 +126,10 @@ func (e PaymentOrderEdges) UserOrErr() (*User, error) {
 }
 
 // BalanceLedgerOrErr returns the BalanceLedger value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PaymentOrderEdges) BalanceLedgerOrErr() (*UserBalanceLedger, error) {
-	if e.BalanceLedger != nil {
+// was not loaded in eager-loading.
+func (e PaymentOrderEdges) BalanceLedgerOrErr() ([]*UserBalanceLedger, error) {
+	if e.loadedTypes[1] {
 		return e.BalanceLedger, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: userbalanceledger.Label}
 	}
 	return nil, &NotLoadedError{edge: "balance_ledger"}
 }

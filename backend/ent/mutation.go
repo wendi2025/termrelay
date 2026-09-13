@@ -29482,7 +29482,8 @@ type PaymentOrderMutation struct {
 	clearedFields            map[string]struct{}
 	user                     *int64
 	cleareduser              bool
-	balance_ledger           *int64
+	balance_ledger           map[int64]struct{}
+	removedbalance_ledger    map[int64]struct{}
 	clearedbalance_ledger    bool
 	done                     bool
 	oldValue                 func(context.Context) (*PaymentOrder, error)
@@ -31421,9 +31422,14 @@ func (m *PaymentOrderMutation) ResetUser() {
 	m.cleareduser = false
 }
 
-// SetBalanceLedgerID sets the "balance_ledger" edge to the UserBalanceLedger entity by id.
-func (m *PaymentOrderMutation) SetBalanceLedgerID(id int64) {
-	m.balance_ledger = &id
+// AddBalanceLedgerIDs adds the "balance_ledger" edge to the UserBalanceLedger entity by ids.
+func (m *PaymentOrderMutation) AddBalanceLedgerIDs(ids ...int64) {
+	if m.balance_ledger == nil {
+		m.balance_ledger = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.balance_ledger[ids[i]] = struct{}{}
+	}
 }
 
 // ClearBalanceLedger clears the "balance_ledger" edge to the UserBalanceLedger entity.
@@ -31436,20 +31442,29 @@ func (m *PaymentOrderMutation) BalanceLedgerCleared() bool {
 	return m.clearedbalance_ledger
 }
 
-// BalanceLedgerID returns the "balance_ledger" edge ID in the mutation.
-func (m *PaymentOrderMutation) BalanceLedgerID() (id int64, exists bool) {
-	if m.balance_ledger != nil {
-		return *m.balance_ledger, true
+// RemoveBalanceLedgerIDs removes the "balance_ledger" edge to the UserBalanceLedger entity by IDs.
+func (m *PaymentOrderMutation) RemoveBalanceLedgerIDs(ids ...int64) {
+	if m.removedbalance_ledger == nil {
+		m.removedbalance_ledger = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.balance_ledger, ids[i])
+		m.removedbalance_ledger[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBalanceLedger returns the removed IDs of the "balance_ledger" edge to the UserBalanceLedger entity.
+func (m *PaymentOrderMutation) RemovedBalanceLedgerIDs() (ids []int64) {
+	for id := range m.removedbalance_ledger {
+		ids = append(ids, id)
 	}
 	return
 }
 
 // BalanceLedgerIDs returns the "balance_ledger" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// BalanceLedgerID instead. It exists only for internal usage by the builders.
 func (m *PaymentOrderMutation) BalanceLedgerIDs() (ids []int64) {
-	if id := m.balance_ledger; id != nil {
-		ids = append(ids, *id)
+	for id := range m.balance_ledger {
+		ids = append(ids, id)
 	}
 	return
 }
@@ -31458,6 +31473,7 @@ func (m *PaymentOrderMutation) BalanceLedgerIDs() (ids []int64) {
 func (m *PaymentOrderMutation) ResetBalanceLedger() {
 	m.balance_ledger = nil
 	m.clearedbalance_ledger = false
+	m.removedbalance_ledger = nil
 }
 
 // Where appends a list predicates to the PaymentOrderMutation builder.
@@ -32468,9 +32484,11 @@ func (m *PaymentOrderMutation) AddedIDs(name string) []ent.Value {
 			return []ent.Value{*id}
 		}
 	case paymentorder.EdgeBalanceLedger:
-		if id := m.balance_ledger; id != nil {
-			return []ent.Value{*id}
+		ids := make([]ent.Value, 0, len(m.balance_ledger))
+		for id := range m.balance_ledger {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
@@ -32478,12 +32496,23 @@ func (m *PaymentOrderMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PaymentOrderMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
+	if m.removedbalance_ledger != nil {
+		edges = append(edges, paymentorder.EdgeBalanceLedger)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *PaymentOrderMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case paymentorder.EdgeBalanceLedger:
+		ids := make([]ent.Value, 0, len(m.removedbalance_ledger))
+		for id := range m.removedbalance_ledger {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
@@ -32517,9 +32546,6 @@ func (m *PaymentOrderMutation) ClearEdge(name string) error {
 	switch name {
 	case paymentorder.EdgeUser:
 		m.ClearUser()
-		return nil
-	case paymentorder.EdgeBalanceLedger:
-		m.ClearBalanceLedger()
 		return nil
 	}
 	return fmt.Errorf("unknown PaymentOrder unique edge %s", name)

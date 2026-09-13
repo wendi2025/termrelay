@@ -8,9 +8,9 @@ import (
 
 	dbent "github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
-	"github.com/Wei-Shaw/sub2api/ent/userbalanceledger"
-	"github.com/Wei-Shaw/sub2api/ent/usersubscription"
 	entusage "github.com/Wei-Shaw/sub2api/ent/usagelog"
+	"github.com/Wei-Shaw/sub2api/ent/userbalanceledger"
+	"github.com/Wei-Shaw/sub2api/internal/payment"
 )
 
 // entRefundLoader 退款计算器的 ent 数据加载器实现
@@ -50,7 +50,12 @@ func (l *entRefundLoader) HasUsageIn24hWindow(ctx context.Context, order *dbent.
 	return n > 0, nil
 }
 
-// LoadSubscriptionPeriodUsage 加载周期套餐已使用 USD 总额
+// LoadSubscriptionPeriodUsage 加载周期套餐已使用官方 $ 额度
+//
+// 口径（方案 9.1）：以平台最终结算记录为准 —— 取该订单周期内
+// （paid_at → paid_at + subscription_days）该分组下 usage_log.actual_cost 之和。
+// 与 user_subscriptions.monthly_usage_usd 相比，按订单周期取数可避免
+// 续费/跨周期时把新周期的用量算进旧订单。
 func (l *entRefundLoader) LoadSubscriptionPeriodUsage(ctx context.Context, order *dbent.PaymentOrder) (float64, error) {
 	if order == nil {
 		return 0, ErrNilOrder
@@ -58,34 +63,44 @@ func (l *entRefundLoader) LoadSubscriptionPeriodUsage(ctx context.Context, order
 	if order.SubscriptionGroupID == nil {
 		return 0, nil
 	}
-	subs, err := l.client.UserSubscription.Query().
-		Where(usersubscription.UserIDEQ(order.UserID)).
-		Where(usersubscription.GroupIDEQ(*order.SubscriptionGroupID)).
-		Where(usersubscription.StatusEQ("active")).
-		All(ctx)
+	from := safePaidAt(order.PaidAt)
+	if from.IsZero() {
+		return 0, nil
+	}
+	query := l.client.UsageLog.Query().
+		Where(entusage.UserIDEQ(order.UserID)).
+		Where(entusage.GroupIDEQ(*order.SubscriptionGroupID)).
+		Where(entusage.CreatedAtGTE(from))
+	if order.SubscriptionDays != nil && *order.SubscriptionDays > 0 {
+		query = query.Where(entusage.CreatedAtLT(from.Add(time.Duration(*order.SubscriptionDays) * 24 * time.Hour)))
+	}
+	logs, err := query.Select(entusage.FieldActualCost).All(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("query subscription: %w", err)
+		return 0, fmt.Errorf("query subscription usage: %w", err)
 	}
 	var total float64
-	for _, s := range subs {
-		total += s.MonthlyUsageUsd
+	for _, entry := range logs {
+		total += entry.ActualCost
 	}
 	return total, nil
 }
 
-// LoadBalanceOrderUsedPrincipal 加载按量充值订单的"已扣本金"金额
-//   算法：sum(credit) - sum(debit) where order_id=该订单, entry_type=principal
-//   简化版：使用 All() + 累加；性能后续可用 SQL 聚合优化
+// LoadBalanceOrderUsedPrincipal 加载按量充值订单的"已扣本金"金额（记账单位）
+//
+//	算法：sum(principal credit) - sum(principal debit)，按 order_id 归属。
+//	只统计本金分录：赠送余额不参与本金退款计算。
+//	不过滤 frozen —— frozen 表示该订单账本已在退款完成时关闭，
+//	而本方法用于"退款前计算"，必须看到全部历史分录。
 func (l *entRefundLoader) LoadBalanceOrderUsedPrincipal(ctx context.Context, order *dbent.PaymentOrder) (float64, error) {
 	if order == nil {
 		return 0, ErrNilOrder
 	}
-	if order.OrderType != "balance" {
+	if order.OrderType != payment.OrderTypeBalance {
 		return 0, nil
 	}
 	entries, err := l.client.UserBalanceLedger.Query().
 		Where(userbalanceledger.OrderIDEQ(order.ID)).
-		Where(userbalanceledger.FrozenEQ(false)).
+		Where(userbalanceledger.EntryTypeEQ(ledgerEntryTypePrincipal)).
 		All(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("query ledger: %w", err)
@@ -93,9 +108,9 @@ func (l *entRefundLoader) LoadBalanceOrderUsedPrincipal(ctx context.Context, ord
 	var credits, debits float64
 	for _, e := range entries {
 		switch {
-		case e.EntryType == "principal" && e.Direction == "credit":
+		case e.Direction == ledgerDirectionCredit:
 			credits += e.Amount
-		case e.Direction == "debit":
+		case e.Direction == ledgerDirectionDebit:
 			debits += e.Amount
 		}
 	}

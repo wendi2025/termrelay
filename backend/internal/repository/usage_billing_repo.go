@@ -59,6 +59,11 @@ func (r *usageBillingRepository) Apply(ctx context.Context, cmd *service.UsageBi
 		return nil, err
 	}
 	tx = nil
+
+	// 余额分账账本：把本次扣费按 FIFO 归属到充值订单（事务外，失败不影响计费）
+	if cmd.BalanceCost > 0 {
+		r.recordUsageBillingLedgerDebit(ctx, cmd.UserID, cmd.BalanceCost, ledgerDebitMemo("usage", cmd.RequestID))
+	}
 	return result, nil
 }
 
@@ -168,6 +173,11 @@ func (r *usageBillingRepository) applyBatchImageBalanceHold(
 		return nil, err
 	}
 	tx = nil
+
+	// 批量图片 capture：实际结算金额已从余额扣除，同步登记账本归属
+	if cmd.ActualAmount > 0 {
+		r.recordUsageBillingLedgerDebit(ctx, cmd.UserID, cmd.ActualAmount, ledgerDebitMemo("batch_image", cmd.RequestID))
+	}
 	return result, nil
 }
 

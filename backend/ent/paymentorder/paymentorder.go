@@ -420,10 +420,17 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
-// ByBalanceLedgerField orders the results by balance_ledger field.
-func ByBalanceLedgerField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByBalanceLedgerCount orders the results by balance_ledger count.
+func ByBalanceLedgerCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newBalanceLedgerStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newBalanceLedgerStep(), opts...)
+	}
+}
+
+// ByBalanceLedger orders the results by balance_ledger terms.
+func ByBalanceLedger(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBalanceLedgerStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newUserStep() *sqlgraph.Step {
@@ -437,6 +444,6 @@ func newBalanceLedgerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(BalanceLedgerInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, BalanceLedgerTable, BalanceLedgerColumn),
+		sqlgraph.Edge(sqlgraph.O2M, false, BalanceLedgerTable, BalanceLedgerColumn),
 	)
 }

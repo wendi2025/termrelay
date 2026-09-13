@@ -180,8 +180,9 @@ func (PaymentOrder) Edges() []ent.Edge {
 			Field("user_id").
 			Unique().
 			Required(),
-		edge.To("balance_ledger", UserBalanceLedger.Type).
-			Unique(),
+		// 一笔订单可以有多条账本分录（本金入账、赠送入账、以及若干次扣费归属），
+		// 因此这里是 O2M 关系，与迁移 194 的非唯一索引保持一致。
+		edge.To("balance_ledger", UserBalanceLedger.Type),
 	}
 }
 
@@ -199,5 +200,3 @@ func (PaymentOrder) Indexes() []ent.Index {
 		index.Fields("order_type"),
 	}
 }
-
-

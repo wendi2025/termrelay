@@ -159,24 +159,35 @@ func (s *PaymentService) RequestRefund(ctx context.Context, oid, uid int64, reas
 	if err != nil {
 		return err
 	}
-	u, err := s.userRepo.GetByID(ctx, o.UserID)
+	policy, err := s.refundPolicyForOrder(ctx, o, false)
 	if err != nil {
-		return fmt.Errorf("get user: %w", err)
+		return err
 	}
-	if u.Balance < o.Amount {
-		return infraerrors.BadRequest("BALANCE_NOT_ENOUGH", "refund amount exceeds balance")
+	if policy == nil || policy.CreditAmount <= 0 {
+		return infraerrors.BadRequest("NOTHING_TO_REFUND", "this order has no refundable amount")
+	}
+	// 余额订单：退款将回扣该订单未使用的充值本金，用户余额必须仍然覆盖该金额
+	if o.OrderType == payment.OrderTypeBalance {
+		orderCurrency := PaymentOrderCurrency(o)
+		cap, known, capErr := s.balanceRefundCapForOrder(ctx, o, policy.CreditAmount, orderCurrency)
+		if capErr != nil {
+			return capErr
+		}
+		if known && cap+paymentAmountToleranceForCurrency(orderCurrency) < policy.CreditAmount {
+			return infraerrors.BadRequest("BALANCE_NOT_ENOUGH", "refund amount exceeds remaining balance")
+		}
 	}
 	nr := strings.TrimSpace(reason)
 	now := time.Now()
 	by := fmt.Sprintf("%d", uid)
-	c, err := s.entClient.PaymentOrder.Update().Where(paymentorder.IDEQ(oid), paymentorder.UserIDEQ(uid), paymentorder.StatusEQ(OrderStatusCompleted), paymentorder.OrderTypeEQ(payment.OrderTypeBalance)).SetStatus(OrderStatusRefundRequested).SetRefundRequestedAt(now).SetRefundRequestReason(nr).SetRefundRequestedBy(by).SetRefundAmount(o.Amount).Save(ctx)
+	c, err := s.entClient.PaymentOrder.Update().Where(paymentorder.IDEQ(oid), paymentorder.UserIDEQ(uid), paymentorder.StatusEQ(OrderStatusCompleted), paymentorder.OrderTypeIn(payment.OrderTypeBalance, payment.OrderTypeSubscription)).SetStatus(OrderStatusRefundRequested).SetRefundRequestedAt(now).SetRefundRequestReason(nr).SetRefundRequestedBy(by).SetRefundAmount(policy.CreditAmount).Save(ctx)
 	if err != nil {
 		return fmt.Errorf("update: %w", err)
 	}
 	if c == 0 {
 		return infraerrors.Conflict("CONFLICT", "order status changed")
 	}
-	s.writeAuditLog(ctx, oid, "REFUND_REQUESTED", fmt.Sprintf("user:%d", uid), map[string]any{"amount": o.Amount, "reason": nr})
+	s.writeAuditLog(ctx, oid, "REFUND_REQUESTED", fmt.Sprintf("user:%d", uid), psMergeAuditDetail(map[string]any{"amount": policy.CreditAmount, "reason": nr}, policy.auditDetail()))
 	return nil
 }
 
@@ -188,8 +199,10 @@ func (s *PaymentService) validateRefundRequest(ctx context.Context, oid, uid int
 	if o.UserID != uid {
 		return nil, infraerrors.Forbidden("FORBIDDEN", "no permission")
 	}
-	if o.OrderType != payment.OrderTypeBalance {
-		return nil, infraerrors.BadRequest("INVALID_ORDER_TYPE", "only balance orders can request refund")
+	// 周期套餐与按量充值均可提交退款申请（方案 9.1 / 9.2），
+	// 最终是否放行由退款公式与管理员审核决定。
+	if o.OrderType != payment.OrderTypeBalance && o.OrderType != payment.OrderTypeSubscription {
+		return nil, infraerrors.BadRequest("INVALID_ORDER_TYPE", "this order type does not support refund")
 	}
 	if o.Status != OrderStatusCompleted {
 		return nil, infraerrors.BadRequest("INVALID_STATUS", "only completed orders can request refund")
@@ -230,12 +243,48 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 	if math.IsNaN(amt) || math.IsInf(amt, 0) {
 		return nil, nil, infraerrors.BadRequest("INVALID_AMOUNT", "invalid refund amount")
 	}
-	if amt <= 0 {
+	orderCurrency := PaymentOrderCurrency(o)
+	tolerance := paymentAmountToleranceForCurrency(orderCurrency)
+	// 方案 9.1 / 9.2：非强制退款金额不得超过双重结算公式给出的可退上限
+	policy, err := s.refundPolicyForOrder(ctx, o, force)
+	if err != nil {
+		return nil, nil, err
+	}
+	if policy != nil {
+		if amt <= 0 {
+			amt = policy.CreditAmount
+		}
+		if amt <= 0 {
+			return nil, nil, infraerrors.BadRequest("NOTHING_TO_REFUND", "this order has no refundable amount")
+		}
+		if !force && amt > policy.CreditAmount+tolerance {
+			return nil, nil, infraerrors.BadRequest("REFUND_AMOUNT_EXCEEDED",
+				fmt.Sprintf("refund amount exceeds policy limit (max %.2f)", policy.CreditAmount))
+		}
+	} else if amt <= 0 {
 		amt = o.Amount
 	}
-	orderCurrency := PaymentOrderCurrency(o)
-	if amt-o.Amount > paymentAmountToleranceForCurrency(orderCurrency) {
+	if amt-o.Amount > tolerance {
 		return nil, nil, infraerrors.BadRequest("REFUND_AMOUNT_EXCEEDED", "refund amount exceeds recharge")
+	}
+	// 按量充值：退款金额不得超过用户当前余额。
+	// 退款会回扣该订单未使用的充值本金，用户余额是"尚未消费"的最终事实来源；
+	// 若只看账本归属，历史订单（账本未覆盖）可能退出现金却不扣减余额，造成平台损失。
+	if !force && o.OrderType == payment.OrderTypeBalance && amt > 0 {
+		capped, known, capErr := s.balanceRefundCapForOrder(ctx, o, amt, orderCurrency)
+		if capErr != nil {
+			return nil, nil, capErr
+		}
+		if known {
+			if capped+tolerance < amt {
+				slog.Info("refund: amount capped by user balance",
+					"orderID", oid, "requested", amt, "capped", capped)
+			}
+			amt = capped
+			if amt <= 0 {
+				return nil, nil, infraerrors.BadRequest("NOTHING_TO_REFUND", "this order has no refundable amount")
+			}
+		}
 	}
 	ga := calculateGatewayRefundAmount(o.Amount, o.PayAmount, amt, orderCurrency)
 	rr := strings.TrimSpace(reason)
@@ -252,6 +301,32 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 		}
 	}
 	return p, nil, nil
+}
+
+// balanceRefundCapForOrder 计算按量充值订单的可退上限（记账单位），以用户当前余额封顶。
+//
+// 返回值 known=false 表示当前无法判定（未注入用户仓储，仅测试构造），调用方应跳过封顶。
+func (s *PaymentService) balanceRefundCapForOrder(ctx context.Context, o *dbent.PaymentOrder, cap float64, currency string) (float64, bool, error) {
+	if s == nil || s.userRepo == nil || o == nil {
+		return cap, false, nil
+	}
+	u, err := s.userRepo.GetByID(ctx, o.UserID)
+	if err != nil {
+		return 0, false, fmt.Errorf("get user: %w", err)
+	}
+	if u == nil {
+		return cap, false, nil
+	}
+	if cap < 0 {
+		cap = 0
+	}
+	if u.Balance+paymentAmountToleranceForCurrency(currency) < cap {
+		cap = u.Balance
+	}
+	if cap < 0 {
+		cap = 0
+	}
+	return cap, true, nil
 }
 
 func (s *PaymentService) prepDeduct(ctx context.Context, o *dbent.PaymentOrder, p *RefundPlan, force bool) *RefundResult {
@@ -568,8 +643,30 @@ func (s *PaymentService) markRefundOk(ctx context.Context, p *RefundPlan) (*Refu
 	if err != nil {
 		return nil, fmt.Errorf("mark refund: %w", err)
 	}
-	s.writeAuditLog(ctx, p.OrderID, "REFUND_SUCCESS", "admin", map[string]any{"refundAmount": p.RefundAmount, "reason": p.Reason, "balanceDeducted": p.BalanceToDeduct, "force": p.Force})
+	detail := map[string]any{"refundAmount": p.RefundAmount, "reason": p.Reason, "balanceDeducted": p.BalanceToDeduct, "force": p.Force}
+	s.settleRefundLedger(ctx, p, detail)
+	s.writeAuditLog(ctx, p.OrderID, "REFUND_SUCCESS", "admin", detail)
 	return &RefundResult{Success: true, BalanceDeducted: p.BalanceToDeduct, SubDaysDeducted: p.SubDaysToDeduct}, nil
+}
+
+// settleRefundLedger 退款完成后关闭该订单的余额账本（方案 9.2：退款完成后该
+// 订单余额立即冻结、未使用赠送余额同步取消），并把账本汇总写入退款审计记录
+// （方案 9.3：处理方式必须以余额账本为准）。
+func (s *PaymentService) settleRefundLedger(ctx context.Context, p *RefundPlan, detail map[string]any) {
+	if s == nil || s.balanceLedger == nil || p == nil || p.Order == nil {
+		return
+	}
+	batchID := fmt.Sprintf("refund:%d:%d", p.OrderID, time.Now().Unix())
+	if err := s.balanceLedger.SettleOrderLedger(ctx, p.OrderID, batchID); err != nil {
+		slog.Warn("refund: settle balance ledger failed", "orderID", p.OrderID, "error", err)
+	}
+	detail["refundBatchID"] = batchID
+	summary, err := s.balanceLedger.OrderSummary(ctx, p.OrderID)
+	if err != nil {
+		slog.Warn("refund: load balance ledger summary failed", "orderID", p.OrderID, "error", err)
+		return
+	}
+	detail["ledger"] = summary
 }
 
 func (s *PaymentService) markRefundPending(ctx context.Context, p *RefundPlan, resp *payment.RefundResponse) (*RefundResult, error) {

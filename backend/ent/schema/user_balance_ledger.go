@@ -1,8 +1,6 @@
 package schema
 
 import (
-
-
 	"github.com/Wei-Shaw/sub2api/ent/schema/mixins"
 
 	"entgo.io/ent"
@@ -81,6 +79,8 @@ func (UserBalanceLedger) Edges() []ent.Edge {
 			Field("user_id").
 			Unique().
 			Required(),
+		// M2O：每条账本分录指向一笔订单；订单侧不设 Unique，故整体是 O2M，
+		// 允许一笔订单产生多条分录（本金入账、赠送入账、多次扣费归属）。
 		edge.From("order", PaymentOrder.Type).
 			Ref("balance_ledger").
 			Field("order_id").

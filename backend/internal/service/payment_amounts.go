@@ -46,3 +46,32 @@ func calculateGatewayRefundAmount(orderAmount, payAmount, refundAmount float64, 
 		Round(fractionDigits).
 		InexactFloat64()
 }
+
+// calculateRefundCreditAmount 与 calculateGatewayRefundAmount 互为逆运算：
+// 把"支付币种（实付）"口径的退款金额折算回订单记账单位金额（余额/账本口径）。
+//   - 全额退款（payRefund == payAmount）→ 订单记账金额 orderAmount
+//   - 比例退款 → payRefund × orderAmount ÷ payAmount
+//   - 缺少记账口径（orderAmount<=0）或缺少实付口径时按 1:1 处理
+func calculateRefundCreditAmount(orderAmount, payAmount, payRefund float64, currency string) float64 {
+	if payRefund <= 0 {
+		return 0
+	}
+	const creditFractionDigits = int32(2)
+	if orderAmount <= 0 {
+		return decimal.NewFromFloat(payRefund).Round(creditFractionDigits).InexactFloat64()
+	}
+	if payAmount <= 0 {
+		if payRefund >= orderAmount-paymentAmountToleranceForCurrency(currency) {
+			return decimal.NewFromFloat(orderAmount).Round(creditFractionDigits).InexactFloat64()
+		}
+		return decimal.NewFromFloat(payRefund).Round(creditFractionDigits).InexactFloat64()
+	}
+	if math.Abs(payRefund-payAmount) <= paymentAmountToleranceForCurrency(currency) {
+		return decimal.NewFromFloat(orderAmount).Round(creditFractionDigits).InexactFloat64()
+	}
+	return decimal.NewFromFloat(payRefund).
+		Mul(decimal.NewFromFloat(orderAmount)).
+		Div(decimal.NewFromFloat(payAmount)).
+		Round(creditFractionDigits).
+		InexactFloat64()
+}

@@ -479,23 +479,19 @@ func (_c *PaymentOrderCreate) SetUser(v *User) *PaymentOrderCreate {
 	return _c.SetUserID(v.ID)
 }
 
-// SetBalanceLedgerID sets the "balance_ledger" edge to the UserBalanceLedger entity by ID.
-func (_c *PaymentOrderCreate) SetBalanceLedgerID(id int64) *PaymentOrderCreate {
-	_c.mutation.SetBalanceLedgerID(id)
+// AddBalanceLedgerIDs adds the "balance_ledger" edge to the UserBalanceLedger entity by IDs.
+func (_c *PaymentOrderCreate) AddBalanceLedgerIDs(ids ...int64) *PaymentOrderCreate {
+	_c.mutation.AddBalanceLedgerIDs(ids...)
 	return _c
 }
 
-// SetNillableBalanceLedgerID sets the "balance_ledger" edge to the UserBalanceLedger entity by ID if the given value is not nil.
-func (_c *PaymentOrderCreate) SetNillableBalanceLedgerID(id *int64) *PaymentOrderCreate {
-	if id != nil {
-		_c = _c.SetBalanceLedgerID(*id)
+// AddBalanceLedger adds the "balance_ledger" edges to the UserBalanceLedger entity.
+func (_c *PaymentOrderCreate) AddBalanceLedger(v ...*UserBalanceLedger) *PaymentOrderCreate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _c
-}
-
-// SetBalanceLedger sets the "balance_ledger" edge to the UserBalanceLedger entity.
-func (_c *PaymentOrderCreate) SetBalanceLedger(v *UserBalanceLedger) *PaymentOrderCreate {
-	return _c.SetBalanceLedgerID(v.ID)
+	return _c.AddBalanceLedgerIDs(ids...)
 }
 
 // Mutation returns the PaymentOrderMutation object of the builder.
@@ -892,7 +888,7 @@ func (_c *PaymentOrderCreate) createSpec() (*PaymentOrder, *sqlgraph.CreateSpec)
 	}
 	if nodes := _c.mutation.BalanceLedgerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   paymentorder.BalanceLedgerTable,
 			Columns: []string{paymentorder.BalanceLedgerColumn},

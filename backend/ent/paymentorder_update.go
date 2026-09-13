@@ -720,23 +720,19 @@ func (_u *PaymentOrderUpdate) SetUser(v *User) *PaymentOrderUpdate {
 	return _u.SetUserID(v.ID)
 }
 
-// SetBalanceLedgerID sets the "balance_ledger" edge to the UserBalanceLedger entity by ID.
-func (_u *PaymentOrderUpdate) SetBalanceLedgerID(id int64) *PaymentOrderUpdate {
-	_u.mutation.SetBalanceLedgerID(id)
+// AddBalanceLedgerIDs adds the "balance_ledger" edge to the UserBalanceLedger entity by IDs.
+func (_u *PaymentOrderUpdate) AddBalanceLedgerIDs(ids ...int64) *PaymentOrderUpdate {
+	_u.mutation.AddBalanceLedgerIDs(ids...)
 	return _u
 }
 
-// SetNillableBalanceLedgerID sets the "balance_ledger" edge to the UserBalanceLedger entity by ID if the given value is not nil.
-func (_u *PaymentOrderUpdate) SetNillableBalanceLedgerID(id *int64) *PaymentOrderUpdate {
-	if id != nil {
-		_u = _u.SetBalanceLedgerID(*id)
+// AddBalanceLedger adds the "balance_ledger" edges to the UserBalanceLedger entity.
+func (_u *PaymentOrderUpdate) AddBalanceLedger(v ...*UserBalanceLedger) *PaymentOrderUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _u
-}
-
-// SetBalanceLedger sets the "balance_ledger" edge to the UserBalanceLedger entity.
-func (_u *PaymentOrderUpdate) SetBalanceLedger(v *UserBalanceLedger) *PaymentOrderUpdate {
-	return _u.SetBalanceLedgerID(v.ID)
+	return _u.AddBalanceLedgerIDs(ids...)
 }
 
 // Mutation returns the PaymentOrderMutation object of the builder.
@@ -750,10 +746,25 @@ func (_u *PaymentOrderUpdate) ClearUser() *PaymentOrderUpdate {
 	return _u
 }
 
-// ClearBalanceLedger clears the "balance_ledger" edge to the UserBalanceLedger entity.
+// ClearBalanceLedger clears all "balance_ledger" edges to the UserBalanceLedger entity.
 func (_u *PaymentOrderUpdate) ClearBalanceLedger() *PaymentOrderUpdate {
 	_u.mutation.ClearBalanceLedger()
 	return _u
+}
+
+// RemoveBalanceLedgerIDs removes the "balance_ledger" edge to UserBalanceLedger entities by IDs.
+func (_u *PaymentOrderUpdate) RemoveBalanceLedgerIDs(ids ...int64) *PaymentOrderUpdate {
+	_u.mutation.RemoveBalanceLedgerIDs(ids...)
+	return _u
+}
+
+// RemoveBalanceLedger removes "balance_ledger" edges to UserBalanceLedger entities.
+func (_u *PaymentOrderUpdate) RemoveBalanceLedger(v ...*UserBalanceLedger) *PaymentOrderUpdate {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBalanceLedgerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1100,7 +1111,7 @@ func (_u *PaymentOrderUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if _u.mutation.BalanceLedgerCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   paymentorder.BalanceLedgerTable,
 			Columns: []string{paymentorder.BalanceLedgerColumn},
@@ -1111,9 +1122,25 @@ func (_u *PaymentOrderUpdate) sqlSave(ctx context.Context) (_node int, err error
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := _u.mutation.RemovedBalanceLedgerIDs(); len(nodes) > 0 && !_u.mutation.BalanceLedgerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   paymentorder.BalanceLedgerTable,
+			Columns: []string{paymentorder.BalanceLedgerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalanceledger.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := _u.mutation.BalanceLedgerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   paymentorder.BalanceLedgerTable,
 			Columns: []string{paymentorder.BalanceLedgerColumn},
@@ -1837,23 +1864,19 @@ func (_u *PaymentOrderUpdateOne) SetUser(v *User) *PaymentOrderUpdateOne {
 	return _u.SetUserID(v.ID)
 }
 
-// SetBalanceLedgerID sets the "balance_ledger" edge to the UserBalanceLedger entity by ID.
-func (_u *PaymentOrderUpdateOne) SetBalanceLedgerID(id int64) *PaymentOrderUpdateOne {
-	_u.mutation.SetBalanceLedgerID(id)
+// AddBalanceLedgerIDs adds the "balance_ledger" edge to the UserBalanceLedger entity by IDs.
+func (_u *PaymentOrderUpdateOne) AddBalanceLedgerIDs(ids ...int64) *PaymentOrderUpdateOne {
+	_u.mutation.AddBalanceLedgerIDs(ids...)
 	return _u
 }
 
-// SetNillableBalanceLedgerID sets the "balance_ledger" edge to the UserBalanceLedger entity by ID if the given value is not nil.
-func (_u *PaymentOrderUpdateOne) SetNillableBalanceLedgerID(id *int64) *PaymentOrderUpdateOne {
-	if id != nil {
-		_u = _u.SetBalanceLedgerID(*id)
+// AddBalanceLedger adds the "balance_ledger" edges to the UserBalanceLedger entity.
+func (_u *PaymentOrderUpdateOne) AddBalanceLedger(v ...*UserBalanceLedger) *PaymentOrderUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
 	}
-	return _u
-}
-
-// SetBalanceLedger sets the "balance_ledger" edge to the UserBalanceLedger entity.
-func (_u *PaymentOrderUpdateOne) SetBalanceLedger(v *UserBalanceLedger) *PaymentOrderUpdateOne {
-	return _u.SetBalanceLedgerID(v.ID)
+	return _u.AddBalanceLedgerIDs(ids...)
 }
 
 // Mutation returns the PaymentOrderMutation object of the builder.
@@ -1867,10 +1890,25 @@ func (_u *PaymentOrderUpdateOne) ClearUser() *PaymentOrderUpdateOne {
 	return _u
 }
 
-// ClearBalanceLedger clears the "balance_ledger" edge to the UserBalanceLedger entity.
+// ClearBalanceLedger clears all "balance_ledger" edges to the UserBalanceLedger entity.
 func (_u *PaymentOrderUpdateOne) ClearBalanceLedger() *PaymentOrderUpdateOne {
 	_u.mutation.ClearBalanceLedger()
 	return _u
+}
+
+// RemoveBalanceLedgerIDs removes the "balance_ledger" edge to UserBalanceLedger entities by IDs.
+func (_u *PaymentOrderUpdateOne) RemoveBalanceLedgerIDs(ids ...int64) *PaymentOrderUpdateOne {
+	_u.mutation.RemoveBalanceLedgerIDs(ids...)
+	return _u
+}
+
+// RemoveBalanceLedger removes "balance_ledger" edges to UserBalanceLedger entities.
+func (_u *PaymentOrderUpdateOne) RemoveBalanceLedger(v ...*UserBalanceLedger) *PaymentOrderUpdateOne {
+	ids := make([]int64, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBalanceLedgerIDs(ids...)
 }
 
 // Where appends a list predicates to the PaymentOrderUpdate builder.
@@ -2247,7 +2285,7 @@ func (_u *PaymentOrderUpdateOne) sqlSave(ctx context.Context) (_node *PaymentOrd
 	}
 	if _u.mutation.BalanceLedgerCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   paymentorder.BalanceLedgerTable,
 			Columns: []string{paymentorder.BalanceLedgerColumn},
@@ -2258,9 +2296,25 @@ func (_u *PaymentOrderUpdateOne) sqlSave(ctx context.Context) (_node *PaymentOrd
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
+	if nodes := _u.mutation.RemovedBalanceLedgerIDs(); len(nodes) > 0 && !_u.mutation.BalanceLedgerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   paymentorder.BalanceLedgerTable,
+			Columns: []string{paymentorder.BalanceLedgerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalanceledger.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
 	if nodes := _u.mutation.BalanceLedgerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.O2M,
 			Inverse: false,
 			Table:   paymentorder.BalanceLedgerTable,
 			Columns: []string{paymentorder.BalanceLedgerColumn},

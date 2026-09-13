@@ -1946,7 +1946,7 @@ var (
 		{Name: "memo", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "frozen", Type: field.TypeBool, Default: false},
 		{Name: "refund_batch_id", Type: field.TypeString, Nullable: true, Size: 64},
-		{Name: "order_id", Type: field.TypeInt64, Unique: true},
+		{Name: "order_id", Type: field.TypeInt64},
 		{Name: "user_id", Type: field.TypeInt64},
 	}
 	// UserBalanceLedgerTable holds the schema information for the "user_balance_ledger" table.

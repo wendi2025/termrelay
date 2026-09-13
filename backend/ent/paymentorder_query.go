@@ -101,7 +101,7 @@ func (_q *PaymentOrderQuery) QueryBalanceLedger() *UserBalanceLedgerQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(paymentorder.Table, paymentorder.FieldID, selector),
 			sqlgraph.To(userbalanceledger.Table, userbalanceledger.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, paymentorder.BalanceLedgerTable, paymentorder.BalanceLedgerColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, paymentorder.BalanceLedgerTable, paymentorder.BalanceLedgerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -442,8 +442,9 @@ func (_q *PaymentOrderQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		}
 	}
 	if query := _q.withBalanceLedger; query != nil {
-		if err := _q.loadBalanceLedger(ctx, query, nodes, nil,
-			func(n *PaymentOrder, e *UserBalanceLedger) { n.Edges.BalanceLedger = e }); err != nil {
+		if err := _q.loadBalanceLedger(ctx, query, nodes,
+			func(n *PaymentOrder) { n.Edges.BalanceLedger = []*UserBalanceLedger{} },
+			func(n *PaymentOrder, e *UserBalanceLedger) { n.Edges.BalanceLedger = append(n.Edges.BalanceLedger, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -485,6 +486,9 @@ func (_q *PaymentOrderQuery) loadBalanceLedger(ctx context.Context, query *UserB
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
 	}
 	if len(query.ctx.Fields) > 0 {
 		query.ctx.AppendFieldOnce(userbalanceledger.FieldOrderID)

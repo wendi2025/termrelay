@@ -198,11 +198,18 @@ type PaymentService struct {
 	resumeService            *PaymentResumeService
 	affiliateService         *AffiliateService
 	notificationEmailService *NotificationEmailService
+	refundCalculator         *RefundCalculator
+	balanceLedger            *BalanceLedgerService
 }
 
 func NewPaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, redeemService *RedeemService, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository, affiliateService *AffiliateService) *PaymentService {
 	svc := &PaymentService{entClient: entClient, registry: registry, loadBalancer: newVisibleMethodLoadBalancer(loadBalancer, configService), redeemService: redeemService, subscriptionSvc: subscriptionSvc, configService: configService, userRepo: userRepo, groupRepo: groupRepo, affiliateService: affiliateService}
 	svc.resumeService = psNewPaymentResumeService(configService)
+	if entClient != nil {
+		// Smirel 退款/分账：退款公式（方案 9.1/9.2）+ 余额账本（方案 9.2）
+		svc.refundCalculator = NewRefundCalculator(NewEntRefundLoader(entClient))
+		svc.balanceLedger = NewBalanceLedgerService(entClient)
+	}
 	return svc
 }
 

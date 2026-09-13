@@ -369,7 +369,7 @@ func (_c *UserBalanceLedgerCreate) createSpec() (*UserBalanceLedger, *sqlgraph.C
 	}
 	if nodes := _c.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   userbalanceledger.OrderTable,
 			Columns: []string{userbalanceledger.OrderColumn},

@@ -3850,7 +3850,7 @@ func (c *PaymentOrderClient) QueryBalanceLedger(_m *PaymentOrder) *UserBalanceLe
 		step := sqlgraph.NewStep(
 			sqlgraph.From(paymentorder.Table, paymentorder.FieldID, id),
 			sqlgraph.To(userbalanceledger.Table, userbalanceledger.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, paymentorder.BalanceLedgerTable, paymentorder.BalanceLedgerColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, paymentorder.BalanceLedgerTable, paymentorder.BalanceLedgerColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -6644,7 +6644,7 @@ func (c *UserBalanceLedgerClient) QueryOrder(_m *UserBalanceLedger) *PaymentOrde
 		step := sqlgraph.NewStep(
 			sqlgraph.From(userbalanceledger.Table, userbalanceledger.FieldID, id),
 			sqlgraph.To(paymentorder.Table, paymentorder.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, userbalanceledger.OrderTable, userbalanceledger.OrderColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, userbalanceledger.OrderTable, userbalanceledger.OrderColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

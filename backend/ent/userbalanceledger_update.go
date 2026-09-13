@@ -356,7 +356,7 @@ func (_u *UserBalanceLedgerUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if _u.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   userbalanceledger.OrderTable,
 			Columns: []string{userbalanceledger.OrderColumn},
@@ -369,7 +369,7 @@ func (_u *UserBalanceLedgerUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if nodes := _u.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   userbalanceledger.OrderTable,
 			Columns: []string{userbalanceledger.OrderColumn},
@@ -759,7 +759,7 @@ func (_u *UserBalanceLedgerUpdateOne) sqlSave(ctx context.Context) (_node *UserB
 	}
 	if _u.mutation.OrderCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   userbalanceledger.OrderTable,
 			Columns: []string{userbalanceledger.OrderColumn},
@@ -772,7 +772,7 @@ func (_u *UserBalanceLedgerUpdateOne) sqlSave(ctx context.Context) (_node *UserB
 	}
 	if nodes := _u.mutation.OrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
 			Table:   userbalanceledger.OrderTable,
 			Columns: []string{userbalanceledger.OrderColumn},

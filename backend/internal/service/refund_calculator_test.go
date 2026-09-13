@@ -11,24 +11,24 @@ import (
 
 // mockRefundLoader 测试用的 mock loader
 type mockRefundLoader struct {
-	hasUsage               bool
-	hasUsageErr            error
-	usedUSD                float64
-	usedUSDErr             error
-	usedPrincipal          float64
-	usedPrincipalErr       error
-	bonusGrant             float64
-	bonusErr               error
-	alreadyRefunded        bool
-	refundedErr            error
-	forceEligible          bool
-	forceErr               error
-	start                  time.Time
-	end                    time.Time
-	hasPeriod              bool
-	periodErr              error
-	unitPrice              float64
-	unitPriceErr           error
+	hasUsage         bool
+	hasUsageErr      error
+	usedUSD          float64
+	usedUSDErr       error
+	usedPrincipal    float64
+	usedPrincipalErr error
+	bonusGrant       float64
+	bonusErr         error
+	alreadyRefunded  bool
+	refundedErr      error
+	forceEligible    bool
+	forceErr         error
+	start            time.Time
+	end              time.Time
+	hasPeriod        bool
+	periodErr        error
+	unitPrice        float64
+	unitPriceErr     error
 }
 
 func (m *mockRefundLoader) HasUsageIn24hWindow(_ context.Context, _ *dbent.PaymentOrder) (bool, error) {
@@ -86,7 +86,7 @@ func TestRefundCalculator_AlreadyRefunded(t *testing.T) {
 func TestRefundCalculator_FullRefund24hWindow(t *testing.T) {
 	paidAt := time.Now().Add(-2 * time.Hour) // 2h 内
 	loader := &mockRefundLoader{
-		hasUsage: false,
+		hasUsage:  false,
 		unitPrice: 0.5,
 	}
 	c := NewRefundCalculator(loader)
