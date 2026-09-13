@@ -53,6 +53,19 @@ const selectedMethodLimits = computed<MethodLimits | null>(() => {
 
 const selectedMethodCurrency = computed(() => selectedMethodLimits.value?.currency || 'CNY')
 
+const methodCount = computed(() => Object.keys(info.value?.methods || {}).length)
+
+// 渠道列表就绪后默认选中第一个可用渠道，避免「按钮可用但没选渠道」的中间态。
+watch(
+  () => info.value?.methods,
+  (methods) => {
+    if (selectedMethod.value) return
+    const keys = Object.keys(methods || {})
+    if (keys.length) selectedMethod.value = keys[0] as PaymentType
+  },
+  { immediate: true },
+)
+
 
 
 async function loadInfo() {
@@ -99,13 +112,23 @@ async function submitRecharge() {
   if (r) lastOrder.value = checkout.lastResponse.value
 }
 
+// 订阅卡片上的按钮不能因为「尚未选择支付方式」而变成点了没反应的死按钮。
+function ensureMethod(): PaymentType | '' {
+  if (selectedMethod.value) return selectedMethod.value
+  const keys = Object.keys(info.value?.methods || {})
+  if (keys.length) selectedMethod.value = keys[0] as PaymentType
+  return selectedMethod.value
+}
+
 async function submitPlan(planId: number) {
-  if (!selectedMethod.value) return
+  const method = ensureMethod()
+  if (!method) return
+  selectedPlanId.value = planId
   const plan = info.value?.plans.find((p) => p.id === planId)
   if (!plan) return
   const r = await checkout.createOrder({
     amount: plan.price,
-    payment_type: selectedMethod.value,
+    payment_type: method,
     order_type: 'subscription',
     plan_id: plan.id,
   })
@@ -116,6 +139,14 @@ const plans = computed(() => info.value?.plans || [])
 const sortedPlans = computed(() => {
   const list = [...plans.value]
   return list.sort((a, b) => a.price - b.price)
+})
+
+// 订阅 Tab 的渠道可用性按「当前选中套餐，否则最便宜套餐」判断，
+// 这样在没有选中任何套餐时也不会把渠道误标成不可用。
+const subscriptionPickerAmount = computed(() => {
+  const picked = sortedPlans.value.find((p) => p.id === selectedPlanId.value)
+  if (picked) return picked.price
+  return sortedPlans.value.length ? sortedPlans.value[0].price : 0
 })
 
 const balanceCurrency = computed(() => info.value?.subscription_usd_to_cny_rate ? 'CNY' : 'CNY')
@@ -249,7 +280,7 @@ function onPlanCardClick(planId: number) {
           <button
             class="primary"
             type="button"
-            :disabled="!selectedMethod || checkout.submitting.value"
+            :disabled="checkout.submitting.value || methodCount === 0"
             @click.stop="submitPlan(plan.id)"
           >
             {{ checkout.submitting.value && selectedPlanId === plan.id ? t('payment.submitting') : t('payment.planBuy') }}
@@ -258,11 +289,11 @@ function onPlanCardClick(planId: number) {
       </section>
 
       <PaymentMethodsPicker
-        v-if="selectedPlanId"
+        v-if="methodCount > 0"
         v-model="selectedMethod"
         :methods="info?.methods || {}"
         :limits="effectiveLimits"
-        :amount="sortedPlans.find((p) => p.id === selectedPlanId)?.price || 0"
+        :amount="subscriptionPickerAmount"
       />
 
       <PaymentOrderSummary

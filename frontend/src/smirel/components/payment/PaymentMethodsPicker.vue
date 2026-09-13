@@ -53,11 +53,24 @@ const groupLabel = (g: string) => {
   return map[g] || g
 }
 
+function limitRangeLabel(min: number, max: number): string {
+  const hasMin = min > 0
+  const hasMax = max > 0
+  if (hasMin && hasMax) return `${min} - ${max}`
+  if (hasMin) return `≥ ${min}`
+  if (hasMax) return `≤ ${max}`
+  return ''
+}
+
 const options = computed<MethodOption[]>(() => {
   const list: MethodOption[] = []
   Object.entries(props.methods || {}).forEach(([key, m]) => {
     const group = basePaymentType(key as PaymentType)
-    const inRange = props.amount >= m.single_min && props.amount <= m.single_max
+    // 后端以 0 表示「不限」（load_balancer.go 用 >0 判断），因此 0 不能被当作上下限，
+    // 否则 single_max/max 为 0 的渠道会被误判为「不可用」，用户将无法选择任何支付方式。
+    const minOk = m.single_min <= 0 || props.amount >= m.single_min
+    const maxOk = m.single_max <= 0 || props.amount <= m.single_max
+    const inRange = minOk && maxOk
     const dailyOk = m.daily_limit <= 0 || props.amount <= m.daily_limit
     const available = inRange && dailyOk
     list.push({
@@ -72,7 +85,7 @@ const options = computed<MethodOption[]>(() => {
       group,
       available,
       reason: !inRange
-        ? `${m.single_min}-${m.single_max}`
+        ? limitRangeLabel(m.single_min, m.single_max)
         : !dailyOk
           ? 'daily'
           : undefined,
@@ -129,7 +142,7 @@ function isPicked(opt: MethodOption) {
           </small>
           <span v-if="!opt.available" class="reason">
             <template v-if="opt.reason === 'daily'">{{ t('payment.methodUnavailable') }} (daily)</template>
-            <template v-else>{{ opt.singleMin }}-{{ opt.singleMax }}</template>
+            <template v-else>{{ opt.reason }}</template>
           </span>
         </button>
       </div>
