@@ -201,10 +201,10 @@ const providerKeyOptions = computed(() => Object.values(PROVIDER_SCHEMAS).map((s
 })))
 
 const modeOptions: { key: PaymentMode; label: string }[] = [
-  { key: 'qrcode', label: 'adminProviders.modeQrcode' },
-  { key: 'redirect', label: 'adminProviders.modeRedirect' },
-  { key: 'popup', label: 'adminProviders.modePopup' },
-  { key: 'jsapi', label: 'adminProviders.modeJsapi' },
+  { key: 'qrcode', label: 'modeQrcode' },
+  { key: 'redirect', label: 'modeRedirect' },
+  { key: 'popup', label: 'modePopup' },
+  { key: 'jsapi', label: 'modeJsapi' },
 ]
 
 </script>

@@ -4,6 +4,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   paymentAdminApi,
+  type AdminOrderAuditLog,
   type AdminPaymentOrder,
   type OrderStatus,
   type PaginatedResponse,
@@ -13,7 +14,24 @@ import PaymentStatusBadge from '../components/payment/PaymentStatusBadge.vue'
 
 const { t } = useI18n()
 
-type Filter = 'all' | 'paid' | 'pending' | 'failed' | 'refunded'
+type Filter = 'all' | OrderStatus
+
+// 后端 payment.OrderStatus 全集，保证任何终态都能被筛出来
+const ALL_STATUSES: OrderStatus[] = [
+  'PENDING',
+  'PAID',
+  'RECHARGING',
+  'COMPLETED',
+  'EXPIRED',
+  'CANCELLED',
+  'FAILED',
+  'REFUND_REQUESTED',
+  'REFUNDING',
+  'REFUND_PENDING',
+  'PARTIALLY_REFUNDED',
+  'REFUNDED',
+  'REFUND_FAILED',
+]
 
 const loading = ref(false)
 const error = ref('')
@@ -24,13 +42,14 @@ const pageSize = ref(20)
 const query = ref('')
 const activeFilter = ref<Filter>('all')
 
-const filterDefs = computed<{ key: Filter; label: string; status?: OrderStatus }[]>(() => [
+const filterDefs = computed<{ key: Filter; label: string }[]>(() => [
   { key: 'all', label: t('payment.adminOrders.filterAll') },
-  { key: 'paid', label: t('payment.adminOrders.filterPaid'), status: 'COMPLETED' },
-  { key: 'pending', label: t('payment.adminOrders.filterPending'), status: 'PENDING' },
-  { key: 'failed', label: t('payment.adminOrders.filterFailed'), status: 'FAILED' },
-  { key: 'refunded', label: t('payment.adminOrders.filterRefunded'), status: 'REFUNDED' },
+  ...ALL_STATUSES.map((s) => ({ key: s as Filter, label: t('payment.status.' + s, s) })),
 ])
+
+function onFilterChange(e: Event): void {
+  activeFilter.value = (e.target as HTMLSelectElement).value as Filter
+}
 
 const refundModalOpen = ref(false)
 const refundTarget = ref<AdminPaymentOrder | null>(null)
@@ -41,15 +60,50 @@ const refundSubmitting = ref(false)
 
 const actionBusyId = ref<number | null>(null)
 
+const detailOpen = ref(false)
+const detailLoading = ref(false)
+const detailOrder = ref<AdminPaymentOrder | null>(null)
+const detailLogs = ref<AdminOrderAuditLog[]>([])
+
+async function openDetail(o: AdminPaymentOrder): Promise<void> {
+  detailOpen.value = true
+  detailLoading.value = true
+  detailOrder.value = o
+  detailLogs.value = []
+  try {
+    const r = await paymentAdminApi.getOrderDetail(o.id)
+    detailOrder.value = r?.order || o
+    detailLogs.value = r?.auditLogs || []
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+function closeDetail(): void {
+  detailOpen.value = false
+  detailOrder.value = null
+  detailLogs.value = []
+}
+
+function prettyDetail(raw: string | undefined): string {
+  if (!raw) return ''
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2)
+  } catch {
+    return raw
+  }
+}
+
 async function load(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    const def = filterDefs.value.find((f) => f.key === activeFilter.value)
     const r = (await paymentAdminApi.listOrders({
       page: page.value,
       page_size: pageSize.value,
-      status: def?.status,
+      status: activeFilter.value === 'all' ? undefined : activeFilter.value,
       q: query.value.trim() || undefined,
     })) as PaginatedResponse<AdminPaymentOrder>
     orders.value = r?.items || []
@@ -62,7 +116,8 @@ async function load(): Promise<void> {
 }
 
 onMounted(load)
-watch([activeFilter, page, pageSize], () => { load() })
+watch(activeFilter, () => { page.value = 1; load() })
+watch([page, pageSize], () => { load() })
 watch(query, () => { page.value = 1; load() })
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)))
@@ -164,19 +219,14 @@ async function submitRefund(): Promise<void> {
 
     <p v-if="error" class="error-banner">{{ error }}</p>
 
-    <nav class="orders-filters" role="tablist">
-      <button
-        v-for="f in filterDefs"
-        :key="f.key"
-        type="button"
-        role="tab"
-        :aria-selected="activeFilter === f.key"
-        :class="['filter-btn', { active: activeFilter === f.key }]"
-        @click="activeFilter = f.key"
-      >
-        {{ f.label }}
-      </button>
-    </nav>
+    <div class="orders-filters">
+      <label class="filter-select">
+        <span>{{ t('payment.adminOrders.statusFilter') }}</span>
+        <select :value="activeFilter" @change="onFilterChange">
+          <option v-for="f in filterDefs" :key="f.key" :value="f.key">{{ f.label }}</option>
+        </select>
+      </label>
+    </div>
 
     <section class="orders-panel">
       <div v-if="!orders.length && !loading" class="empty-state">{{ t('payment.adminOrders.empty') }}</div>
@@ -203,6 +253,9 @@ async function submitRefund(): Promise<void> {
             <td><PaymentStatusBadge :status="o.status" /></td>
             <td class="mono">{{ fmtDate(o.created_at) }}</td>
             <td class="action-cell">
+              <button type="button" class="action" @click="openDetail(o)">
+                {{ t('payment.adminOrders.actionView') }}
+              </button>
               <button v-if="o.status === 'PENDING' || o.status === 'FAILED'" type="button" class="action danger" :disabled="actionBusyId === o.id" @click="doCancel(o)">
                 {{ t('payment.adminOrders.actionCancel') }}
               </button>
@@ -251,6 +304,51 @@ async function submitRefund(): Promise<void> {
         </footer>
       </div>
     </div>
+
+    <div v-if="detailOpen" class="modal-mask" @click.self="closeDetail">
+      <div class="modal-card wide">
+        <header><h3>{{ t('payment.adminOrders.detailTitle') }}</h3></header>
+        <p class="modal-sub">{{ detailOrder?.out_trade_no }}</p>
+
+        <div v-if="detailLoading" class="empty-state">{{ t('payment.loading') }}</div>
+
+        <template v-else-if="detailOrder">
+          <h4 class="detail-heading">{{ t('payment.adminOrders.detailBasic') }}</h4>
+          <dl class="detail-grid">
+            <div><dt>{{ t('payment.adminOrders.colUser') }}</dt><dd>{{ userLabel(detailOrder) }}</dd></div>
+            <div><dt>{{ t('payment.adminOrders.colStatus') }}</dt><dd><PaymentStatusBadge :status="detailOrder.status" /></dd></div>
+            <div><dt>{{ t('payment.adminOrders.colAmount') }}</dt><dd>{{ fmtAmount(detailOrder.pay_amount) }}</dd></div>
+            <div><dt>{{ t('payment.adminOrders.colChannel') }}</dt><dd>{{ channelOf(detailOrder) }}</dd></div>
+            <div><dt>{{ t('payment.adminOrders.fieldTradeNo') }}</dt><dd class="mono">{{ detailOrder.payment_trade_no || '—' }}</dd></div>
+            <div><dt>{{ t('payment.adminOrders.fieldOrderType') }}</dt><dd>{{ detailOrder.order_type === 'subscription' ? t('payment.adminOrders.orderTypeSubscription') : t('payment.adminOrders.orderTypeRecharge') }}</dd></div>
+            <div><dt>{{ t('payment.adminOrders.fieldProduct') }}</dt><dd>{{ detailOrder.plan_id ? `Plan #${detailOrder.plan_id}` : t('payment.tabRecharge') }}</dd></div>
+            <div v-if="detailOrder.subscription_group_id"><dt>{{ t('payment.adminOrders.fieldGroup') }}</dt><dd>#{{ detailOrder.subscription_group_id }} · {{ detailOrder.subscription_days || 0 }} {{ t('payment.adminOrders.fieldDays') }}</dd></div>
+            <div><dt>{{ t('payment.adminOrders.fieldPaidAt') }}</dt><dd class="mono">{{ fmtDate(detailOrder.paid_at || undefined) }}</dd></div>
+            <div><dt>{{ t('payment.adminOrders.fieldCompletedAt') }}</dt><dd class="mono">{{ fmtDate(detailOrder.completed_at || undefined) }}</dd></div>
+            <div><dt>{{ t('payment.adminOrders.fieldRefundAmount') }}</dt><dd>{{ fmtAmount(detailOrder.refund_amount) }}</dd></div>
+            <div v-if="detailOrder.failed_reason"><dt>{{ t('payment.adminOrders.fieldFailedReason') }}</dt><dd>{{ detailOrder.failed_reason }}</dd></div>
+          </dl>
+
+          <h4 class="detail-heading">{{ t('payment.adminOrders.detailTimeline') }}</h4>
+          <div v-if="!detailLogs.length" class="empty-state">{{ t('payment.adminOrders.noAuditLog') }}</div>
+          <ol v-else class="audit-timeline">
+            <li v-for="(log, i) in detailLogs" :key="log.id ?? i">
+              <span class="audit-dot"></span>
+              <div class="audit-head">
+                <strong>{{ log.action }}</strong>
+                <span class="mono">{{ fmtDate(log.created_at) }}</span>
+              </div>
+              <div class="audit-meta">{{ log.operator }}</div>
+              <pre v-if="log.detail" class="audit-detail">{{ prettyDetail(log.detail) }}</pre>
+            </li>
+          </ol>
+        </template>
+
+        <footer class="modal-actions">
+          <button type="button" class="btn primary" @click="closeDetail">{{ t('payment.close') }}</button>
+        </footer>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -267,10 +365,10 @@ async function submitRefund(): Promise<void> {
 .refresh-btn:disabled { opacity: .6; cursor: not-allowed; }
 .orders-search { width: 240px; padding: 8px 12px; border-radius: 8px; background: #0d0f12; border: 1px solid #2a2f37; color: #f7f8fa; font: 400 .82rem/1 ui-sans-serif, system-ui, sans-serif; }
 .orders-search:focus { outline: none; border-color: #4a93c5; }
-.orders-filters { display: flex; gap: 6px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #1d2128; }
-.filter-btn { padding: 7px 14px; border-radius: 7px; background: transparent; border: 1px solid transparent; color: #858d97; font: 500 .8rem/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: all .15s; }
-.filter-btn:hover { color: #d6dbe1; background: #16191f; }
-.filter-btn.active { color: #f7f8fa; background: #1d2128; border-color: #2a2f37; }
+.orders-filters { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #1d2128; }
+.filter-select { display: inline-flex; align-items: center; gap: 8px; color: #858d97; font-size: .78rem; }
+.filter-select select { padding: 8px 12px; border-radius: 8px; background: #0d0f12; border: 1px solid #2a2f37; color: #f7f8fa; font: 400 .82rem/1 ui-sans-serif, system-ui, sans-serif; }
+.filter-select select:focus { outline: none; border-color: #4a93c5; }
 .error-banner { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; background: rgba(239, 68, 68, .12); border: 1px solid rgba(239, 68, 68, .35); color: #fca5a5; font-size: .85rem; }
 .orders-panel { padding: 0; border-radius: 14px; background: #11141a; border: 1px solid #1d2128; overflow: hidden; }
 .orders-table { width: 100%; border-collapse: collapse; }
@@ -309,5 +407,20 @@ async function submitRefund(): Promise<void> {
 .btn.primary { background: #4a93c5; color: #0d0f12; }
 .btn.primary:hover:not(:disabled) { background: #5fa3d5; }
 .btn:disabled { opacity: .6; cursor: not-allowed; }
+.modal-card.wide { width: min(720px, 94vw); max-height: 88vh; overflow-y: auto; }
+.detail-heading { margin: 18px 0 10px; color: #b8bfc7; font: 600 .74rem/1 ui-sans-serif, system-ui, sans-serif; text-transform: uppercase; letter-spacing: .09em; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 18px; margin: 0; }
+.detail-grid > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.detail-grid dt { color: #6c727b; font-size: .72rem; }
+.detail-grid dd { margin: 0; color: #d6dbe1; font-size: .82rem; word-break: break-all; }
+.audit-timeline { list-style: none; margin: 0; padding: 0 0 0 6px; }
+.audit-timeline li { position: relative; padding: 0 0 14px 18px; border-left: 1px solid #1d2128; }
+.audit-timeline li:last-child { border-left-color: transparent; padding-bottom: 0; }
+.audit-dot { position: absolute; left: -4px; top: 4px; width: 7px; height: 7px; border-radius: 50%; background: #6ec0f5; }
+.audit-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.audit-head strong { color: #f7f8fa; font-size: .8rem; }
+.audit-head span { color: #6c727b; font-size: .72rem; }
+.audit-meta { margin-top: 2px; color: #858d97; font-size: .74rem; }
+.audit-detail { margin: 6px 0 0; padding: 8px 10px; border-radius: 6px; background: #0d0f12; border: 1px solid #1d2128; color: #9aa4ae; font: 400 .72rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; word-break: break-all; }
 @media (max-width: 900px) { .orders-heading { flex-direction: column; align-items: flex-start; } .orders-search { width: 100%; } .orders-table th, .orders-table td { padding: 8px; font-size: .72rem; } .action-cell { white-space: normal; } .action { margin-bottom: 4px; } }
 </style>

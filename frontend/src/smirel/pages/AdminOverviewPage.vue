@@ -58,7 +58,7 @@ const generatedLabel = computed(() => {
   const value = snapshot.value?.generated_at
   if (!value) return t('admin.waitingFirstSync')
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return t('admin.justUpdated')
+  if (Number.isNaN(date.getTime())) return t('admin.justNow')
   return t('admin.updatedAt', {
     time: date.toLocaleTimeString(interfacePreferences.locale, { hour: '2-digit', minute: '2-digit' }),
   })

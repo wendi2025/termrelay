@@ -19,17 +19,27 @@ const loading = ref(false)
 const error = ref('')
 const stats = ref<DashboardStats | null>(null)
 const recentOrders = ref<AdminPaymentOrder[]>([])
+const completedTotal = ref(0)
+const unfinishedTotal = ref(0)
+
+type OrderCountPage = { items?: AdminPaymentOrder[]; total?: number }
 
 async function load(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    const [s, recent] = await Promise.all([
+    const [s, recent, failed, expired, cancelled] = await Promise.all([
       paymentAdminApi.getDashboard(30),
-      paymentAdminApi.listOrders({ page: 1, page_size: 8, status: 'COMPLETED' }) as Promise<{ items?: AdminPaymentOrder[] }>,
+      paymentAdminApi.listOrders({ page: 1, page_size: 8, status: 'COMPLETED' }) as Promise<OrderCountPage>,
+      paymentAdminApi.listOrders({ page: 1, page_size: 1, status: 'FAILED' }) as Promise<OrderCountPage>,
+      paymentAdminApi.listOrders({ page: 1, page_size: 1, status: 'EXPIRED' }) as Promise<OrderCountPage>,
+      paymentAdminApi.listOrders({ page: 1, page_size: 1, status: 'CANCELLED' }) as Promise<OrderCountPage>,
     ])
     stats.value = s
     recentOrders.value = recent?.items || []
+    completedTotal.value = Number(recent?.total || 0)
+    unfinishedTotal.value =
+      Number(failed?.total || 0) + Number(expired?.total || 0) + Number(cancelled?.total || 0)
   } catch (e) {
     error.value = getErrorMessage(e)
   } finally {
@@ -92,10 +102,12 @@ const channelRows = computed(() => {
 })
 
 
+// 支付成功率 = 已完成 / (已完成 + 未完成)。
+// 未完成包含 FAILED / EXPIRED / CANCELLED —— 只拿今日单量比累计单量会恒等于 100%。
 const successRate = computed<number>(() => {
-  const s = stats.value
-  if (!s || !s.total_count) return 0
-  return Math.round((s.today_count / s.total_count) * 1000) / 10
+  const attempted = completedTotal.value + unfinishedTotal.value
+  if (!attempted) return 0
+  return Math.round((completedTotal.value / attempted) * 1000) / 10
 })
 
 const topUsers = computed<TopUserStat[]>(() => {
@@ -154,22 +166,22 @@ function userName(u: TopUserStat): string {
       <article class="payment-summary-card tone-success">
         <header><span>{{ t('payment.admin.todayAmount') }}</span><span class="summary-icon">¥</span></header>
         <strong>{{ formatAmount(stats?.today_amount) }}</strong>
-        <footer><span>{{ t('payment.admin.totalAmount') }}</span><i></i></footer>
+        <footer><span>{{ t('payment.admin.totalAmountHint', { value: formatAmount(stats?.total_amount) }) }}</span><i></i></footer>
       </article>
       <article class="payment-summary-card tone-neutral">
         <header><span>{{ t('payment.admin.successOrders') }}</span><span class="summary-icon">#</span></header>
         <strong>{{ formatCount(stats?.today_count) }}</strong>
-        <footer><span>{{ t('payment.admin.totalAmount') }}</span><i></i></footer>
+        <footer><span>{{ t('payment.admin.successOrdersHint', { value: formatCount(stats?.total_count) }) }}</span><i></i></footer>
       </article>
       <article class="payment-summary-card tone-success">
         <header><span>{{ t('payment.admin.successRate') }}</span><span class="summary-icon">%</span></header>
         <strong>{{ successRate.toFixed(1) }}%</strong>
-        <footer><span>{{ t('payment.admin.recentTitle') }}</span><i></i></footer>
+        <footer><span>{{ t('payment.admin.successRateHint', { completed: completedTotal, failed: unfinishedTotal }) }}</span><i></i></footer>
       </article>
       <article class="payment-summary-card tone-warning">
         <header><span>{{ t('payment.admin.pendingCount') }}</span><span class="summary-icon">⏳</span></header>
         <strong>{{ formatCount(stats?.pending_orders) }}</strong>
-        <footer><span>{{ t('payment.admin.pendingAmount') }}: {{ formatAmount(stats?.today_amount) }}</span><i></i></footer>
+        <footer><span>{{ t('payment.admin.pendingHint') }}</span><i></i></footer>
       </article>
     </div>
 

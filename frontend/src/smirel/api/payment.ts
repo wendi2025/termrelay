@@ -285,6 +285,7 @@ export interface AdminPaymentOrder extends PaymentOrder {
 }
 
 export interface AdminOrderAuditLog {
+  id?: number
   order_id: string
   action: string
   detail: string
@@ -446,7 +447,8 @@ export const paymentAdminApi = {
   getConfig: () => ok(api.get('/admin/payment/config')),
   updateConfig: (body: PaymentConfigUpdateRequest) => ok<PaymentConfig>(api.put('/admin/payment/config', body)),
   listOrders: (params = {}) => ok(api.get('/admin/payment/orders', { params })),
-  getOrder: (id: string | number) => ok<PaymentOrder>(api.get('/admin/payment/orders/' + id)),
+  getOrderDetail: (id: string | number) =>
+    ok<{ order: AdminPaymentOrder; auditLogs: AdminOrderAuditLog[] }>(api.get('/admin/payment/orders/' + id)),
   cancelOrder: (id: string | number) => ok<PaymentOrder>(api.post('/admin/payment/orders/' + id + '/cancel', {})),
   retryFulfillment: (id: string | number) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/retry', {})),
   refund: (id: string | number, body: any) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/refund', body)),
