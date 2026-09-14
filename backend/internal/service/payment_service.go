@@ -200,6 +200,7 @@ type PaymentService struct {
 	notificationEmailService *NotificationEmailService
 	refundCalculator         *RefundCalculator
 	balanceLedger            *BalanceLedgerService
+	revenueSplit             *RevenueSplitService
 }
 
 func NewPaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, redeemService *RedeemService, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository, affiliateService *AffiliateService) *PaymentService {
@@ -209,6 +210,8 @@ func NewPaymentService(entClient *dbent.Client, registry *payment.Registry, load
 		// Smirel 退款/分账：退款公式（方案 9.1/9.2）+ 余额账本（方案 9.2）
 		svc.refundCalculator = NewRefundCalculator(NewEntRefundLoader(entClient))
 		svc.balanceLedger = NewBalanceLedgerService(entClient)
+		// Smirel 共建者分账：客户支付成功后按固定比例计提（只记账，不出金）
+		svc.revenueSplit = NewRevenueSplitService(entClient)
 	}
 	return svc
 }

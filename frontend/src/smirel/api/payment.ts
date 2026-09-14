@@ -547,6 +547,14 @@ export const paymentApi = {
   getLedger: (limit = 50) =>
     ok<{ breakdown: LedgerBalanceBreakdown; entries: RefundLedgerEntry[] }>(api.get('/payment/ledger', { params: { limit } })),
   resolvePublicOrder: (body: any) => ok<any>(api.post('/payment/public/orders/resolve', body)),
+  /**
+   * 共建分成（受益人自助查看）：只读，返回自己在分账账本里的待结算/已锁定/
+   * 已结算/已冲回金额与近期明细。分账是独立账本，不进入可消费余额。
+   */
+  getMyRevenueSplit: (limit = 50) =>
+    ok<{ summary: RevenueSplitBeneficiarySummary; entries: RevenueSplitEntry[] }>(
+      api.get('/payment/revenue-split', { params: { limit } }),
+    ),
 }
 
 export const paymentAdminApi = {
@@ -578,4 +586,200 @@ export const paymentAdminApi = {
   createProvider: (body: CreateProviderRequest) => ok<ProviderInstance>(api.post('/admin/payment/providers', body)),
   updateProvider: (id: string | number, body: UpdateProviderRequest) => ok<ProviderInstance>(api.put('/admin/payment/providers/' + id, body)),
   deleteProvider: (id: string | number) => ok<{ success: boolean }>(api.delete('/admin/payment/providers/' + id)),
+}
+
+// ---------- 共建者分成（多受益人固定比例分账） ----------
+//
+// 设计边界（务必保留这段注释，避免后来者误加「自动打款」逻辑）：
+//   客户支付 → 按比例计提分录（pending）→ 生成结算单（draft）
+//   → 管理员线下手工打款 → 回填流水号并标记已打款（paid）。
+// 系统只记账，不做出金；自动把钱转给第三方属于无牌照资金清分。
+
+export type RevenueSplitBaseMode = 'gross' | 'gross_after_fee'
+
+export type RevenueSplitEntryStatus = 'pending' | 'settled' | 'reversed'
+
+export type RevenueSplitSettlementStatus = 'draft' | 'paid' | 'cancelled'
+
+export interface RevenueSplitConfig {
+  enabled: boolean
+  base_mode: RevenueSplitBaseMode
+  channel_fee_percent: number
+}
+
+export interface RevenueSplitConfigUpdateRequest {
+  enabled?: boolean
+  base_mode?: RevenueSplitBaseMode
+  channel_fee_percent?: number
+}
+
+export interface RevenueSplitRule {
+  id: number
+  beneficiary_user_id: number
+  beneficiary_name: string
+  beneficiary_email: string
+  beneficiary_status: string
+  ratio_percent: number
+  enabled: boolean
+  note: string
+  sort_order: number
+}
+
+/** 规则写入入参（全量替换） */
+export interface RevenueSplitRuleInput {
+  beneficiary_user_id: number
+  beneficiary_name?: string
+  ratio_percent: number
+  enabled?: boolean
+  note?: string
+  sort_order?: number
+}
+
+export interface RevenueSplitEntry {
+  id: number
+  order_id: number
+  beneficiary_user_id: number
+  beneficiary_name: string
+  order_amount: number
+  pay_amount: number
+  channel_fee_percent: number
+  channel_fee_amount: number
+  base_mode: RevenueSplitBaseMode
+  base_amount: number
+  ratio_percent: number
+  split_amount: number
+  currency: string
+  status: RevenueSplitEntryStatus
+  settlement_id: number | null
+  reversed_at: string | null
+  reverse_reason: string
+  memo: string
+  created_at: string
+  order_out_trade_no: string
+  order_user_id: number
+  order_type: string
+  payment_type: string
+}
+
+export interface RevenueSplitBeneficiarySummary {
+  beneficiary_user_id: number
+  beneficiary_name: string
+  beneficiary_email: string
+  ratio_percent: number
+  enabled: boolean
+  /** 已计提、尚未被结算单锁定 */
+  pending_amount: number
+  /** 已被 draft 结算单锁定，等待线下打款 */
+  locked_amount: number
+  settled_amount: number
+  reversed_amount: number
+  entry_count: number
+  pending_count: number
+  last_entry_at: string | null
+}
+
+export interface RevenueSplitSettlement {
+  id: number
+  beneficiary_user_id: number
+  beneficiary_name: string
+  period_start: string | null
+  period_end: string | null
+  entry_count: number
+  amount: number
+  currency: string
+  status: RevenueSplitSettlementStatus
+  method: string
+  reference: string
+  note: string
+  paid_at: string | null
+  paid_by: number | null
+  created_by: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface RevenueSplitPreviewItem {
+  beneficiary_user_id: number
+  beneficiary_name: string
+  ratio_percent: number
+  split_amount: number
+}
+
+export interface RevenueSplitPreview {
+  enabled: boolean
+  base_mode: RevenueSplitBaseMode
+  channel_fee_percent: number
+  gross_amount: number
+  channel_fee_amount: number
+  /** 真正的分账基数（gross_after_fee 口径下 = 毛额 - 通道费） */
+  base_amount: number
+  allocated_amount: number
+  /** 分完后仍留在平台的部分；上游 API 成本要从这里出 */
+  platform_remainder: number
+  items: RevenueSplitPreviewItem[]
+}
+
+export interface RevenueSplitEntryQuery {
+  page?: number
+  page_size?: number
+  beneficiary_user_id?: number
+  status?: RevenueSplitEntryStatus | ''
+  order_id?: number
+  start?: string
+  end?: string
+  keyword?: string
+}
+
+export interface RevenueSplitSettlementQuery {
+  page?: number
+  page_size?: number
+  beneficiary_user_id?: number
+  status?: RevenueSplitSettlementStatus | ''
+}
+
+export interface PaginatedRevenueSplit<T> {
+  items: T[]
+  total: number
+  page: number
+  page_size: number
+  pages: number
+}
+
+export const revenueSplitApi = {
+  getConfig: () =>
+    ok<{ config: RevenueSplitConfig; rules: RevenueSplitRule[] }>(api.get('/admin/payment/revenue-split/config')),
+  updateConfig: (body: RevenueSplitConfigUpdateRequest) =>
+    ok<{ config: RevenueSplitConfig }>(api.put('/admin/payment/revenue-split/config', body)),
+  listRules: () => ok<{ rules: RevenueSplitRule[] }>(api.get('/admin/payment/revenue-split/rules')),
+  /** 全量替换规则：传空数组会清空，开启开关时后端要求至少一条启用规则 */
+  replaceRules: (rules: RevenueSplitRuleInput[]) =>
+    ok<{ rules: RevenueSplitRule[] }>(api.put('/admin/payment/revenue-split/rules', { rules })),
+  /** 试算：不落库，用来在保存前看清「客户付 100 谁拿多少」 */
+  preview: (amount: number) => ok<RevenueSplitPreview>(api.post('/admin/payment/revenue-split/preview', { amount })),
+  listEntries: (params: RevenueSplitEntryQuery = {}) =>
+    ok<PaginatedRevenueSplit<RevenueSplitEntry>>(api.get('/admin/payment/revenue-split/entries', { params })),
+  summary: () =>
+    ok<{ beneficiaries: RevenueSplitBeneficiarySummary[] }>(api.get('/admin/payment/revenue-split/summary')),
+  listSettlements: (params: RevenueSplitSettlementQuery = {}) =>
+    ok<PaginatedRevenueSplit<RevenueSplitSettlement>>(api.get('/admin/payment/revenue-split/settlements', { params })),
+  getSettlement: (id: string | number) =>
+    ok<{ settlement: RevenueSplitSettlement; entries: RevenueSplitEntry[] }>(
+      api.get('/admin/payment/revenue-split/settlements/' + id),
+    ),
+  /** 生成结算单：把该受益人当前「可结算」的分录汇总并锁定 */
+  createSettlement: (body: {
+    beneficiary_user_id: number
+    period_start?: string
+    period_end?: string
+    method?: string
+    note?: string
+  }) => ok<RevenueSplitSettlement>(api.post('/admin/payment/revenue-split/settlements', body)),
+  /** 标记已线下打款：reference 必填，作为打款凭证号 */
+  markSettlementPaid: (id: string | number, body: { method?: string; reference: string; note?: string }) =>
+    ok<RevenueSplitSettlement>(api.post('/admin/payment/revenue-split/settlements/' + id + '/pay', body)),
+  cancelSettlement: (id: string | number) =>
+    ok<RevenueSplitSettlement>(api.post('/admin/payment/revenue-split/settlements/' + id + '/cancel', {})),
+  /** 为历史已完成订单补计提（幂等，可重复点） */
+  accrueOrder: (orderId: string | number) =>
+    ok<{ entries: number }>(api.post('/admin/payment/revenue-split/orders/' + orderId + '/accrue', {})),
 }

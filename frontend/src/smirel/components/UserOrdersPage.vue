@@ -3,7 +3,15 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useSession } from '../core/session'
-import { paymentApi, type PaymentOrder, type OrderStatus, type RefundPreview, type RefundLedgerEntry } from '../api/payment'
+import {
+  paymentApi,
+  type PaymentOrder,
+  type OrderStatus,
+  type RefundPreview,
+  type RefundLedgerEntry,
+  type RevenueSplitBeneficiarySummary,
+  type RevenueSplitEntry,
+} from '../api/payment'
 import { getErrorMessage } from '../core/api'
 import PaymentStatusBadge from './payment/PaymentStatusBadge.vue'
 
@@ -48,7 +56,37 @@ async function load() {
   }
 }
 
+// ---- 共建分成（受益人自助查看） ----
+//
+// 分成是与可消费余额相互独立的账本：客户每支付一笔，按比例记到共建者名下，
+// 由管理员线下打款后登记。这里只读展示，不涉及任何出金动作。
+const splitSummary = ref<RevenueSplitBeneficiarySummary | null>(null)
+const splitEntries = ref<RevenueSplitEntry[]>([])
+const splitOpen = ref(false)
+
+const hasSplit = computed(
+  () => (splitSummary.value?.entry_count ?? 0) > 0 || (splitSummary.value?.ratio_percent ?? 0) > 0,
+)
+
+async function loadSplit() {
+  if (!isAuthenticated.value) {
+    splitSummary.value = null
+    splitEntries.value = []
+    return
+  }
+  try {
+    const r = await paymentApi.getMyRevenueSplit(20)
+    splitSummary.value = r.summary || null
+    splitEntries.value = r.entries || []
+  } catch {
+    // 分成是可选功能，拉取失败就整块隐藏，不打扰普通用户。
+    splitSummary.value = null
+    splitEntries.value = []
+  }
+}
+
 onMounted(load)
+onMounted(loadSplit)
 
 function pickStatus(s: 'all' | OrderStatus) {
   activeStatus.value = s
@@ -459,6 +497,56 @@ function viewOrder(o: PaymentOrder) {
         </div>
       </div>
     </div>
+    <section v-if="hasSplit && splitSummary" class="my-split">
+      <header class="my-split-head">
+        <div>
+          <h2>{{ t('payment.myRevenueSplit.title') }}</h2>
+          <p>{{ t('payment.myRevenueSplit.hint') }}</p>
+        </div>
+        <button class="ghost" type="button" @click="splitOpen = !splitOpen">
+          {{ splitOpen ? t('payment.refund.collapse') : t('payment.refund.expand') }}
+        </button>
+      </header>
+
+      <dl class="my-split-metrics">
+        <div>
+          <dt>{{ t('payment.myRevenueSplit.ratio') }}</dt>
+          <dd>{{ Number(splitSummary.ratio_percent || 0) }}%</dd>
+        </div>
+        <div>
+          <dt>{{ t('payment.myRevenueSplit.pending') }}</dt>
+          <dd class="mono">{{ fmtMoney(splitSummary.pending_amount) }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('payment.myRevenueSplit.locked') }}</dt>
+          <dd class="mono">{{ fmtMoney(splitSummary.locked_amount) }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('payment.myRevenueSplit.settled') }}</dt>
+          <dd class="mono">{{ fmtMoney(splitSummary.settled_amount) }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('payment.myRevenueSplit.reversed') }}</dt>
+          <dd class="mono">{{ fmtMoney(splitSummary.reversed_amount) }}</dd>
+        </div>
+        <div>
+          <dt>{{ t('payment.myRevenueSplit.pendingCount') }}</dt>
+          <dd>{{ splitSummary.pending_count }}</dd>
+        </div>
+      </dl>
+
+      <template v-if="splitOpen">
+        <span class="eyebrow">{{ t('payment.myRevenueSplit.entriesTitle') }}</span>
+        <ul v-if="splitEntries.length" class="my-split-entries">
+          <li v-for="e in splitEntries" :key="e.id">
+            <span class="muted">{{ fmtDate(e.created_at) }}</span>
+            <span class="muted">#{{ e.order_id }}</span>
+            <span class="mono">{{ fmtMoney(e.split_amount, e.currency) }}</span>
+          </li>
+        </ul>
+        <p v-else class="my-split-empty">{{ t('payment.myRevenueSplit.empty') }}</p>
+      </template>
+    </section>
   </div>
 </template>
 
@@ -901,3 +989,79 @@ function viewOrder(o: PaymentOrder) {
   }
 }
 </style>
+
+/* ---- 共建分成（我的分成） ---- */
+.my-split {
+  margin-top: 28px;
+  padding: 20px 22px;
+  border-radius: 14px;
+  background: #11141a;
+  border: 1px solid #1d2128;
+}
+.my-split-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+.my-split-head h2 {
+  margin: 0;
+  color: #f7f8fa;
+  font-size: 1rem;
+  font-weight: 620;
+}
+.my-split-head p {
+  max-width: 680px;
+  margin: 8px 0 0;
+  color: #7d858e;
+  font-size: .78rem;
+  line-height: 1.6;
+}
+.my-split-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px 20px;
+  margin: 0;
+}
+.my-split-metrics > div {
+  padding: 10px 0;
+  border-bottom: 1px solid #161a20;
+}
+.my-split-metrics dt {
+  color: #7d858e;
+  font-size: .73rem;
+}
+.my-split-metrics dd {
+  margin: 6px 0 0;
+  color: #f7f8fa;
+  font-size: .95rem;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+}
+.my-split-entries {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.my-split-entries li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid #161a20;
+  color: #d6dbe1;
+  font-size: .8rem;
+}
+.my-split-entries li:last-child {
+  border-bottom: 0;
+}
+.my-split-entries li .mono {
+  margin-left: auto;
+  color: #f7f8fa;
+}
+.my-split-empty {
+  margin: 10px 0 0;
+  color: #6c727b;
+  font-size: .8rem;
+}

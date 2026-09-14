@@ -661,6 +661,13 @@ func (s *PaymentService) settleRefundLedger(ctx context.Context, p *RefundPlan, 
 		slog.Warn("refund: settle balance ledger failed", "orderID", p.OrderID, "error", err)
 	}
 	detail["refundBatchID"] = batchID
+	if s.revenueSplit != nil {
+		if n, rerr := s.revenueSplit.ReverseForOrder(ctx, p.OrderID, "order refunded"); rerr != nil {
+			slog.Warn("refund: reverse revenue split failed", "orderID", p.OrderID, "error", rerr)
+		} else if n > 0 {
+			detail["revenueSplitReversed"] = n
+		}
+	}
 	summary, err := s.balanceLedger.OrderSummary(ctx, p.OrderID)
 	if err != nil {
 		slog.Warn("refund: load balance ledger summary failed", "orderID", p.OrderID, "error", err)

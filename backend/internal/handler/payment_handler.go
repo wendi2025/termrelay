@@ -485,6 +485,40 @@ func (h *PaymentHandler) GetBalanceLedger(c *gin.Context) {
 	response.Success(c, gin.H{"breakdown": breakdown, "entries": entries})
 }
 
+// GetMyRevenueSplit returns the calling user's own revenue-split summary and
+// recent entries. Only bookkeeping for co-builders: it never touches balance.
+// GET /api/v1/payment/revenue-split
+func (h *PaymentHandler) GetMyRevenueSplit(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	if err != nil || limit <= 0 {
+		limit = 50
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	summary, err := h.paymentService.MyRevenueSplit(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	entries, _, err := h.paymentService.ListRevenueSplitEntries(c.Request.Context(), service.RevenueSplitEntryFilter{
+		BeneficiaryUserID: subject.UserID,
+		Page:              1,
+		PageSize:          limit,
+	})
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"summary": summary, "entries": entries})
+}
+
 // VerifyOrderRequest is the request body for verifying a payment order.
 type VerifyOrderRequest struct {
 	OutTradeNo string `json:"out_trade_no" binding:"required"`

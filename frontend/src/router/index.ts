@@ -15,6 +15,7 @@ import AdminPaymentDashboardPage from '../smirel/pages/AdminPaymentDashboardPage
 import AdminPaymentProvidersPage from '../smirel/pages/AdminPaymentProvidersPage.vue'
 import AdminPaymentPlansPage from '../smirel/pages/AdminPaymentPlansPage.vue'
 import AdminPaymentConfigPage from '../smirel/pages/AdminPaymentConfigPage.vue'
+import AdminRevenueSplitPage from '../smirel/pages/AdminRevenueSplitPage.vue'
 import AdminOrdersPage from '../smirel/pages/AdminOrdersPage.vue'
 import ModelCatalogPage from '../smirel/pages/ModelCatalogPage.vue'
 import PublicPage from '../smirel/pages/PublicPage.vue'
@@ -58,7 +59,9 @@ const workspaceRoutes: RouteRecordRaw[] = [
                   ? AdminPaymentProvidersPage
                   : item.path === '/admin/payment/config'
                     ? AdminPaymentConfigPage
-                    : WorkspacePage,
+                    : item.path === '/admin/payment/revenue-split'
+                      ? AdminRevenueSplitPage
+                      : WorkspacePage,
     meta: { shell: 'workspace', requiresAuth: true, requiresAdmin: true, title: item.label, feature: item.feature },
   })),
 ]
