@@ -17,7 +17,7 @@ import {
   type RevenueSplitSettlement,
   type RevenueSplitSettlementStatus,
 } from '../api/payment'
-import { getErrorMessage } from '../core/api'
+import { api, getErrorMessage } from '../core/api'
 
 const { t } = useI18n()
 
@@ -108,6 +108,75 @@ function removeRule(index: number): void {
   ruleDrafts.value.splice(index, 1)
 }
 
+// ---------- 选择共建者 ----------
+//
+// 共建者不是技术同学，不能让他们去「用户」列表里翻数字 ID。
+// 这里提供搜索：输入邮箱/用户名 → 点一下 → 自动带出 ID 与显示名。
+const userSearch = ref('')
+const userOptions = ref<AdminUserOption[]>([])
+const userSearching = ref(false)
+let userSearchTimer: number | undefined
+
+interface AdminUserOption {
+  id: number
+  email?: string
+  username?: string
+  role?: string
+  status?: string
+}
+
+function beneficiaryLabel(u: AdminUserOption): string {
+  const name = String(u.username || '').trim()
+  const email = String(u.email || '').trim()
+  if (name && email) return name + ' · ' + email
+  return name || email || '#' + u.id
+}
+
+function isBeneficiaryAdded(id: number): boolean {
+  return ruleDrafts.value.some((r) => Number(r.beneficiary_user_id) === id)
+}
+
+async function searchUsers(): Promise<void> {
+  const keyword = userSearch.value.trim()
+  if (!keyword) {
+    userOptions.value = []
+    return
+  }
+  userSearching.value = true
+  try {
+    const data = (
+      await api.get<{ items?: AdminUserOption[] }>('/admin/users', {
+        params: { search: keyword, page: 1, page_size: 8, include_subscriptions: false },
+      })
+    ).data
+    userOptions.value = Array.isArray(data?.items) ? data.items : []
+  } catch {
+    userOptions.value = []
+  } finally {
+    userSearching.value = false
+  }
+}
+
+function onUserSearchInput(): void {
+  if (userSearchTimer) window.clearTimeout(userSearchTimer)
+  userSearchTimer = window.setTimeout(() => {
+    void searchUsers()
+  }, 300)
+}
+
+function addBeneficiary(u: AdminUserOption): void {
+  if (!u || isBeneficiaryAdded(u.id)) return
+  ruleDrafts.value.push({
+    beneficiary_user_id: u.id,
+    beneficiary_name: beneficiaryLabel(u),
+    ratio_percent: 0,
+    enabled: true,
+    note: '',
+  })
+  userSearch.value = ''
+  userOptions.value = []
+}
+
 async function saveRules(): Promise<void> {
   error.value = ''
   if (ratioOverflow.value) {
@@ -119,11 +188,11 @@ async function saveRules(): Promise<void> {
   for (const r of ruleDrafts.value) {
     const id = Number(r.beneficiary_user_id) || 0
     if (id <= 0) {
-      error.value = t('payment.adminRevenueSplit.beneficiaryIdHint')
+      error.value = t('payment.adminRevenueSplit.beneficiaryIdRequired')
       return
     }
     if (seen.has(id)) {
-      error.value = `受益人 #${id} 重复`
+      error.value = t('payment.adminRevenueSplit.duplicateBeneficiary', { id })
       return
     }
     seen.add(id)
@@ -517,6 +586,35 @@ onMounted(loadAll)
           </span>
         </div>
         <p class="card-hint">{{ t('payment.adminRevenueSplit.rulesHint') }}</p>
+
+        <div class="beneficiary-picker">
+          <label class="field">
+            <span>{{ t('payment.adminRevenueSplit.beneficiarySearchLabel') }}</span>
+            <input
+              v-model="userSearch"
+              type="search"
+              :placeholder="t('payment.adminRevenueSplit.beneficiarySearchPlaceholder')"
+              @input="onUserSearchInput"
+            />
+            <em class="hint">{{ t('payment.adminRevenueSplit.beneficiarySearchHint') }}</em>
+          </label>
+          <ul v-if="userSearch.trim() && userOptions.length" class="picker-results">
+            <li v-for="u in userOptions" :key="u.id">
+              <button type="button" :disabled="isBeneficiaryAdded(u.id)" @click="addBeneficiary(u)">
+                <span class="picker-name">{{ beneficiaryLabel(u) }}</span>
+                <span class="picker-meta">
+                  #{{ u.id }}<template v-if="isBeneficiaryAdded(u.id)"> · {{ t('payment.adminRevenueSplit.beneficiaryAdded') }}</template>
+                </span>
+              </button>
+            </li>
+          </ul>
+          <p v-else-if="userSearch.trim() && !userSearching" class="picker-empty">
+            {{ t('payment.adminRevenueSplit.beneficiarySearchEmpty') }}
+          </p>
+          <p v-else-if="userSearching" class="picker-empty">
+            {{ t('payment.adminRevenueSplit.beneficiarySearching') }}
+          </p>
+        </div>
 
         <table v-if="ruleDrafts.length" class="rs-table">
           <thead>
@@ -1026,6 +1124,16 @@ onMounted(loadAll)
 .badge.pending, .badge.draft { background: rgba(214, 158, 46, .14); color: #d9bd85; }
 .badge.settled, .badge.paid { background: rgba(72, 187, 153, .14); color: #48bb99; }
 .badge.reversed, .badge.cancelled, .badge.off { background: rgba(140, 145, 152, .14); color: #8c9198; }
+.beneficiary-picker { margin-bottom: 16px; max-width: 560px; }
+.beneficiary-picker .field input { width: 100%; }
+.picker-results { margin: 8px 0 0; padding: 4px; list-style: none; border-radius: 10px; background: #0f1217; border: 1px solid #1d2128; }
+.picker-results li + li { border-top: 1px solid #161a20; }
+.picker-results button { display: flex; width: 100%; align-items: baseline; justify-content: space-between; gap: 12px; padding: 9px 10px; border: 0; border-radius: 7px; background: transparent; color: #d6dbe1; font: 400 .82rem/1.3 ui-sans-serif, system-ui, sans-serif; text-align: left; cursor: pointer; }
+.picker-results button:hover:not(:disabled) { background: #16191f; }
+.picker-results button:disabled { opacity: .45; cursor: not-allowed; }
+.picker-name { color: #f7f8fa; }
+.picker-meta { color: #6c727b; font-size: .72rem; white-space: nowrap; }
+.picker-empty { margin: 8px 0 0; color: #6c727b; font-size: .78rem; }
 .filter-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-bottom: 12px; }
 .filter-row .field { min-width: 150px; }
 .filter-actions { display: flex; gap: 8px; margin-left: auto; }
