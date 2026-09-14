@@ -62,7 +62,7 @@ const alipayFields: ProviderFieldDef[] = [
 
 const wxpayFields: ProviderFieldDef[] = [
   { key: 'appId', label: 'AppID（公众号/小程序）', type: 'string', required: true, sensitive: false, protectedWhenPending: true, description: '微信公众号/小程序 AppID' },
-  { key: 'mpAppId', label: 'JSAPI 公众号 AppID（可选）', type: 'string', required: false, sensitive: false, description: 'JSAPI 内调起支付时使用的公众号 AppID，不填时使用 appId' },
+  { key: 'mpAppId', label: 'JSAPI 公众号 AppID（可选）', type: 'string', required: false, sensitive: false, protectedWhenPending: true, description: 'JSAPI 内调起支付时使用的公众号 AppID，不填时使用 appId' },
   { key: 'mchId', label: '商户号 (MchID)', type: 'string', required: true, sensitive: false, protectedWhenPending: true, description: '微信支付商户号', placeholder: '1230000109' },
   { key: 'privateKey', label: '商户 API 私钥', type: 'pem', required: true, sensitive: true, protectedWhenPending: true, description: '商户 API 证书私钥' },
   { key: 'apiV3Key', label: 'APIv3 密钥 (32 字符)', type: 'secret', required: true, sensitive: true, protectedWhenPending: true, description: '商户平台 APIv3 密钥，必须 32 字符' },

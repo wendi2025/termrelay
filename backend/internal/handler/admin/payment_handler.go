@@ -87,6 +87,23 @@ func (h *PaymentHandler) GetOrderDetail(c *gin.Context) {
 	response.Success(c, gin.H{"order": sanitizeAdminPaymentOrderForResponse(order), "auditLogs": auditLogs})
 }
 
+// GetRefundPreview returns the refund quote and 9.3 audit detail for an order.
+// force=true previews the force-refund path (platform fault / duplicate charge).
+// GET /api/v1/admin/payment/orders/:id/refund-preview
+func (h *PaymentHandler) GetRefundPreview(c *gin.Context) {
+	orderID, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	force := c.Query("force") == "true" || c.Query("force") == "1"
+	preview, err := h.paymentService.PreviewRefund(c.Request.Context(), orderID, 0, force)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, preview)
+}
+
 // CancelOrder cancels a pending order (admin).
 // POST /api/v1/admin/payment/orders/:id/cancel
 func (h *PaymentHandler) CancelOrder(c *gin.Context) {
@@ -423,8 +440,13 @@ func (h *PaymentHandler) CreateProvider(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	view, err := h.configService.MaskedProviderInstance(inst)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
 	h.paymentService.RefreshProviders(c.Request.Context())
-	response.Created(c, inst)
+	response.Created(c, view)
 }
 
 // UpdateProvider updates an existing payment provider instance.
@@ -444,8 +466,13 @@ func (h *PaymentHandler) UpdateProvider(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	view, err := h.configService.MaskedProviderInstance(inst)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
 	h.paymentService.RefreshProviders(c.Request.Context())
-	response.Success(c, inst)
+	response.Success(c, view)
 }
 
 // DeleteProvider deletes a payment provider instance.
