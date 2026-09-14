@@ -133,6 +133,29 @@ func (h *PaymentHandler) RetryFulfillment(c *gin.Context) {
 	response.Success(c, gin.H{"message": "fulfillment retried"})
 }
 
+// SimulatePaid marks a pending order as paid without calling the upstream provider.
+// POST /api/v1/admin/payment/orders/:id/simulate-paid
+//
+// Intended for admin-only use: it lets the full checkout -> payment -> fulfillment
+// chain be exercised (and offline-collected payments be recorded) before real
+// merchant credentials are configured. It reuses the real webhook fulfillment path,
+// so provider/amount/idempotency checks still apply.
+func (h *PaymentHandler) SimulatePaid(c *gin.Context) {
+	orderID, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	tradeNo, err := h.paymentService.SimulateOrderPaid(c.Request.Context(), orderID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{
+		"message":  "order marked as paid (simulated)",
+		"trade_no": tradeNo,
+	})
+}
+
 type AdminPaymentOrderResult struct {
 	ID                  int64      `json:"id"`
 	UserID              int64      `json:"user_id"`

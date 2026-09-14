@@ -37,6 +37,7 @@ const ALL_STATUSES: OrderStatus[] = [
 
 const loading = ref(false)
 const error = ref('')
+const success = ref('')
 const orders = ref<AdminPaymentOrder[]>([])
 const total = ref(0)
 const page = ref(1)
@@ -106,6 +107,7 @@ function prettyDetail(raw: string | undefined): string {
 async function load(): Promise<void> {
   loading.value = true
   error.value = ''
+  success.value = ''
   try {
     const r = (await paymentAdminApi.listOrders({
       page: page.value,
@@ -166,6 +168,23 @@ async function doRetry(o: AdminPaymentOrder): Promise<void> {
   try {
     await paymentAdminApi.retryFulfillment(o.id)
     await load()
+  } catch (e) {
+    error.value = getErrorMessage(e)
+  } finally {
+    actionBusyId.value = null
+  }
+}
+
+// 模拟支付（仅管理员）：不经过上游渠道，直接把 PENDING 订单置为已支付并跑真实履约。
+// 只用于真实商户凭据到位前验证链路，或为场外已确认收款的订单补记账。
+async function doSimulatePaid(o: AdminPaymentOrder): Promise<void> {
+  if (!confirm(t('payment.adminOrders.simulateConfirm'))) return
+  actionBusyId.value = o.id
+  try {
+    await paymentAdminApi.simulatePaid(o.id)
+    await load()
+    // 必须放在 load() 之后：load() 会清掉上一条成功提示
+    success.value = t('payment.adminOrders.simulateSuccess')
   } catch (e) {
     error.value = getErrorMessage(e)
   } finally {
@@ -389,6 +408,7 @@ const canSubmitRefund = computed(() => !!refundPreview.value?.requestable && !re
     </header>
 
     <p v-if="error" class="error-banner">{{ error }}</p>
+    <p v-if="success" class="success-banner">{{ success }}</p>
 
     <div class="orders-filters">
       <label class="filter-select">
@@ -426,6 +446,16 @@ const canSubmitRefund = computed(() => !!refundPreview.value?.requestable && !re
             <td class="action-cell">
               <button type="button" class="action" @click="openDetail(o)">
                 {{ t('payment.adminOrders.actionView') }}
+              </button>
+              <button
+                v-if="o.status === 'PENDING'"
+                type="button"
+                class="action"
+                :disabled="actionBusyId === o.id"
+                :title="t('payment.adminOrders.simulateConfirm')"
+                @click="doSimulatePaid(o)"
+              >
+                {{ t('payment.adminOrders.actionSimulate') }}
               </button>
               <button v-if="o.status === 'PENDING' || o.status === 'FAILED'" type="button" class="action danger" :disabled="actionBusyId === o.id" @click="doCancel(o)">
                 {{ t('payment.adminOrders.actionCancel') }}
@@ -613,6 +643,7 @@ const canSubmitRefund = computed(() => !!refundPreview.value?.requestable && !re
 .filter-select select { padding: 8px 12px; border-radius: 8px; background: #0d0f12; border: 1px solid #2a2f37; color: #f7f8fa; font: 400 .82rem/1 ui-sans-serif, system-ui, sans-serif; }
 .filter-select select:focus { outline: none; border-color: #4a93c5; }
 .error-banner { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; background: rgba(239, 68, 68, .12); border: 1px solid rgba(239, 68, 68, .35); color: #fca5a5; font-size: .85rem; }
+.success-banner { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; background: rgba(72, 187, 153, .12); border: 1px solid rgba(72, 187, 153, .35); color: #48bb99; font-size: .85rem; }
 .orders-panel { padding: 0; border-radius: 14px; background: #11141a; border: 1px solid #1d2128; overflow: hidden; }
 .orders-table { width: 100%; border-collapse: collapse; }
 .orders-table th { text-align: left; padding: 12px 14px; color: #6c727b; font: 500 .72rem/1 ui-sans-serif, system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; border-bottom: 1px solid #1d2128; background: #0f1217; }

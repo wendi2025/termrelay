@@ -518,6 +518,12 @@ export interface CreateOrderRequest {
   is_mobile?: boolean
 }
 
+/** 模拟支付接口的返回体：后端同时回传人类可读消息与伪造的交易号。 */
+export interface AdminPaymentSimulationResult {
+  message: string
+  trade_no: string
+}
+
 async function ok<T = any>(p: Promise<any>): Promise<T> {
   const r = await p
   return r.data
@@ -552,6 +558,13 @@ export const paymentAdminApi = {
     ok<{ order: AdminPaymentOrder; auditLogs: AdminOrderAuditLog[] }>(api.get('/admin/payment/orders/' + id)),
   cancelOrder: (id: string | number) => ok<PaymentOrder>(api.post('/admin/payment/orders/' + id + '/cancel', {})),
   retryFulfillment: (id: string | number) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/retry', {})),
+  /**
+   * 模拟支付（仅管理员）：不调用任何上游渠道，直接把 PENDING 订单标记为已支付并履约。
+   * 用于在真实商户凭据到位前跑通「下单 → 支付 → 履约 → 余额/订阅到账」全链路，
+   * 或为场外已确认收款的订单补记账。后端复用真实回调的渠道/金额/幂等校验。
+   */
+  simulatePaid: (id: string | number) =>
+    ok<AdminPaymentSimulationResult>(api.post('/admin/payment/orders/' + id + '/simulate-paid', {})),
   refund: (id: string | number, body: any) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/refund', body)),
   /** 管理员退款预览；force=true 预览强制退款（平台故障/重复扣款）路径 */
   getRefundPreview: (id: string | number, force = false) =>
