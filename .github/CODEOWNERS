@@ -1,0 +1,13 @@
+# TermRelay critical-path ownership
+#
+# This file documents who should review changes to the repository's control
+# plane. It does not create a hidden privilege and is not a substitute for
+# branch protection/rulesets.
+
+/.github/ @yuchenm1303-png
+/deploy/ @yuchenm1303-png
+/.goreleaser.yaml @yuchenm1303-png
+/.goreleaser.simple.yaml @yuchenm1303-png
+/Dockerfile* @yuchenm1303-png
+/backend/ @yuchenm1303-png
+/frontend/ @yuchenm1303-png
