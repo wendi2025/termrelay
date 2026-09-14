@@ -7,7 +7,7 @@ import {
   type AdminSubscriptionPlan,
   type CreatePlanRequest,
 } from '../api/payment'
-import { getErrorMessage } from '../core/api'
+import { api, getErrorMessage } from '../core/api'
 
 const { t } = useI18n()
 
@@ -15,11 +15,38 @@ const loading = ref(false)
 const error = ref('')
 const plans = ref<AdminSubscriptionPlan[]>([])
 
+type ListResponse<T> = { items?: T[]; total?: number }
+type GroupOption = {
+  id: number
+  name: string
+  subscription_type?: string
+}
+const groups = ref<GroupOption[]>([])
+
+const sortedGroups = computed(() => {
+  const rank = (g: GroupOption): number => (g.subscription_type === 'subscription' ? 0 : 1)
+  return [...groups.value].sort((a, b) => rank(a) - rank(b) || a.id - b.id)
+})
+
+function groupOptionLabel(g: GroupOption): string {
+  return g.name ? g.name + ' (#' + g.id + ')' : '#' + g.id
+}
+
 async function load(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    plans.value = (await paymentAdminApi.listPlans()) || []
+    const [planList, groupResp] = await Promise.all([
+      paymentAdminApi.listPlans(),
+      api
+        .get<ListResponse<GroupOption>>('/admin/groups', {
+          params: { page: 1, page_size: 200, sort_by: 'sort_order', sort_order: 'asc' },
+        })
+        .catch(() => null),
+    ])
+    plans.value = planList || []
+    const items = groupResp?.data?.items
+    groups.value = Array.isArray(items) ? items : []
   } catch (e) {
     error.value = getErrorMessage(e)
   } finally {
@@ -100,6 +127,10 @@ function closeEditor(): void {
 const isEdit = computed(() => editorMode.value === 'edit')
 
 async function save(): Promise<void> {
+  if (!draft.value.group_id) {
+    error.value = t('payment.adminPlans.groupRequired')
+    return
+  }
   saving.value = true
   error.value = ''
   try {
@@ -218,7 +249,16 @@ function formatValidity(p: AdminSubscriptionPlan): string {
         <header><h3>{{ isEdit ? t('payment.adminPlans.editTitle') : t('payment.adminPlans.createTitle') }}</h3></header>
         <div class="form-grid">
           <label class="field"><span>{{ t('payment.adminPlans.formName') }}</span><input v-model="draft.name" type="text" /></label>
-          <label class="field"><span>{{ t('payment.adminPlans.formGroup') }}</span><input v-model.number="draft.group_id" type="number" /></label>
+          <label class="field">
+            <span>{{ t('payment.adminPlans.formGroup') }}</span>
+            <select v-if="groups.length" v-model.number="draft.group_id">
+              <option v-for="g in sortedGroups" :key="g.id" :value="g.id">{{ groupOptionLabel(g) }}</option>
+              <option v-if="!groups.some((g) => g.id === draft.group_id)" :value="draft.group_id" disabled>
+                {{ draft.group_id ? '#' + draft.group_id : t('payment.adminPlans.groupPlaceholder') }}
+              </option>
+            </select>
+            <input v-else v-model.number="draft.group_id" type="number" />
+          </label>
           <label class="field"><span>{{ t('payment.adminPlans.formPrice') }}</span><input v-model.number="draft.price" type="number" step="0.01" /></label>
           <label class="field"><span>{{ t('payment.adminPlans.formOriginalPrice') }}</span><input v-model.number="draft.original_price" type="number" step="0.01" /></label>
           <label class="field"><span>{{ t('payment.adminPlans.formCurrency') }}</span><input v-model="draft.currency" type="text" maxlength="8" /></label>
