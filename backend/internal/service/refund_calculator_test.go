@@ -56,9 +56,6 @@ func (m *mockRefundLoader) GetGroupPayAsYouGoPrice(_ context.Context, _ *dbent.P
 	return m.unitPrice, m.unitPriceErr
 }
 
-func refundPtr(t time.Time) *time.Time { return &t }
-func refundPtrI(i int) *int            { return &i }
-
 // --- 测试 ---
 
 func TestRefundCalculator_NilOrder(t *testing.T) {
