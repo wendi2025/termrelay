@@ -39,3 +39,9 @@
 - 新增 `194_user_balance_ledger.sql`，建立用户余额账本。
 - 新增 `195_smiral_plans_seed.sql`，初始化 Smirel 套餐数据。
 - 新增 `196_revenue_split.sql`，建立收入分账相关结构。
+
+### 同步已部署发布分支
+
+- 核对并记录上游 `release/smirel-commercial-dark` 最近部署提交 `4888d4ead`。
+- 该发布线单独同步到 fork 的同名分支；`main` 继续作为本地默认部署版本。
+- 未将 release 线回退性删除的支付、退款、余额账本和共建分成实现合并进 `main`。
