@@ -16,11 +16,17 @@ if [[ -f .backup.env ]]; then
   set +a
 fi
 
+ENV_FILE="${ENV_FILE:-.env}"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
 backup="$1"
 
 if [[ ! -f "$backup" ]]; then
   echo "ERROR: backup not found: $backup" >&2
+  exit 1
+fi
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "ERROR: environment file not found: $ENV_FILE" >&2
   exit 1
 fi
 
@@ -48,10 +54,10 @@ if [[ "$backup" == *.age ]]; then
 
   echo "Checking PostgreSQL archive structure..."
   age -d -i "$BACKUP_AGE_IDENTITY" "$backup" | \
-    docker compose -f "$COMPOSE_FILE" exec -T postgres pg_restore --list >/dev/null
+    docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T postgres pg_restore --list >/dev/null
 else
   echo "Checking PostgreSQL archive structure..."
-  docker compose -f "$COMPOSE_FILE" exec -T postgres pg_restore --list < "$backup" >/dev/null
+  docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T postgres pg_restore --list < "$backup" >/dev/null
 fi
 
 echo "Backup verification passed: $backup"
