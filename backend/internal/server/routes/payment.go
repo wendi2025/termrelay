@@ -43,7 +43,11 @@ func RegisterPaymentRoutes(
 			orders.POST("/:id/cancel", paymentHandler.CancelOrder)
 			orders.POST("/:id/refund-request", paymentHandler.RequestRefund)
 			orders.GET("/refund-eligible-providers", paymentHandler.GetRefundEligibleProviders)
+			orders.GET("/:id/refund-preview", paymentHandler.GetRefundPreview)
 		}
+
+		// 余额分账账本（方案 9.2：充值本金 / 赠送余额 / 扣费归属）
+		authenticated.GET("/ledger", paymentHandler.GetBalanceLedger)
 	}
 
 	// --- Public payment endpoints (no auth) ---
@@ -90,6 +94,7 @@ func RegisterPaymentRoutes(
 			adminOrders.POST("/:id/retry", adminPaymentHandler.RetryFulfillment)
 			adminOrders.POST("/:id/refund", adminPaymentHandler.ProcessRefund)
 			adminOrders.POST("/:id/refund/query", adminPaymentHandler.QueryAndFinalizeRefund)
+			adminOrders.GET("/:id/refund-preview", adminPaymentHandler.GetRefundPreview)
 		}
 
 		// Subscription Plans

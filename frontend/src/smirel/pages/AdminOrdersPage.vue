@@ -8,6 +8,8 @@ import {
   type AdminPaymentOrder,
   type OrderStatus,
   type PaginatedResponse,
+  type RefundLedgerEntry,
+  type RefundPreview,
 } from '../api/payment'
 import { getErrorMessage } from '../core/api'
 import PaymentStatusBadge from '../components/payment/PaymentStatusBadge.vue'
@@ -57,6 +59,11 @@ const refundAmount = ref<number | null>(null)
 const refundReason = ref('')
 const refundForce = ref(false)
 const refundSubmitting = ref(false)
+const refundPreview = ref<RefundPreview | null>(null)
+const refundPreviewLoading = ref(false)
+const refundPreviewError = ref('')
+const refundAmountTouched = ref(false)
+const refundShowBreakdown = ref(false)
 
 const actionBusyId = ref<number | null>(null)
 
@@ -166,24 +173,70 @@ async function doRetry(o: AdminPaymentOrder): Promise<void> {
   }
 }
 
+// ---- 退款预览（方案 9.1 / 9.2 / 9.3，管理员视角） ----
+// 预览是审核记录的唯一来源：可退金额、策略、账本都取自
+// /admin/payment/orders/:id/refund-preview，不再直接用订单上的 pay_amount 开票。
+let refundPreviewSeq = 0
+
+async function loadRefundPreview(): Promise<void> {
+  const target = refundTarget.value
+  if (!target) return
+  const force = refundForce.value
+  const seq = ++refundPreviewSeq
+  refundPreviewLoading.value = true
+  refundPreviewError.value = ''
+  try {
+    const preview = await paymentAdminApi.getRefundPreview(target.id, force)
+    if (seq !== refundPreviewSeq) return
+    refundPreview.value = preview
+    // 未手工改过金额时始终跟随公式结果，避免展示一个实际退不出去的报价
+    if (!refundAmountTouched.value) refundAmount.value = preview?.refundable_pay_amount ?? null
+  } catch (e) {
+    if (seq !== refundPreviewSeq) return
+    refundPreview.value = null
+    refundPreviewError.value = getErrorMessage(e)
+  } finally {
+    if (seq === refundPreviewSeq) refundPreviewLoading.value = false
+  }
+}
+
 function openRefund(o: AdminPaymentOrder): void {
-  refundTarget.value = o
-  refundAmount.value = o.pay_amount
-  refundReason.value = ''
+  // 先复位 modal 与 force，避免上一次的 force 余值触发多余的预览请求
+  refundModalOpen.value = false
   refundForce.value = false
+  refundTarget.value = o
+  refundAmount.value = null
+  refundAmountTouched.value = false
+  refundReason.value = ''
+  refundPreview.value = null
+  refundPreviewError.value = ''
+  refundShowBreakdown.value = false
   refundModalOpen.value = true
+  void loadRefundPreview()
 }
 
 function closeRefund(): void {
+  refundPreviewSeq += 1
   refundModalOpen.value = false
   refundTarget.value = null
   refundAmount.value = null
+  refundAmountTouched.value = false
   refundReason.value = ''
   refundForce.value = false
+  refundPreview.value = null
+  refundPreviewError.value = ''
+  refundPreviewLoading.value = false
+  refundShowBreakdown.value = false
 }
+
+// 强制退款会放宽 24h / 消耗限制，可退口径随之变化，必须重新取预览而不是复用旧报价
+watch(refundForce, () => {
+  if (refundModalOpen.value && refundTarget.value) void loadRefundPreview()
+})
 
 async function submitRefund(): Promise<void> {
   if (!refundTarget.value) return
+  if (refundPreview.value && !refundPreview.value.requestable) return
   refundSubmitting.value = true
   try {
     await paymentAdminApi.refund(refundTarget.value.id, {
@@ -199,6 +252,124 @@ async function submitRefund(): Promise<void> {
     refundSubmitting.value = false
   }
 }
+
+function fmtMoney(v: number | null | undefined, currency?: string): string {
+  const cur = currency || 'CNY'
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : 0
+  try {
+    return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: cur, maximumFractionDigits: 2 }).format(n)
+  } catch {
+    return `${cur} ${n.toFixed(2)}`
+  }
+}
+
+function fmtUSD(v: number | undefined): string {
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : 0
+  return `$${n.toFixed(4)}`
+}
+
+const POLICY_KEYS: Record<string, string> = {
+  full_refund_24h_window: 'payment.refund.policyFullWindow',
+  balance_principal_minus_used: 'payment.refund.policyBalance',
+  subscription_double_settlement: 'payment.refund.policySubscription',
+  force_refund: 'payment.refund.policyForce',
+  already_refunded: 'payment.refund.policyAlreadyRefunded',
+}
+
+const BLOCK_KEYS: Record<string, string> = {
+  not_completed: 'payment.refund.blockNotCompleted',
+  unsupported_order_type: 'payment.refund.blockUnsupportedType',
+  user_refund_disabled: 'payment.refund.blockUserRefundDisabled',
+  refund_disabled: 'payment.refund.blockRefundDisabled',
+  already_refunded: 'payment.refund.blockAlreadyRefunded',
+  nothing_to_refund: 'payment.refund.blockNothingToRefund',
+  balance_not_enough: 'payment.refund.blockBalanceNotEnough',
+  refund_in_progress: 'payment.refund.blockRefundInProgress',
+  force_refund_not_eligible: 'payment.refund.blockForceNotEligible',
+}
+
+// 明细行顺序刻意与 9.1 / 9.2 公式的书写顺序一致，便于对着方案核对
+const BREAKDOWN_ROWS: { key: string; label: string }[] = [
+  { key: 'paid_amount', label: 'payment.refund.breakdownPaid' },
+  { key: 'order_principal', label: 'payment.refund.breakdownOrderPrincipal' },
+  { key: 'used_principal', label: 'payment.refund.breakdownUsedPrincipal' },
+  { key: 'refundable_principal', label: 'payment.refund.breakdownRefundablePrincipal' },
+  { key: 'used_usd', label: 'payment.refund.breakdownUsedUsd' },
+  { key: 'time_based_charge', label: 'payment.refund.breakdownTimeBased' },
+  { key: 'usage_based_charge', label: 'payment.refund.breakdownUsageBased' },
+  { key: 'consumed', label: 'payment.refund.breakdownConsumed' },
+  { key: 'pay_as_you_go_price_per_usd', label: 'payment.refund.breakdownUnitPrice' },
+]
+
+function policyLabel(p: string | undefined): string {
+  if (!p) return t('payment.refund.policyUnknown')
+  const key = POLICY_KEYS[p]
+  return key ? t(key) : p
+}
+
+function blockedLabel(reason: string | undefined): string {
+  if (!reason) return t('payment.refund.blockUnknown')
+  const key = BLOCK_KEYS[reason]
+  return key ? t(key) : reason
+}
+
+function entryLabel(e: RefundLedgerEntry): string {
+  const type = e.entry_type === 'bonus' ? t('payment.refund.ledgerEntryBonus') : t('payment.refund.ledgerEntryPrincipal')
+  const dir = e.direction === 'debit' ? t('payment.refund.ledgerDebit') : t('payment.refund.ledgerCredit')
+  return `${type} · ${dir}`
+}
+
+/** 9.3 记录字段：订单号 / 账户 / 购买·激活·申请时间 / 已用官方 $ / 已扣金额 / 赠送余额 / 计算方式 */
+const refundMetaRows = computed<{ label: string; value: string }[]>(() => {
+  const p = refundPreview.value
+  if (!p) return []
+  const rows: { label: string; value: string }[] = [
+    { label: t('payment.refund.account'), value: p.user_email || p.user_name || `User #${p.user_id}` },
+    {
+      label: t('payment.adminOrders.fieldOrderType'),
+      value:
+        p.order_type === 'subscription'
+          ? t('payment.adminOrders.orderTypeSubscription')
+          : t('payment.adminOrders.orderTypeRecharge'),
+    },
+    { label: t('payment.refund.purchasedAt'), value: fmtDate(p.purchased_at) },
+    { label: t('payment.refund.activatedAt'), value: p.activated_at ? fmtDate(p.activated_at) : '—' },
+  ]
+  if (p.refund_requested_at) rows.push({ label: t('payment.refund.requestedAt'), value: fmtDate(p.refund_requested_at) })
+  if (p.refund_requested_by) rows.push({ label: t('payment.refund.requestedBy'), value: p.refund_requested_by })
+  if (p.refund_request_reason) rows.push({ label: t('payment.refund.requestReason'), value: p.refund_request_reason })
+  rows.push(
+    { label: t('payment.refund.usedUsd'), value: fmtUSD(p.used_usd) },
+    { label: t('payment.refund.charged'), value: fmtMoney(p.charged_pay_amount, p.currency) },
+    { label: t('payment.refund.bonusBalance'), value: fmtMoney(p.bonus_balance, p.currency) },
+    { label: t('payment.refund.policy'), value: policyLabel(p.policy) },
+  )
+  return rows
+})
+
+const refundBreakdownRows = computed(() => {
+  const map = refundPreview.value?.calculation_breakdown
+  if (!map) return [] as { label: string; value: number }[]
+  return BREAKDOWN_ROWS.filter((row) => typeof map[row.key] === 'number').map((row) => ({
+    label: t(row.label),
+    value: map[row.key],
+  }))
+})
+
+const refundLedgerRows = computed(() => {
+  const l = refundPreview.value?.ledger
+  if (!l) return [] as { label: string; value: number }[]
+  const rows: { label: string; value: number }[] = [
+    { label: t('payment.refund.ledgerPrincipalCredit'), value: l.principal_credit },
+    { label: t('payment.refund.ledgerPrincipalDebit'), value: l.principal_debit },
+    { label: t('payment.refund.ledgerPrincipalLeft'), value: l.principal_left },
+  ]
+  if (l.bonus_credit > 0) rows.push({ label: t('payment.refund.ledgerBonusCredit'), value: l.bonus_credit })
+  if (l.bonus_left > 0) rows.push({ label: t('payment.refund.ledgerBonusLeft'), value: l.bonus_left })
+  return rows
+})
+
+const canSubmitRefund = computed(() => !!refundPreview.value?.requestable && !refundSubmitting.value)
 </script>
 
 <template>
@@ -281,12 +452,83 @@ async function submitRefund(): Promise<void> {
     </section>
 
     <div v-if="refundModalOpen" class="modal-mask" @click.self="closeRefund">
-      <div class="modal-card">
+      <div class="modal-card wide">
         <header><h3>{{ t('payment.adminOrders.refundPrompt') }}</h3></header>
-        <p class="modal-sub">订单 {{ refundTarget?.out_trade_no }}</p>
+        <p class="modal-sub">{{ t('payment.refund.orderNo') }} {{ refundTarget?.out_trade_no }}</p>
+
+        <div v-if="refundPreviewLoading" class="empty-state">{{ t('payment.refund.loadingPreview') }}</div>
+        <p v-else-if="refundPreviewError" class="error-banner">{{ refundPreviewError }}</p>
+
+        <template v-else-if="refundPreview">
+          <h4 class="detail-heading">{{ t('payment.refund.previewTitle') }}</h4>
+          <dl class="detail-grid">
+            <div v-for="row in refundMetaRows" :key="row.label">
+              <dt>{{ row.label }}</dt>
+              <dd>{{ row.value }}</dd>
+            </div>
+          </dl>
+
+          <div class="refund-result">
+            <span class="refund-eyebrow">{{ t('payment.refund.formulaResult') }}</span>
+            <strong>{{ fmtMoney(refundPreview.refundable_pay_amount, refundPreview.currency) }}</strong>
+            <small v-if="refundPreview.balance_cap_applied">{{ t('payment.refund.balanceCapApplied') }}</small>
+            <small v-else>{{ t('payment.refund.formulaPay') }}</small>
+          </div>
+
+          <p v-if="!refundPreview.requestable" class="refund-blocked">
+            {{ blockedLabel(refundPreview.blocked_reason) }}
+          </p>
+
+          <button
+            v-if="refundBreakdownRows.length"
+            type="button"
+            class="refund-toggle"
+            @click="refundShowBreakdown = !refundShowBreakdown"
+          >
+            {{ refundShowBreakdown ? t('payment.refund.collapse') : t('payment.refund.expand') }}
+          </button>
+
+          <dl v-if="refundShowBreakdown && refundBreakdownRows.length" class="refund-breakdown">
+            <div v-for="row in refundBreakdownRows" :key="row.label">
+              <dt>{{ row.label }}</dt>
+              <dd class="mono">{{ fmtMoney(row.value, refundPreview.currency) }}</dd>
+            </div>
+          </dl>
+
+          <section v-if="refundPreview.ledger" class="refund-ledger">
+            <h4 class="detail-heading">{{ t('payment.refund.ledgerTitle') }}</h4>
+            <dl class="refund-breakdown">
+              <div v-for="row in refundLedgerRows" :key="row.label">
+                <dt>{{ row.label }}</dt>
+                <dd class="mono">{{ fmtMoney(row.value, refundPreview.currency) }}</dd>
+              </div>
+            </dl>
+            <p v-if="refundPreview.ledger.frozen" class="refund-note">{{ t('payment.refund.ledgerFrozen') }}</p>
+            <small class="refund-note">{{ t('payment.refund.bonusKeepHint') }}</small>
+          </section>
+
+          <section v-if="refundPreview.ledger_entries?.length" class="refund-ledger">
+            <h4 class="detail-heading">{{ t('payment.refund.ledgerEntriesTitle') }}</h4>
+            <ul class="refund-entries">
+              <li v-for="e in refundPreview.ledger_entries" :key="e.id">
+                <span>{{ entryLabel(e) }}</span>
+                <span class="mono">{{ fmtMoney(e.amount, refundPreview.currency) }}</span>
+                <span class="refund-entry-time">{{ fmtDate(e.created_at) }}</span>
+              </li>
+            </ul>
+          </section>
+        </template>
+
         <label class="field">
           <span>{{ t('payment.adminOrders.refundAmount') }}</span>
-          <input v-model.number="refundAmount" type="number" step="0.01" min="0" :max="refundTarget?.pay_amount || 0" />
+          <input
+            v-model.number="refundAmount"
+            type="number"
+            step="0.01"
+            min="0"
+            :max="refundPreview?.refundable_pay_amount ?? refundTarget?.pay_amount ?? 0"
+            @input="refundAmountTouched = true"
+          />
         </label>
         <label class="field">
           <span>{{ t('payment.adminOrders.refundReason') }}</span>
@@ -296,9 +538,10 @@ async function submitRefund(): Promise<void> {
           <input v-model="refundForce" type="checkbox" />
           <span>{{ t('payment.adminOrders.refundForce') }}</span>
         </label>
+        <p class="refund-hint">{{ t('payment.adminOrders.refundForceHint') }}</p>
         <footer class="modal-actions">
           <button type="button" class="btn ghost" :disabled="refundSubmitting" @click="closeRefund">{{ t('payment.cancel') }}</button>
-          <button type="button" class="btn primary" :disabled="refundSubmitting" @click="submitRefund">
+          <button type="button" class="btn primary" :disabled="refundSubmitting || !canSubmitRefund" @click="submitRefund">
             {{ refundSubmitting ? t('payment.submitting') : t('payment.adminOrders.actionRefund') }}
           </button>
         </footer>
@@ -422,5 +665,23 @@ async function submitRefund(): Promise<void> {
 .audit-head span { color: #6c727b; font-size: .72rem; }
 .audit-meta { margin-top: 2px; color: #858d97; font-size: .74rem; }
 .audit-detail { margin: 6px 0 0; padding: 8px 10px; border-radius: 6px; background: #0d0f12; border: 1px solid #1d2128; color: #9aa4ae; font: 400 .72rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; word-break: break-all; }
+.refund-eyebrow { display: inline-flex; align-items: center; color: #6ec0f5; font: 700 .67rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .13em; text-transform: uppercase; }
+.refund-result { display: flex; flex-direction: column; gap: 4px; margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: rgba(110, 192, 245, .1); border: 1px solid rgba(110, 192, 245, .3); }
+.refund-result strong { color: #e6f3fd; font-size: 1.35rem; font-weight: 660; font-variant-numeric: tabular-nums; }
+.refund-result small { color: #858d97; font-size: .74rem; }
+.refund-blocked { margin: 12px 0 0; padding: 10px 14px; border-radius: 8px; background: rgba(234, 179, 8, .12); border: 1px solid rgba(234, 179, 8, .35); color: #fcd34d; font-size: .82rem; }
+.refund-toggle { margin-top: 12px; padding: 6px 12px; border-radius: 6px; background: #16191f; border: 1px solid #2a2f37; color: #d6dbe1; font: 500 .74rem/1 ui-sans-serif, system-ui, sans-serif; cursor: pointer; }
+.refund-toggle:hover { border-color: #3d4754; }
+.refund-breakdown { margin: 10px 0 0; border: 1px solid #1d2128; border-radius: 10px; overflow: hidden; }
+.refund-breakdown > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 14px; border-bottom: 1px solid #161a20; }
+.refund-breakdown > div:last-child { border-bottom: 0; }
+.refund-breakdown dt { color: #858d97; font-size: .76rem; }
+.refund-breakdown dd { margin: 0; color: #d6dbe1; font-size: .78rem; }
+.refund-ledger { margin-top: 16px; }
+.refund-note { display: block; margin: 8px 0 0; color: #6c727b; font-size: .74rem; }
+.refund-hint { margin: -8px 0 16px; color: #6c727b; font-size: .74rem; }
+.refund-entries { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.refund-entries li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 7px 12px; border-radius: 7px; background: #0f1217; border: 1px solid #1d2128; color: #b8bfc7; font-size: .76rem; }
+.refund-entry-time { color: #6c727b; font-size: .72rem; }
 @media (max-width: 900px) { .orders-heading { flex-direction: column; align-items: flex-start; } .orders-search { width: 100%; } .orders-table th, .orders-table td { padding: 8px; font-size: .72rem; } .action-cell { white-space: normal; } .action { margin-bottom: 4px; } }
 </style>

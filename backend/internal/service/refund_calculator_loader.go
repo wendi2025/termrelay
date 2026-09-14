@@ -101,20 +101,16 @@ func (l *entRefundLoader) LoadBalanceOrderUsedPrincipal(ctx context.Context, ord
 	entries, err := l.client.UserBalanceLedger.Query().
 		Where(userbalanceledger.OrderIDEQ(order.ID)).
 		Where(userbalanceledger.EntryTypeEQ(ledgerEntryTypePrincipal)).
+		Where(userbalanceledger.DirectionEQ(ledgerDirectionDebit)).
 		All(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("query ledger: %w", err)
 	}
-	var credits, debits float64
+	// debit 分录的 amount 即本次扣费按 FIFO 归属到该订单的消耗金额，直接求和即为"已扣本金"。
+	var used float64
 	for _, e := range entries {
-		switch {
-		case e.Direction == ledgerDirectionCredit:
-			credits += e.Amount
-		case e.Direction == ledgerDirectionDebit:
-			debits += e.Amount
-		}
+		used += e.Amount
 	}
-	used := credits - debits
 	if used < 0 {
 		used = 0
 	}
@@ -150,7 +146,10 @@ func (l *entRefundLoader) IsAlreadyRefunded(ctx context.Context, order *dbent.Pa
 	if order.RefundAt != nil && !order.RefundAt.IsZero() {
 		return true, nil
 	}
-	if order.Status == "refunded" || order.Status == "refunded_completed" {
+	// 订单状态在库里是 UPPERCASE 枚举（payment.OrderStatus*），
+	// 这里必须用常量比较：曾经写成小写字面量导致该分支永远不生效。
+	switch order.Status {
+	case OrderStatusRefunded, OrderStatusPartiallyRefunded:
 		return true, nil
 	}
 	return false, nil
@@ -161,11 +160,11 @@ func (l *entRefundLoader) IsForceRefundEligible(ctx context.Context, order *dben
 	if order == nil {
 		return false, ErrNilOrder
 	}
-	ok := []string{"completed", "refund_requested", "refund_pending", "refund_failed"}
-	for _, s := range ok {
-		if order.Status == s {
-			return true, nil
-		}
+	// 同上：必须用 UPPERCASE 状态常量。小写字面量会让 force_refund
+	// 恒返回 not_eligible，使"平台故障/重复扣款"补偿路径彻底不可用。
+	switch order.Status {
+	case OrderStatusCompleted, OrderStatusRefundRequested, OrderStatusRefundPending, OrderStatusRefundFailed:
+		return true, nil
 	}
 	return false, nil
 }

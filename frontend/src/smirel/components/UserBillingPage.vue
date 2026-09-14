@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSession } from '../core/session'
-import { paymentApi, type CheckoutInfoResponse, type MethodLimits, type PaymentType, type CreateOrderResponse } from '../api/payment'
+import { paymentApi, type CheckoutInfoResponse, type LedgerBalanceBreakdown, type MethodLimits, type PaymentType, type RefundLedgerEntry, type CreateOrderResponse } from '../api/payment'
 import { usePaymentCheckout } from '../composables/usePaymentCheckout'
 import { getErrorMessage } from '../core/api'
 import PaymentMethodsPicker from './payment/PaymentMethodsPicker.vue'
@@ -84,9 +84,16 @@ async function loadInfo() {
   }
 }
 
-onMounted(loadInfo)
+async function loadAll() {
+  await Promise.all([loadInfo(), loadLedger()])
+}
 
-watch(() => isAuthenticated.value, loadInfo)
+onMounted(loadAll)
+
+watch(() => isAuthenticated.value, loadAll)
+
+// 充值成功后 props.balance 变化，分账构成要跟着刷新
+watch(() => props.balance, loadLedger)
 
 function chooseAmount(v: number) {
   selectedAmount.value = v
@@ -171,6 +178,73 @@ function onPlanCardClick(planId: number) {
     }
   }
 }
+// ---- 余额分账（方案 9.2：充值本金 / 赠送余额） ----
+// 只读展示、不参与扣费；扣费顺序仍由后端账本决定（先本金后赠送）。
+const ledgerBreakdown = ref<LedgerBalanceBreakdown | null>(null)
+const ledgerEntries = ref<RefundLedgerEntry[]>([])
+const ledgerLoading = ref(false)
+const ledgerError = ref('')
+const ledgerShowEntries = ref(false)
+
+async function loadLedger() {
+  if (!isAuthenticated.value) {
+    ledgerBreakdown.value = null
+    ledgerEntries.value = []
+    return
+  }
+  ledgerLoading.value = true
+  ledgerError.value = ''
+  try {
+    const r = await paymentApi.getLedger(50)
+    ledgerBreakdown.value = r?.breakdown || null
+    ledgerEntries.value = r?.entries || []
+  } catch (e) {
+    ledgerError.value = getErrorMessage(e)
+    ledgerBreakdown.value = null
+    ledgerEntries.value = []
+  } finally {
+    ledgerLoading.value = false
+  }
+}
+
+function fmtMoney(v: number | null | undefined, currency = 'CNY'): string {
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : 0
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(n)
+  } catch {
+    return `${currency} ${n.toFixed(2)}`
+  }
+}
+
+function fmtDate(s: string | undefined): string {
+  if (!s) return '—'
+  const d = new Date(s)
+  return Number.isNaN(d.getTime()) ? s : d.toLocaleString()
+}
+
+function entryLabel(e: RefundLedgerEntry): string {
+  const type = e.entry_type === 'bonus' ? t('payment.refund.ledgerEntryBonus') : t('payment.refund.ledgerEntryPrincipal')
+  const dir = e.direction === 'debit' ? t('payment.refund.ledgerDebit') : t('payment.refund.ledgerCredit')
+  return `${type} · ${dir}`
+}
+
+function ledgerEntryAmount(e: RefundLedgerEntry): string {
+  return fmtMoney(e.direction === 'debit' ? -e.amount : e.amount)
+}
+
+const frozenTotal = computed(() => {
+  const b = ledgerBreakdown.value
+  if (!b) return 0
+  return (b.frozen_principal_left || 0) + (b.frozen_bonus_left || 0)
+})
+
+// 账本上线前的历史余额没有分录，缺口显式说明，避免用户以为余额算错了
+const ledgerGapHint = computed(() => {
+  const gap = ledgerBreakdown.value?.ledger_gap || 0
+  if (gap <= 0.005) return ''
+  return t('payment.ledger.gapHint', { value: fmtMoney(gap) })
+})
+
 </script>
 
 <template>
@@ -198,6 +272,45 @@ function onPlanCardClick(planId: number) {
           {{ t('payment.ordersTitle') }} →
         </RouterLink>
       </section>
+      <section v-if="ledgerBreakdown" class="ledger-card">
+        <header>
+          <span class="eyebrow">{{ t('payment.ledger.title') }}</span>
+          <button
+            v-if="ledgerEntries.length"
+            type="button"
+            class="ledger-toggle"
+            @click="ledgerShowEntries = !ledgerShowEntries"
+          >
+            {{ t('payment.ledger.entriesTitle') }} ({{ ledgerEntries.length }})
+            <span class="ledger-toggle-mark">{{ ledgerShowEntries ? '−' : '+' }}</span>
+          </button>
+        </header>
+        <dl class="ledger-grid">
+          <div>
+            <dt>{{ t('payment.ledger.principal') }}</dt>
+            <dd class="mono">{{ fmtMoney(ledgerBreakdown.active_principal_left) }}</dd>
+          </div>
+          <div>
+            <dt>{{ t('payment.ledger.bonus') }}</dt>
+            <dd class="mono">{{ fmtMoney(ledgerBreakdown.active_bonus_left) }}</dd>
+          </div>
+          <div v-if="frozenTotal > 0">
+            <dt>{{ t('payment.ledger.frozen') }}</dt>
+            <dd class="mono">{{ fmtMoney(frozenTotal) }}</dd>
+          </div>
+        </dl>
+        <p v-if="frozenTotal > 0" class="ledger-note">{{ t('payment.ledger.frozenHint') }}</p>
+        <p v-if="ledgerGapHint" class="ledger-note">{{ ledgerGapHint }}</p>
+        <ul v-if="ledgerShowEntries && ledgerEntries.length" class="ledger-entries">
+          <li v-for="e in ledgerEntries" :key="e.id">
+            <span>{{ entryLabel(e) }}</span>
+            <span class="mono">{{ ledgerEntryAmount(e) }}</span>
+            <span class="ledger-entry-time">{{ fmtDate(e.created_at) }}</span>
+          </li>
+        </ul>
+        <p v-else-if="ledgerShowEntries" class="ledger-note">{{ t('payment.ledger.entriesEmpty') }}</p>
+      </section>
+      <p v-else-if="ledgerError" class="ledger-note ledger-error">{{ t('payment.ledger.loadFailed') }}</p>
 
       <section class="amount-card">
         <span class="eyebrow">{{ t('payment.chooseAmount') }}</span>
@@ -527,5 +640,92 @@ function onPlanCardClick(planId: number) {
 }
 .plan-card .primary {
   margin-top: auto;
+}
+.mono {
+  font-family: ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.ledger-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(18, 22, 28, 0.88), rgba(12, 16, 22, 0.94));
+  padding: 16px 22px;
+}
+.ledger-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ledger-card .eyebrow {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+.ledger-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px 18px;
+  margin: 12px 0 0;
+}
+.ledger-grid dt {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+.ledger-grid dd {
+  margin: 3px 0 0;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.92);
+  font-variant-numeric: tabular-nums;
+}
+.ledger-note {
+  margin: 10px 0 0;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+.ledger-error {
+  color: #f48b8b;
+}
+.ledger-toggle {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.72);
+  font-family: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.ledger-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.ledger-toggle-mark {
+  margin-left: 6px;
+  color: #79c4f5;
+}
+.ledger-entries {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ledger-entries li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+.ledger-entry-time {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.4);
 }
 </style>

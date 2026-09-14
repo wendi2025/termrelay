@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useSession } from '../core/session'
-import { paymentApi, type PaymentOrder, type OrderStatus } from '../api/payment'
+import { paymentApi, type PaymentOrder, type OrderStatus, type RefundPreview, type RefundLedgerEntry } from '../api/payment'
 import { getErrorMessage } from '../core/api'
 import PaymentStatusBadge from './payment/PaymentStatusBadge.vue'
 
@@ -65,22 +65,119 @@ async function cancelOrder(o: PaymentOrder) {
   }
 }
 
+// ---- 退款预览（方案 9.1 / 9.2 / 9.3） ----
 const refundingOrder = ref<PaymentOrder | null>(null)
 const refundReason = ref('')
 const refundSubmitting = ref(false)
+const refundPreview = ref<RefundPreview | null>(null)
+const refundPreviewLoading = ref(false)
+const refundPreviewError = ref('')
+const refundShowBreakdown = ref(false)
 
-function openRefund(o: PaymentOrder) {
+const POLICY_KEYS: Record<string, string> = {
+  full_refund_24h_window: 'payment.refund.policyFullWindow',
+  balance_principal_minus_used: 'payment.refund.policyBalance',
+  subscription_double_settlement: 'payment.refund.policySubscription',
+  force_refund: 'payment.refund.policyForce',
+  already_refunded: 'payment.refund.policyAlreadyRefunded',
+}
+
+const BLOCK_KEYS: Record<string, string> = {
+  not_completed: 'payment.refund.blockNotCompleted',
+  unsupported_order_type: 'payment.refund.blockUnsupportedType',
+  user_refund_disabled: 'payment.refund.blockUserRefundDisabled',
+  refund_disabled: 'payment.refund.blockRefundDisabled',
+  already_refunded: 'payment.refund.blockAlreadyRefunded',
+  nothing_to_refund: 'payment.refund.blockNothingToRefund',
+  balance_not_enough: 'payment.refund.blockBalanceNotEnough',
+  refund_in_progress: 'payment.refund.blockRefundInProgress',
+  force_refund_not_eligible: 'payment.refund.blockForceNotEligible',
+}
+
+// 明细行顺序刻意与 9.1 / 9.2 公式的书写顺序一致，便于对着方案核对。
+const BREAKDOWN_ROWS: { key: string; label: string }[] = [
+  { key: 'paid_amount', label: 'payment.refund.breakdownPaid' },
+  { key: 'order_principal', label: 'payment.refund.breakdownOrderPrincipal' },
+  { key: 'used_principal', label: 'payment.refund.breakdownUsedPrincipal' },
+  { key: 'refundable_principal', label: 'payment.refund.breakdownRefundablePrincipal' },
+  { key: 'used_usd', label: 'payment.refund.breakdownUsedUsd' },
+  { key: 'time_based_charge', label: 'payment.refund.breakdownTimeBased' },
+  { key: 'usage_based_charge', label: 'payment.refund.breakdownUsageBased' },
+  { key: 'consumed', label: 'payment.refund.breakdownConsumed' },
+  { key: 'pay_as_you_go_price_per_usd', label: 'payment.refund.breakdownUnitPrice' },
+]
+
+async function openRefund(o: PaymentOrder) {
   refundingOrder.value = o
   refundReason.value = ''
+  refundPreview.value = null
+  refundPreviewError.value = ''
+  refundShowBreakdown.value = false
+  refundPreviewLoading.value = true
+  try {
+    refundPreview.value = await paymentApi.getRefundPreview(o.id)
+  } catch (e) {
+    refundPreviewError.value = getErrorMessage(e)
+  } finally {
+    refundPreviewLoading.value = false
+  }
 }
 
 function closeRefund() {
   refundingOrder.value = null
   refundReason.value = ''
+  refundPreview.value = null
+  refundPreviewError.value = ''
+  refundShowBreakdown.value = false
 }
+
+function fmtMoney(v: number | null | undefined, currency?: string): string {
+  const cur = currency || 'CNY'
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : 0
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur, maximumFractionDigits: 2 }).format(n)
+  } catch {
+    return `${cur} ${n.toFixed(2)}`
+  }
+}
+
+function fmtUSD(v: number | undefined): string {
+  const n = typeof v === 'number' && Number.isFinite(v) ? v : 0
+  return `$${n.toFixed(4)}`
+}
+
+function policyLabel(p: string | undefined): string {
+  if (!p) return t('payment.refund.policyUnknown')
+  const key = POLICY_KEYS[p]
+  return key ? t(key) : p
+}
+
+function blockedLabel(reason: string | undefined): string {
+  if (!reason) return t('payment.refund.blockUnknown')
+  const key = BLOCK_KEYS[reason]
+  return key ? t(key) : reason
+}
+
+function entryLabel(e: RefundLedgerEntry): string {
+  const type = e.entry_type === 'bonus' ? t('payment.refund.ledgerEntryBonus') : t('payment.refund.ledgerEntryPrincipal')
+  const dir = e.direction === 'debit' ? t('payment.refund.ledgerDebit') : t('payment.refund.ledgerCredit')
+  return `${type} · ${dir}`
+}
+
+const breakdownRows = computed(() => {
+  const map = refundPreview.value?.calculation_breakdown
+  if (!map) return [] as { label: string; value: number }[]
+  return BREAKDOWN_ROWS.filter((row) => typeof map[row.key] === 'number').map((row) => ({
+    label: t(row.label),
+    value: map[row.key],
+  }))
+})
+
+const canSubmitRefund = computed(() => !!refundPreview.value?.requestable && !refundSubmitting.value)
 
 async function submitRefund() {
   if (!refundingOrder.value) return
+  if (refundPreview.value && !refundPreview.value.requestable) return
   refundSubmitting.value = true
   try {
     await paymentApi.requestRefund(refundingOrder.value.id, { reason: refundReason.value })
@@ -93,7 +190,6 @@ async function submitRefund() {
     refundSubmitting.value = false
   }
 }
-
 const fmtAmount = (o: PaymentOrder) => {
   const cur = o.currency || 'CNY'
   try {
@@ -239,17 +335,126 @@ function viewOrder(o: PaymentOrder) {
     </section>
 
     <div v-if="refundingOrder" class="modal-mask" @click.self="closeRefund">
-      <div class="modal">
-        <h3>{{ t('payment.ordersActionRefundPrompt') }}</h3>
+      <div class="modal refund-modal">
+        <h3>{{ t('payment.refund.previewTitle') }}</h3>
+        <p class="modal-sub">
+          {{ t('payment.refund.orderNo') }} <code>{{ refundingOrder.out_trade_no }}</code>
+        </p>
+
+        <div v-if="refundPreviewLoading" class="loading">{{ t('payment.refund.loadingPreview') }}</div>
+        <p v-else-if="refundPreviewError" class="error">{{ refundPreviewError }}</p>
+
+        <template v-else-if="refundPreview">
+          <dl class="refund-grid">
+            <div>
+              <dt>{{ t('payment.refund.purchasedAt') }}</dt>
+              <dd>{{ fmtDate(refundPreview.purchased_at) }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('payment.refund.activatedAt') }}</dt>
+              <dd>{{ refundPreview.activated_at ? fmtDate(refundPreview.activated_at) : '—' }}</dd>
+            </div>
+            <div v-if="refundPreview.refund_requested_at">
+              <dt>{{ t('payment.refund.requestedAt') }}</dt>
+              <dd>{{ fmtDate(refundPreview.refund_requested_at) }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('payment.refund.usedUsd') }}</dt>
+              <dd class="mono">{{ fmtUSD(refundPreview.used_usd) }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('payment.refund.charged') }}</dt>
+              <dd class="mono">{{ fmtMoney(refundPreview.charged_pay_amount, refundPreview.currency) }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('payment.refund.bonusBalance') }}</dt>
+              <dd class="mono">{{ fmtMoney(refundPreview.bonus_balance, refundPreview.currency) }}</dd>
+            </div>
+            <div class="span-2">
+              <dt>{{ t('payment.refund.policy') }}</dt>
+              <dd>{{ policyLabel(refundPreview.policy) }}</dd>
+            </div>
+          </dl>
+
+          <div class="refund-result">
+            <span class="eyebrow">{{ t('payment.refund.formulaResult') }}</span>
+            <strong>{{ fmtMoney(refundPreview.refundable_pay_amount, refundPreview.currency) }}</strong>
+            <small v-if="refundPreview.balance_cap_applied">{{ t('payment.refund.balanceCapApplied') }}</small>
+            <small v-else>{{ t('payment.refund.formulaPay') }}</small>
+          </div>
+
+          <p v-if="!refundPreview.requestable" class="refund-blocked">
+            {{ blockedLabel(refundPreview.blocked_reason) }}
+          </p>
+
+          <button
+            v-if="breakdownRows.length"
+            type="button"
+            class="refund-toggle"
+            @click="refundShowBreakdown = !refundShowBreakdown"
+          >
+            {{ refundShowBreakdown ? t('payment.refund.collapse') : t('payment.refund.expand') }}
+          </button>
+
+          <dl v-if="refundShowBreakdown && breakdownRows.length" class="refund-breakdown">
+            <div v-for="row in breakdownRows" :key="row.label">
+              <dt>{{ row.label }}</dt>
+              <dd class="mono">{{ fmtMoney(row.value, refundPreview.currency) }}</dd>
+            </div>
+          </dl>
+
+          <section v-if="refundPreview.ledger" class="refund-ledger">
+            <span class="eyebrow">{{ t('payment.refund.ledgerTitle') }}</span>
+            <dl class="refund-breakdown">
+              <div>
+                <dt>{{ t('payment.refund.ledgerPrincipalCredit') }}</dt>
+                <dd class="mono">{{ fmtMoney(refundPreview.ledger.principal_credit, refundPreview.currency) }}</dd>
+              </div>
+              <div>
+                <dt>{{ t('payment.refund.ledgerPrincipalDebit') }}</dt>
+                <dd class="mono">{{ fmtMoney(refundPreview.ledger.principal_debit, refundPreview.currency) }}</dd>
+              </div>
+              <div>
+                <dt>{{ t('payment.refund.ledgerPrincipalLeft') }}</dt>
+                <dd class="mono">{{ fmtMoney(refundPreview.ledger.principal_left, refundPreview.currency) }}</dd>
+              </div>
+              <div v-if="refundPreview.ledger.bonus_credit > 0">
+                <dt>{{ t('payment.refund.ledgerBonusCredit') }}</dt>
+                <dd class="mono">{{ fmtMoney(refundPreview.ledger.bonus_credit, refundPreview.currency) }}</dd>
+              </div>
+              <div v-if="refundPreview.ledger.bonus_left > 0">
+                <dt>{{ t('payment.refund.ledgerBonusLeft') }}</dt>
+                <dd class="mono">{{ fmtMoney(refundPreview.ledger.bonus_left, refundPreview.currency) }}</dd>
+              </div>
+            </dl>
+            <p v-if="refundPreview.ledger.frozen" class="refund-note">
+              {{ t('payment.refund.ledgerFrozen') }}
+            </p>
+            <small class="refund-note">{{ t('payment.refund.bonusKeepHint') }}</small>
+          </section>
+
+          <section v-if="refundPreview.ledger_entries?.length" class="refund-ledger">
+            <span class="eyebrow">{{ t('payment.refund.ledgerEntriesTitle') }}</span>
+            <ul class="refund-entries">
+              <li v-for="e in refundPreview.ledger_entries" :key="e.id">
+                <span>{{ entryLabel(e) }}</span>
+                <span class="mono">{{ fmtMoney(e.amount, refundPreview.currency) }}</span>
+                <span class="refund-entry-time">{{ fmtDate(e.created_at) }}</span>
+              </li>
+            </ul>
+          </section>
+        </template>
+
         <textarea
           v-model="refundReason"
-          rows="4"
+          rows="3"
           :placeholder="t('payment.ordersActionRefundPrompt')"
         ></textarea>
+
         <div class="modal-actions">
           <button class="ghost" type="button" @click="closeRefund">{{ t('payment.cancel') }}</button>
-          <button class="primary" type="button" :disabled="refundSubmitting" @click="submitRefund">
-            {{ refundSubmitting ? t('payment.submitting') : t('payment.confirm') }}
+          <button class="primary" type="button" :disabled="!canSubmitRefund" @click="submitRefund">
+            {{ refundSubmitting ? t('payment.submitting') : t('payment.refund.submit') }}
           </button>
         </div>
       </div>
@@ -504,6 +709,160 @@ function viewOrder(o: PaymentOrder) {
   color: #071019;
   font-weight: 600;
 }
+.refund-modal {
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.modal-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+.modal-sub code,
+.refund-grid dd code {
+  font: 0.76rem ui-monospace, monospace;
+  color: rgba(255, 255, 255, 0.72);
+}
+.mono {
+  font-family: ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.refund-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+  margin: 0;
+}
+.refund-grid > div {
+  min-width: 0;
+}
+.refund-grid .span-2 {
+  grid-column: span 2;
+}
+.refund-grid dt,
+.refund-ledger .eyebrow {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+.refund-grid dd {
+  margin: 3px 0 0;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.9);
+  overflow-wrap: anywhere;
+}
+.refund-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(121, 196, 245, 0.28);
+  background: rgba(121, 196, 245, 0.1);
+}
+.refund-result .eyebrow {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+.refund-result strong {
+  font-size: 1.3rem;
+  font-weight: 640;
+  color: #d8ecfb;
+  font-variant-numeric: tabular-nums;
+}
+.refund-result small,
+.refund-note {
+  margin: 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+.refund-blocked {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(244, 197, 139, 0.1);
+  border: 1px solid rgba(244, 197, 139, 0.3);
+  color: #f4c58b;
+  font-size: 0.8rem;
+}
+.refund-toggle {
+  align-self: flex-start;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.72);
+  font-family: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+.refund-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.refund-breakdown {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.refund-breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.refund-breakdown > div:last-child {
+  border-bottom: 0;
+}
+.refund-breakdown dt {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+.refund-breakdown dd {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.92);
+}
+.refund-ledger {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.refund-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.refund-entries li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+.refund-entry-time {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 @media (max-width: 720px) {
   .stats {
     grid-template-columns: 1fr;
@@ -533,6 +892,12 @@ function viewOrder(o: PaymentOrder) {
   }
   .orders-table .actions {
     margin-top: 8px;
+  }
+  .refund-grid {
+    grid-template-columns: 1fr;
+  }
+  .refund-grid .span-2 {
+    grid-column: auto;
   }
 }
 </style>

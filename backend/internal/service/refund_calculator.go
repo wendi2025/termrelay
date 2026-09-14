@@ -52,7 +52,8 @@ type RefundDataLoader interface {
 	// LoadSubscriptionPeriodUsage 加载周期套餐已使用 USD 总额（仅在订阅期内）
 	LoadSubscriptionPeriodUsage(ctx context.Context, order *dbent.PaymentOrder) (float64, error)
 	// LoadBalanceOrderUsedPrincipal 加载按量充值订单的"已扣本金"金额
-	//   返回该订单本金 credit - 该订单所有 debit（按 FIFO 归属到该订单的扣费）
+	//   返回该订单已按 FIFO 归属的扣费合计（entry_type=principal 且 direction=debit），
+	//   即"已实际消耗的本金"。可退本金 = 订单本金 - 该值。
 	LoadBalanceOrderUsedPrincipal(ctx context.Context, order *dbent.PaymentOrder) (float64, error)
 	// LoadBonusGrantForOrder 加载订单关联的赠送余额总额（退款时需同步撤销）
 	LoadBonusGrantForOrder(ctx context.Context, order *dbent.PaymentOrder) (float64, error)

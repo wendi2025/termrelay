@@ -441,6 +441,50 @@ func (h *PaymentHandler) GetRefundEligibleProviders(c *gin.Context) {
 	response.Success(c, gin.H{"provider_instance_ids": ids})
 }
 
+// GetRefundPreview returns the refund quote and 9.3 audit detail for one of the
+// authenticated user's own orders. Read-only: nothing is charged or reserved.
+// GET /api/v1/payment/orders/:id/refund-preview
+func (h *PaymentHandler) GetRefundPreview(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+
+	orderID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "Invalid order ID")
+		return
+	}
+
+	preview, err := h.paymentService.PreviewRefund(c.Request.Context(), orderID, subject.UserID, false)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, preview)
+}
+
+// GetBalanceLedger returns the authenticated user's balance split (recharge
+// principal vs bonus) with recent ledger entries.
+// GET /api/v1/payment/ledger
+func (h *PaymentHandler) GetBalanceLedger(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	if err != nil || limit <= 0 {
+		limit = 50
+	}
+	breakdown, entries, err := h.paymentService.BalanceLedgerBreakdown(c.Request.Context(), subject.UserID, limit)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"breakdown": breakdown, "entries": entries})
+}
+
 // VerifyOrderRequest is the request body for verifying a payment order.
 type VerifyOrderRequest struct {
 	OutTradeNo string `json:"out_trade_no" binding:"required"`

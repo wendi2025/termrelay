@@ -293,6 +293,102 @@ export interface AdminOrderAuditLog {
   created_at: string
 }
 
+// ---- Smirel 退款/分账（套餐定价方案 9.1 / 9.2 / 9.3） ----
+
+/** 单笔订单的余额账本汇总（退款审核记录口径） */
+export interface RefundLedgerSummary {
+  order_id: number
+  principal_credit: number
+  principal_debit: number
+  principal_left: number
+  bonus_credit: number
+  bonus_debit: number
+  bonus_left: number
+  frozen: boolean
+  entry_count: number
+}
+
+/** 单条余额账本分录 */
+export interface RefundLedgerEntry {
+  id: number
+  order_id: number
+  entry_type: 'principal' | 'bonus'
+  direction: 'credit' | 'debit'
+  amount: number
+  balance_after: number
+  memo?: string
+  frozen: boolean
+  refund_batch_id?: string
+  created_at: string
+}
+
+/** 余额本金/赠送构成 */
+export interface LedgerBalanceBreakdown {
+  user_id: number
+  account_balance: number
+  principal_credit_total: number
+  principal_debit_total: number
+  principal_left: number
+  bonus_credit_total: number
+  bonus_debit_total: number
+  bonus_left: number
+  active_principal_left: number
+  active_bonus_left: number
+  frozen_principal_left: number
+  frozen_bonus_left: number
+  /** account_balance 与账本构成之差：>0 表示存在早于账本上线期的历史余额 */
+  ledger_gap: number
+  entry_count: number
+}
+
+/**
+ * 退款预览（只读报价）。
+ * `*_pay_amount` 为支付币种口径，`*_credit` 为记账单位（user.balance）口径。
+ */
+export interface RefundPreview {
+  order_id: number
+  out_trade_no: string
+  order_type: OrderType
+  order_status: OrderStatus
+  user_id: number
+  user_email?: string
+  user_name?: string
+  currency: string
+  amount: number
+  pay_amount: number
+  purchased_at: string
+  activated_at?: string | null
+  refund_requested_at?: string | null
+  refund_requested_by?: string
+  refund_request_reason?: string
+  /** 已用官方 $ 额度（周期套餐口径；按量充值为 0） */
+  used_usd: number
+  /** 已扣金额（记账单位） */
+  charged_credit: number
+  /** 已扣金额（支付币种） */
+  charged_pay_amount: number
+  /** 该订单关联的赠送余额剩余 */
+  bonus_balance: number
+  /** 命中的退款策略，例如 balance_principal_minus_used */
+  policy: string
+  /** 公式结果：可退金额（支付币种） */
+  refundable_pay_amount: number
+  /** 公式结果：可退金额（记账单位） */
+  refundable_credit: number
+  full_refund_window: boolean
+  force_refund_eligible: boolean
+  calculation_breakdown?: Record<string, number>
+  /** 按用户当前余额封顶后的上限（记账单位）；仅按量充值订单有值 */
+  balance_cap?: number | null
+  balance_cap_applied: boolean
+  ledger?: RefundLedgerSummary | null
+  ledger_entries?: RefundLedgerEntry[] | null
+  requestable: boolean
+  /** 不可退款原因枚举，前端用 payment.refundBlock.* 本地化 */
+  blocked_reason?: string
+  generated_at: string
+}
+
 export interface PaginatedResponse<T> {
   items: T[]
   total: number
@@ -439,6 +535,11 @@ export const paymentApi = {
   cancelOrder: (id: string | number) => ok<PaymentOrder>(api.post('/payment/orders/' + id + '/cancel', {})),
   requestRefund: (id: string | number, body: any) => ok<PaymentOrder>(api.post('/payment/orders/' + id + '/refund-request', body)),
   getRefundEligibleProviders: () => ok(api.get('/payment/orders/refund-eligible-providers')),
+  /** 退款预览（方案 9.1/9.2/9.3）：只读，不发起任何扣款或退款 */
+  getRefundPreview: (id: string | number) => ok<RefundPreview>(api.get('/payment/orders/' + id + '/refund-preview')),
+  /** 余额分账账本：本金/赠送构成 + 近期分录 */
+  getLedger: (limit = 50) =>
+    ok<{ breakdown: LedgerBalanceBreakdown; entries: RefundLedgerEntry[] }>(api.get('/payment/ledger', { params: { limit } })),
   resolvePublicOrder: (body: any) => ok<any>(api.post('/payment/public/orders/resolve', body)),
 }
 
@@ -452,6 +553,9 @@ export const paymentAdminApi = {
   cancelOrder: (id: string | number) => ok<PaymentOrder>(api.post('/admin/payment/orders/' + id + '/cancel', {})),
   retryFulfillment: (id: string | number) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/retry', {})),
   refund: (id: string | number, body: any) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/refund', body)),
+  /** 管理员退款预览；force=true 预览强制退款（平台故障/重复扣款）路径 */
+  getRefundPreview: (id: string | number, force = false) =>
+    ok<RefundPreview>(api.get('/admin/payment/orders/' + id + '/refund-preview', { params: force ? { force: 'true' } : {} })),
   queryRefund: (id: string | number) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/refund/query', {})),
   listPlans: () => ok(api.get('/admin/payment/plans')),
   createPlan: (body: CreatePlanRequest) => ok<AdminSubscriptionPlan>(api.post('/admin/payment/plans', body)),
