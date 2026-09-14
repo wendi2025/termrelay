@@ -386,6 +386,8 @@ export interface RefundPreview {
   requestable: boolean
   /** 不可退款原因枚举，前端用 payment.refundBlock.* 本地化 */
   blocked_reason?: string
+  /** 该报价是否按「线下退款」口径给出（不调用渠道退款接口，仅记账） */
+  offline?: boolean
   generated_at: string
 }
 
@@ -575,8 +577,17 @@ export const paymentAdminApi = {
     ok<AdminPaymentSimulationResult>(api.post('/admin/payment/orders/' + id + '/simulate-paid', {})),
   refund: (id: string | number, body: any) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/refund', body)),
   /** 管理员退款预览；force=true 预览强制退款（平台故障/重复扣款）路径 */
-  getRefundPreview: (id: string | number, force = false) =>
-    ok<RefundPreview>(api.get('/admin/payment/orders/' + id + '/refund-preview', { params: force ? { force: 'true' } : {} })),
+  /**
+   * 管理员退款预览。
+   * offline=true 按线下退款口径预览：渠道没有退款 API 或客户已在渠道外收到退款时，
+   * 渠道退款开关关闭也不再判定为不可退（该口径不调用任何上游接口）。
+   */
+  getRefundPreview: (id: string | number, force = false, offline = false) =>
+    ok<RefundPreview>(
+      api.get('/admin/payment/orders/' + id + '/refund-preview', {
+        params: { ...(force ? { force: 'true' } : {}), ...(offline ? { offline: 'true' } : {}) },
+      }),
+    ),
   queryRefund: (id: string | number) => ok<AdminPaymentOrder>(api.post('/admin/payment/orders/' + id + '/refund/query', {})),
   listPlans: () => ok(api.get('/admin/payment/plans')),
   createPlan: (body: CreatePlanRequest) => ok<AdminSubscriptionPlan>(api.post('/admin/payment/plans', body)),

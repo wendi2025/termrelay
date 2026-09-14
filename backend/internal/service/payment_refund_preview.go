@@ -71,14 +71,30 @@ type RefundPreview struct {
 	Requestable   bool   `json:"requestable"`
 	BlockedReason string `json:"blocked_reason,omitempty"`
 
+	// Offline 表示这份报价是按「线下退款」口径给出的：不调用渠道退款接口，
+	// 由管理员线下把钱退给客户后在本系统记账（渠道无退款 API 时的唯一出路）。
+	Offline bool `json:"offline"`
+
 	GeneratedAt time.Time `json:"generated_at"`
 }
 
-// PreviewRefund 生成订单退款预览。
+// PreviewRefund 生成订单退款预览（原路退款口径）。
 //
 // userID 大于 0 时按用户视角校验归属与用户退款开关；userID 为 0 表示管理员视角。
 // 不可退款的原因通过 BlockedReason 返回而不是报错，便于界面直接展示口径。
 func (s *PaymentService) PreviewRefund(ctx context.Context, orderID, userID int64, force bool) (*RefundPreview, error) {
+	return s.PreviewRefundWithOptions(ctx, orderID, userID, force, false)
+}
+
+// PreviewRefundWithOptions 生成订单退款预览，可指定线下退款口径。
+//
+// offline=true（仅管理员路径有效）时不要求渠道支持退款：渠道退款开关关闭、甚至订单
+// 没有可用的渠道实例，都不再判定为不可退——因为这条路径根本不碰渠道接口。
+func (s *PaymentService) PreviewRefundWithOptions(ctx context.Context, orderID, userID int64, force, offline bool) (*RefundPreview, error) {
+	if userID > 0 {
+		// 用户侧不存在线下退款：用户自己无法在渠道外完成退款
+		offline = false
+	}
 	if s == nil || s.entClient == nil {
 		return nil, infraerrors.InternalServer("SERVICE_UNAVAILABLE", "payment service unavailable")
 	}
@@ -92,6 +108,7 @@ func (s *PaymentService) PreviewRefund(ctx context.Context, orderID, userID int6
 
 	currency := PaymentOrderCurrency(o)
 	preview := &RefundPreview{
+		Offline:             offline,
 		OrderID:             o.ID,
 		OutTradeNo:          o.OutTradeNo,
 		OrderType:           o.OrderType,
@@ -118,7 +135,7 @@ func (s *PaymentService) PreviewRefund(ctx context.Context, orderID, userID int6
 	if err := s.fillRefundPreviewQuote(ctx, preview, o, currency, force); err != nil {
 		return nil, err
 	}
-	preview.Requestable, preview.BlockedReason = s.refundPreviewGate(ctx, o, userID, force, preview)
+	preview.Requestable, preview.BlockedReason = s.refundPreviewGate(ctx, o, userID, force, offline, preview)
 	return preview, nil
 }
 
@@ -198,8 +215,9 @@ func (s *PaymentService) applyRefundPreviewBalanceCap(ctx context.Context, previ
 	}
 }
 
-// refundPreviewGate 判定是否可发起退款，并返回不可退款原因
-func (s *PaymentService) refundPreviewGate(ctx context.Context, o *dbent.PaymentOrder, userID int64, force bool, preview *RefundPreview) (bool, string) {
+// refundPreviewGate 判定是否可发起退款，并返回不可退款原因。
+// offline=true 时跳过渠道退款开关校验（线下退款不调用渠道接口）。
+func (s *PaymentService) refundPreviewGate(ctx context.Context, o *dbent.PaymentOrder, userID int64, force, offline bool, preview *RefundPreview) (bool, string) {
 	if o == nil {
 		return false, refundBlockNotCompleted
 	}
@@ -215,7 +233,7 @@ func (s *PaymentService) refundPreviewGate(ctx context.Context, o *dbent.Payment
 	default:
 		return false, refundBlockNotCompleted
 	}
-	if !s.refundPreviewProviderAllows(ctx, o, userID) {
+	if !offline && !s.refundPreviewProviderAllows(ctx, o, userID) {
 		if userID > 0 {
 			return false, refundBlockUserRefundDisable
 		}

@@ -121,6 +121,22 @@ type OrderListParams struct {
 	Keyword     string
 }
 
+// RefundOptions 是退款准备阶段的放行口径。
+//
+// 三个开关彼此正交，组合出的三条常用路径：
+//   - 原路退款：Offline=false, Deduct=true  —— 调用渠道退款接口把钱退回客户
+//   - 强制原路退款：Offline=false, Force=true, Deduct=true —— 平台故障/重复扣款
+//   - 线下退款：Offline=true  —— 渠道没有退款接口（多数聚合支付）或客户已线下收到钱，
+//     系统只做记账：改订单状态、回扣余额/订阅、冲回共建分成，不调用任何上游接口。
+type RefundOptions struct {
+	// Force 放宽 24h / 已消耗额度限制（平台故障、重复扣款等场景）
+	Force bool
+	// Deduct 退款同时回扣该订单带来的余额本金 / 订阅天数
+	Deduct bool
+	// Offline 线下退款：跳过渠道退款接口，纯记账
+	Offline bool
+}
+
 type RefundPlan struct {
 	OrderID         int64
 	Order           *dbent.PaymentOrder
@@ -133,6 +149,8 @@ type RefundPlan struct {
 	BalanceToDeduct float64
 	SubDaysToDeduct int
 	SubscriptionID  int64
+	// Offline 为 true 表示这笔退款不调用渠道接口，只做本地记账
+	Offline bool
 }
 
 type RefundResult struct {

@@ -89,6 +89,7 @@ func (h *PaymentHandler) GetOrderDetail(c *gin.Context) {
 
 // GetRefundPreview returns the refund quote and 9.3 audit detail for an order.
 // force=true previews the force-refund path (platform fault / duplicate charge).
+// offline=true previews the offline-refund path (manual refund outside the gateway).
 // GET /api/v1/admin/payment/orders/:id/refund-preview
 func (h *PaymentHandler) GetRefundPreview(c *gin.Context) {
 	orderID, ok := parseIDParam(c, "id")
@@ -96,7 +97,8 @@ func (h *PaymentHandler) GetRefundPreview(c *gin.Context) {
 		return
 	}
 	force := c.Query("force") == "true" || c.Query("force") == "1"
-	preview, err := h.paymentService.PreviewRefund(c.Request.Context(), orderID, 0, force)
+	offline := c.Query("offline") == "true" || c.Query("offline") == "1"
+	preview, err := h.paymentService.PreviewRefundWithOptions(c.Request.Context(), orderID, 0, force, offline)
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return
@@ -263,6 +265,9 @@ type AdminProcessRefundRequest struct {
 	Reason        string  `json:"reason"`
 	Force         bool    `json:"force"`
 	DeductBalance bool    `json:"deduct_balance"`
+	// Offline 线下退款：不调用渠道退款接口，直接登记退款结果。
+	// 用于渠道没有退款 API（多数聚合支付）或客户已在渠道外收到退款的场景。
+	Offline bool `json:"offline"`
 }
 
 // ProcessRefund processes a refund for an order (admin).
@@ -279,7 +284,11 @@ func (h *PaymentHandler) ProcessRefund(c *gin.Context) {
 		return
 	}
 
-	plan, earlyResult, err := h.paymentService.PrepareRefund(c.Request.Context(), orderID, req.Amount, req.Reason, req.Force, req.DeductBalance)
+	plan, earlyResult, err := h.paymentService.PrepareRefund(c.Request.Context(), orderID, req.Amount, req.Reason, service.RefundOptions{
+		Force:   req.Force,
+		Deduct:  req.DeductBalance,
+		Offline: req.Offline,
+	})
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return

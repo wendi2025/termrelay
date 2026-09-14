@@ -218,7 +218,8 @@ func (s *PaymentService) validateRefundRequest(ctx context.Context, oid, uid int
 	return o, nil
 }
 
-func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float64, reason string, force, deduct bool) (*RefundPlan, *RefundResult, error) {
+func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float64, reason string, opts RefundOptions) (*RefundPlan, *RefundResult, error) {
+	force, deduct := opts.Force, opts.Deduct
 	o, err := s.entClient.PaymentOrder.Get(ctx, oid)
 	if err != nil {
 		return nil, nil, infraerrors.NotFound("NOT_FOUND", "order not found")
@@ -227,18 +228,23 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 	if !psSliceContains(ok, o.Status) {
 		return nil, nil, infraerrors.BadRequest("INVALID_STATUS", "order status does not allow refund")
 	}
-	// Check provider instance allows admin refund
+	// 渠道闸门：
+	//   - 线上原路退款必须落在明确的历史渠道实例上，且该渠道打开了退款开关；
+	//   - 线下退款（opts.Offline）不调用任何渠道接口，因此不要求渠道支持退款，
+	//     否则「渠道没有退款 API」会连记账都做不了，退款永远退不掉。
 	inst, instErr := s.getRefundOrderProviderInstance(ctx, o)
 	if instErr != nil {
 		slog.Warn("refund: provider instance lookup failed", "orderID", oid, "error", instErr)
 		return nil, nil, infraerrors.InternalServer("PROVIDER_LOOKUP_FAILED", "failed to look up payment provider for this order")
 	}
-	if inst == nil {
-		// Legacy order without provider_instance_id — block refund
-		return nil, nil, infraerrors.Forbidden("REFUND_DISABLED", "refund is not available for this order")
-	}
-	if !inst.RefundEnabled {
-		return nil, nil, infraerrors.Forbidden("REFUND_DISABLED", "refund is not enabled for this provider")
+	if !opts.Offline {
+		if inst == nil {
+			// Legacy order without provider_instance_id — block refund
+			return nil, nil, infraerrors.Forbidden("REFUND_DISABLED", "refund is not available for this order")
+		}
+		if !inst.RefundEnabled {
+			return nil, nil, infraerrors.Forbidden("REFUND_DISABLED", "refund is not enabled for this provider")
+		}
 	}
 	if math.IsNaN(amt) || math.IsInf(amt, 0) {
 		return nil, nil, infraerrors.BadRequest("INVALID_AMOUNT", "invalid refund amount")
@@ -294,7 +300,7 @@ func (s *PaymentService) PrepareRefund(ctx context.Context, oid int64, amt float
 	if rr == "" {
 		rr = fmt.Sprintf("refund order:%d", o.ID)
 	}
-	p := &RefundPlan{OrderID: oid, Order: o, RefundAmount: amt, GatewayAmount: ga, Reason: rr, Force: force, DeductBalance: deduct, DeductionType: payment.DeductionTypeNone}
+	p := &RefundPlan{OrderID: oid, Order: o, RefundAmount: amt, GatewayAmount: ga, Reason: rr, Force: force, DeductBalance: deduct, DeductionType: payment.DeductionTypeNone, Offline: opts.Offline}
 	if deduct {
 		if er := s.prepDeduct(ctx, o, p, force); er != nil {
 			return nil, er, nil
@@ -406,6 +412,17 @@ func (s *PaymentService) ExecuteRefund(ctx context.Context, p *RefundPlan) (*Ref
 }
 
 func (s *PaymentService) gwRefund(ctx context.Context, p *RefundPlan) (*payment.RefundResponse, error) {
+	// 线下退款：钱已由管理员在渠道外退给客户，这里只登记结果。
+	// 必须留审计记录，否则「没有渠道流水」和「渠道流水被跳过」无法区分。
+	if p.Offline {
+		s.writeAuditLog(ctx, p.Order.ID, "REFUND_OFFLINE", "admin", map[string]any{
+			"detail":        "provider refund call skipped (offline refund)",
+			"refundAmount":  p.RefundAmount,
+			"gatewayAmount": p.GatewayAmount,
+			"reason":        p.Reason,
+		})
+		return &payment.RefundResponse{Status: payment.ProviderStatusSuccess}, nil
+	}
 	if p.Order.PaymentTradeNo == "" {
 		s.writeAuditLog(ctx, p.Order.ID, "REFUND_NO_TRADE_NO", "admin", map[string]any{"detail": "skipped"})
 		return &payment.RefundResponse{Status: payment.ProviderStatusSuccess}, nil
@@ -643,7 +660,7 @@ func (s *PaymentService) markRefundOk(ctx context.Context, p *RefundPlan) (*Refu
 	if err != nil {
 		return nil, fmt.Errorf("mark refund: %w", err)
 	}
-	detail := map[string]any{"refundAmount": p.RefundAmount, "reason": p.Reason, "balanceDeducted": p.BalanceToDeduct, "force": p.Force}
+	detail := map[string]any{"refundAmount": p.RefundAmount, "reason": p.Reason, "balanceDeducted": p.BalanceToDeduct, "force": p.Force, "offline": p.Offline}
 	s.settleRefundLedger(ctx, p, detail)
 	s.writeAuditLog(ctx, p.OrderID, "REFUND_SUCCESS", "admin", detail)
 	return &RefundResult{Success: true, BalanceDeducted: p.BalanceToDeduct, SubDaysDeducted: p.SubDaysToDeduct}, nil

@@ -59,6 +59,9 @@ const refundTarget = ref<AdminPaymentOrder | null>(null)
 const refundAmount = ref<number | null>(null)
 const refundReason = ref('')
 const refundForce = ref(false)
+// 线下退款：渠道没有退款接口（多数聚合支付），或客户已在渠道外收到退款时使用。
+// 勾选后预览与提交都走 offline 口径，后端不会调用任何上游接口。
+const refundOffline = ref(false)
 const refundSubmitting = ref(false)
 const refundPreview = ref<RefundPreview | null>(null)
 const refundPreviewLoading = ref(false)
@@ -201,11 +204,12 @@ async function loadRefundPreview(): Promise<void> {
   const target = refundTarget.value
   if (!target) return
   const force = refundForce.value
+  const offline = refundOffline.value
   const seq = ++refundPreviewSeq
   refundPreviewLoading.value = true
   refundPreviewError.value = ''
   try {
-    const preview = await paymentAdminApi.getRefundPreview(target.id, force)
+    const preview = await paymentAdminApi.getRefundPreview(target.id, force, offline)
     if (seq !== refundPreviewSeq) return
     refundPreview.value = preview
     // 未手工改过金额时始终跟随公式结果，避免展示一个实际退不出去的报价
@@ -223,6 +227,7 @@ function openRefund(o: AdminPaymentOrder): void {
   // 先复位 modal 与 force，避免上一次的 force 余值触发多余的预览请求
   refundModalOpen.value = false
   refundForce.value = false
+  refundOffline.value = false
   refundTarget.value = o
   refundAmount.value = null
   refundAmountTouched.value = false
@@ -242,6 +247,7 @@ function closeRefund(): void {
   refundAmountTouched.value = false
   refundReason.value = ''
   refundForce.value = false
+  refundOffline.value = false
   refundPreview.value = null
   refundPreviewError.value = ''
   refundPreviewLoading.value = false
@@ -250,6 +256,11 @@ function closeRefund(): void {
 
 // 强制退款会放宽 24h / 消耗限制，可退口径随之变化，必须重新取预览而不是复用旧报价
 watch(refundForce, () => {
+  if (refundModalOpen.value && refundTarget.value) void loadRefundPreview()
+})
+
+// 线下退款口径下的可退金额与渠道开关无关，切换后必须重新取预览
+watch(refundOffline, () => {
   if (refundModalOpen.value && refundTarget.value) void loadRefundPreview()
 })
 
@@ -262,6 +273,7 @@ async function submitRefund(): Promise<void> {
       amount: refundAmount.value,
       reason: refundReason.value,
       force: refundForce.value,
+      offline: refundOffline.value,
     })
     closeRefund()
     await load()
@@ -508,6 +520,9 @@ const canSubmitRefund = computed(() => !!refundPreview.value?.requestable && !re
           <p v-if="!refundPreview.requestable" class="refund-blocked">
             {{ blockedLabel(refundPreview.blocked_reason) }}
           </p>
+          <p v-if="refundPreview.blocked_reason === 'refund_disabled'" class="refund-hint">
+            {{ t('payment.adminOrders.refundOfflineAvailable') }}
+          </p>
 
           <button
             v-if="refundBreakdownRows.length"
@@ -569,6 +584,11 @@ const canSubmitRefund = computed(() => !!refundPreview.value?.requestable && !re
           <span>{{ t('payment.adminOrders.refundForce') }}</span>
         </label>
         <p class="refund-hint">{{ t('payment.adminOrders.refundForceHint') }}</p>
+        <label class="checkbox">
+          <input v-model="refundOffline" type="checkbox" />
+          <span>{{ t('payment.adminOrders.refundOffline') }}</span>
+        </label>
+        <p class="refund-hint">{{ t('payment.adminOrders.refundOfflineHint') }}</p>
         <footer class="modal-actions">
           <button type="button" class="btn ghost" :disabled="refundSubmitting" @click="closeRefund">{{ t('payment.cancel') }}</button>
           <button type="button" class="btn primary" :disabled="refundSubmitting || !canSubmitRefund" @click="submitRefund">

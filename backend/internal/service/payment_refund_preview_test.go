@@ -301,6 +301,36 @@ func TestPreviewRefund_BlocksWhenUserRefundDisabled(t *testing.T) {
 	require.Equal(t, refundBlockRefundDisabled, disabled.BlockedReason)
 }
 
+// 线下退款口径：渠道退款开关关闭时，线上口径被拦，线下口径放行（管理员专用）。
+func TestPreviewRefund_OfflineBypassesProviderRefundSwitch(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	f := newRefundPreviewFixture(t, client, "preview-offline@example.com", 100, 100, 100)
+	svc := newRefundPreviewTestService(client, &userRepoStub{user: f.User})
+
+	_, err := client.PaymentProviderInstance.UpdateOneID(f.Inst.ID).SetRefundEnabled(false).SetAllowUserRefund(false).Save(ctx)
+	require.NoError(t, err)
+
+	online, err := svc.PreviewRefundWithOptions(ctx, f.Order.ID, 0, false, false)
+	require.NoError(t, err)
+	require.False(t, online.Requestable)
+	require.Equal(t, refundBlockRefundDisabled, online.BlockedReason)
+	require.False(t, online.Offline)
+
+	offline, err := svc.PreviewRefundWithOptions(ctx, f.Order.ID, 0, false, true)
+	require.NoError(t, err)
+	require.True(t, offline.Offline)
+	require.True(t, offline.Requestable)
+	require.Empty(t, offline.BlockedReason)
+
+	// 用户侧不存在线下退款口径：传 offline=true 也会被降级回线上判定
+	userView, err := svc.PreviewRefundWithOptions(ctx, f.Order.ID, f.Order.UserID, false, true)
+	require.NoError(t, err)
+	require.False(t, userView.Offline)
+	require.False(t, userView.Requestable)
+	require.Equal(t, refundBlockUserRefundDisable, userView.BlockedReason)
+}
+
 func TestPreviewRefund_BlocksWhenRefundInProgress(t *testing.T) {
 	ctx := context.Background()
 	client := newPaymentConfigServiceTestClient(t)
