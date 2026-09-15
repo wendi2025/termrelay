@@ -18,26 +18,67 @@ var (
 
 // CreateUsageLogRequest 创建使用日志请求
 type CreateUsageLogRequest struct {
-	UserID                int64   `json:"user_id"`
-	APIKeyID              int64   `json:"api_key_id"`
-	AccountID             int64   `json:"account_id"`
-	RequestID             string  `json:"request_id"`
-	Model                 string  `json:"model"`
-	InputTokens           int     `json:"input_tokens"`
-	OutputTokens          int     `json:"output_tokens"`
-	CacheCreationTokens   int     `json:"cache_creation_tokens"`
-	CacheReadTokens       int     `json:"cache_read_tokens"`
-	CacheCreation5mTokens int     `json:"cache_creation_5m_tokens"`
-	CacheCreation1hTokens int     `json:"cache_creation_1h_tokens"`
-	InputCost             float64 `json:"input_cost"`
-	OutputCost            float64 `json:"output_cost"`
-	CacheCreationCost     float64 `json:"cache_creation_cost"`
-	CacheReadCost         float64 `json:"cache_read_cost"`
-	TotalCost             float64 `json:"total_cost"`
-	ActualCost            float64 `json:"actual_cost"`
-	RateMultiplier        float64 `json:"rate_multiplier"`
-	Stream                bool    `json:"stream"`
-	DurationMs            *int    `json:"duration_ms"`
+	UserID                    int64          `json:"user_id"`
+	APIKeyID                  int64          `json:"api_key_id"`
+	AccountID                 int64          `json:"account_id"`
+	RequestID                 string         `json:"request_id"`
+	Model                     string         `json:"model"`
+	RequestedModel            string         `json:"requested_model"`
+	UpstreamModel             *string        `json:"upstream_model"`
+	ChannelID                 *int64         `json:"channel_id"`
+	ModelMappingChain         *string        `json:"model_mapping_chain"`
+	BillingTier               *string        `json:"billing_tier"`
+	BillingMode               *string        `json:"billing_mode"`
+	ServiceTier               *string        `json:"service_tier"`
+	ReasoningEffort           *string        `json:"reasoning_effort"`
+	InboundEndpoint           *string        `json:"inbound_endpoint"`
+	UpstreamEndpoint          *string        `json:"upstream_endpoint"`
+	GroupID                   *int64         `json:"group_id"`
+	SubscriptionID            *int64         `json:"subscription_id"`
+	InputTokens               int            `json:"input_tokens"`
+	OutputTokens              int            `json:"output_tokens"`
+	CacheCreationTokens       int            `json:"cache_creation_tokens"`
+	CacheReadTokens           int            `json:"cache_read_tokens"`
+	CacheCreation5mTokens     int            `json:"cache_creation_5m_tokens"`
+	CacheCreation1hTokens     int            `json:"cache_creation_1h_tokens"`
+	ImageInputTokens          int            `json:"image_input_tokens"`
+	ImageInputCost            float64        `json:"image_input_cost"`
+	ImageOutputTokens         int            `json:"image_output_tokens"`
+	ImageOutputCost           float64        `json:"image_output_cost"`
+	InputCost                 float64        `json:"input_cost"`
+	OutputCost                float64        `json:"output_cost"`
+	CacheCreationCost         float64        `json:"cache_creation_cost"`
+	CacheReadCost             float64        `json:"cache_read_cost"`
+	TotalCost                 float64        `json:"total_cost"`
+	ActualCost                float64        `json:"actual_cost"`
+	RateMultiplier            float64        `json:"rate_multiplier"`
+	LongContextBillingApplied bool           `json:"long_context_billing_applied"`
+	AccountRateMultiplier     *float64       `json:"account_rate_multiplier"`
+	AccountStatsCost          *float64       `json:"account_stats_cost"`
+	BillingType               int8           `json:"billing_type"`
+	RequestType               RequestType    `json:"request_type"`
+	Stream                    bool           `json:"stream"`
+	OpenAIWSMode              bool           `json:"openai_ws_mode"`
+	DurationMs                *int           `json:"duration_ms"`
+	FirstTokenMs              *int           `json:"first_token_ms"`
+	UserAgent                 *string        `json:"user_agent"`
+	IPAddress                 *string        `json:"ip_address"`
+	SessionID                 *string        `json:"session_id"`
+	CacheTTLOverridden        bool           `json:"cache_ttl_overridden"`
+	ImageCount                int            `json:"image_count"`
+	ImageSize                 *string        `json:"image_size"`
+	ImageInputSize            *string        `json:"image_input_size"`
+	ImageOutputSize           *string        `json:"image_output_size"`
+	ImageSizeSource           *string        `json:"image_size_source"`
+	ImageSizeBreakdown        map[string]int `json:"image_size_breakdown"`
+	MediaType                 *string        `json:"media_type"`
+	VideoCount                int            `json:"video_count"`
+	VideoResolution           *string        `json:"video_resolution"`
+	VideoDurationSeconds      *int           `json:"video_duration_seconds"`
+	Status                    string         `json:"status"`
+	ErrorType                 *string        `json:"error_type"`
+	EndedAt                   *time.Time     `json:"ended_at"`
+	CreatedAt                 time.Time      `json:"created_at"`
 }
 
 // UsageStats 使用统计
@@ -94,26 +135,67 @@ func (s *UsageService) Create(ctx context.Context, req CreateUsageLogRequest) (*
 
 	// 创建使用日志
 	usageLog := &UsageLog{
-		UserID:                req.UserID,
-		APIKeyID:              req.APIKeyID,
-		AccountID:             req.AccountID,
-		RequestID:             req.RequestID,
-		Model:                 req.Model,
-		InputTokens:           req.InputTokens,
-		OutputTokens:          req.OutputTokens,
-		CacheCreationTokens:   req.CacheCreationTokens,
-		CacheReadTokens:       req.CacheReadTokens,
-		CacheCreation5mTokens: req.CacheCreation5mTokens,
-		CacheCreation1hTokens: req.CacheCreation1hTokens,
-		InputCost:             req.InputCost,
-		OutputCost:            req.OutputCost,
-		CacheCreationCost:     req.CacheCreationCost,
-		CacheReadCost:         req.CacheReadCost,
-		TotalCost:             req.TotalCost,
-		ActualCost:            req.ActualCost,
-		RateMultiplier:        req.RateMultiplier,
-		Stream:                req.Stream,
-		DurationMs:            req.DurationMs,
+		UserID:                    req.UserID,
+		APIKeyID:                  req.APIKeyID,
+		AccountID:                 req.AccountID,
+		RequestID:                 req.RequestID,
+		Model:                     req.Model,
+		RequestedModel:            req.RequestedModel,
+		UpstreamModel:             req.UpstreamModel,
+		ChannelID:                 req.ChannelID,
+		ModelMappingChain:         req.ModelMappingChain,
+		BillingTier:               req.BillingTier,
+		BillingMode:               req.BillingMode,
+		ServiceTier:               req.ServiceTier,
+		ReasoningEffort:           req.ReasoningEffort,
+		InboundEndpoint:           req.InboundEndpoint,
+		UpstreamEndpoint:          req.UpstreamEndpoint,
+		GroupID:                   req.GroupID,
+		SubscriptionID:            req.SubscriptionID,
+		InputTokens:               req.InputTokens,
+		OutputTokens:              req.OutputTokens,
+		CacheCreationTokens:       req.CacheCreationTokens,
+		CacheReadTokens:           req.CacheReadTokens,
+		CacheCreation5mTokens:     req.CacheCreation5mTokens,
+		CacheCreation1hTokens:     req.CacheCreation1hTokens,
+		ImageInputTokens:          req.ImageInputTokens,
+		ImageInputCost:            req.ImageInputCost,
+		ImageOutputTokens:         req.ImageOutputTokens,
+		ImageOutputCost:           req.ImageOutputCost,
+		InputCost:                 req.InputCost,
+		OutputCost:                req.OutputCost,
+		CacheCreationCost:         req.CacheCreationCost,
+		CacheReadCost:             req.CacheReadCost,
+		TotalCost:                 req.TotalCost,
+		ActualCost:                req.ActualCost,
+		RateMultiplier:            req.RateMultiplier,
+		LongContextBillingApplied: req.LongContextBillingApplied,
+		AccountRateMultiplier:     req.AccountRateMultiplier,
+		AccountStatsCost:          req.AccountStatsCost,
+		BillingType:               req.BillingType,
+		RequestType:               req.RequestType,
+		Stream:                    req.Stream,
+		OpenAIWSMode:              req.OpenAIWSMode,
+		DurationMs:                req.DurationMs,
+		FirstTokenMs:              req.FirstTokenMs,
+		UserAgent:                 req.UserAgent,
+		IPAddress:                 req.IPAddress,
+		SessionID:                 req.SessionID,
+		CacheTTLOverridden:        req.CacheTTLOverridden,
+		ImageCount:                req.ImageCount,
+		ImageSize:                 req.ImageSize,
+		ImageInputSize:            req.ImageInputSize,
+		ImageOutputSize:           req.ImageOutputSize,
+		ImageSizeSource:           req.ImageSizeSource,
+		ImageSizeBreakdown:        req.ImageSizeBreakdown,
+		MediaType:                 req.MediaType,
+		VideoCount:                req.VideoCount,
+		VideoResolution:           req.VideoResolution,
+		VideoDurationSeconds:      req.VideoDurationSeconds,
+		Status:                    req.Status,
+		ErrorType:                 req.ErrorType,
+		EndedAt:                   req.EndedAt,
+		CreatedAt:                 req.CreatedAt,
 	}
 
 	inserted, err := s.usageRepo.Create(txCtx, usageLog)

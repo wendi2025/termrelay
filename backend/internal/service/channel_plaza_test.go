@@ -58,6 +58,34 @@ func TestListPlazaGroups_GroupCentricAggregation(t *testing.T) {
 	require.Equal(t, "claude-sonnet", out[0].Models[1].Name)
 }
 
+func TestListPlazaGroups_ExposesMappedModel(t *testing.T) {
+	ch := Channel{
+		ID: 1, Name: "mapped", Status: StatusActive, GroupIDs: []int64{10},
+		ModelMapping: map[string]map[string]string{
+			"openai": {"gpt-5.6": "gpt-5.6-codex"},
+		},
+		ModelPricing: []ChannelModelPricing{{
+			Platform:    "openai",
+			Models:      []string{"gpt-5.6-codex"},
+			BillingMode: BillingModeToken,
+			InputPrice:  testPtrFloat64(1e-6),
+		}},
+	}
+	groups := []Group{{ID: 10, Name: "g", Platform: "openai", RateMultiplier: 1}}
+	svc := newPlazaChannelService([]Channel{ch}, groups, nil)
+	out, err := svc.ListPlazaGroups(context.Background())
+	require.NoError(t, err)
+	require.Len(t, out, 1)
+	require.Len(t, out[0].Models, 2)
+
+	byName := map[string]PlazaModel{}
+	for _, m := range out[0].Models {
+		byName[m.Name] = m
+	}
+	require.Equal(t, "gpt-5.6-codex", byName["gpt-5.6"].MappedModel)
+	require.Empty(t, byName["gpt-5.6-codex"].MappedModel)
+}
+
 func TestListPlazaGroups_DedupFirstWinsWithPricingUpgrade(t *testing.T) {
 	// 同名模型:先见者胜;仅当已存条目无定价而新条目有定价时升级替换。
 	unpriced := Channel{
@@ -105,6 +133,61 @@ func TestListPlazaGroups_PlatformIsolation(t *testing.T) {
 	require.Equal(t, "claude-sonnet", byName["g-claude"][0].Name)
 	require.Len(t, byName["g-gpt"], 1)
 	require.Equal(t, "gpt-5", byName["g-gpt"][0].Name)
+}
+
+func TestListPlazaGroups_CompositeKeepsConcretePlatforms(t *testing.T) {
+	ch := Channel{
+		ID: 1, Name: "composite", Status: StatusActive, GroupIDs: []int64{10},
+		ModelPricing: []ChannelModelPricing{
+			{Platform: PlatformAnthropic, Models: []string{"shared-model"}, InputPrice: testPtrFloat64(3e-6)},
+			{Platform: PlatformOpenAI, Models: []string{"shared-model"}, InputPrice: testPtrFloat64(2e-6)},
+		},
+	}
+	groups := []Group{{ID: 10, Name: "g-composite", Platform: PlatformComposite, RateMultiplier: 1}}
+	svc := newPlazaChannelService([]Channel{ch}, groups, nil)
+	out, err := svc.ListPlazaGroups(context.Background())
+	require.NoError(t, err)
+	require.Len(t, out, 1)
+	require.Len(t, out[0].Models, 2, "Composite 分组应保留各具体平台的同名模型")
+	require.Equal(t, PlatformAnthropic, out[0].Models[0].Platform)
+	require.Equal(t, PlatformOpenAI, out[0].Models[1].Platform)
+}
+
+func TestListPlazaGroups_CompositeGroupSeparatesLogicalFamilyFromTransport(t *testing.T) {
+	// 真实中转场景：Claude/GPT 都通过 OpenAI-compatible 上游传输，但 composite
+	// 逻辑分组必须按 models_list_config 决定品牌/模型归属，而不是拿 transport platform
+	// 与 "composite" 做相等判断。
+	ch := plazaPricedChannel(1, "relay", []int64{10}, "openai", "claude-sonnet-5", "gpt-5.6")
+	groups := []Group{{
+		ID:             10,
+		Name:           "anthropic-default",
+		Platform:       PlatformComposite,
+		RateMultiplier: 1,
+		ModelsListConfig: GroupModelsListConfig{
+			Enabled: true,
+			Models:  []string{"claude-sonnet-5"},
+		},
+	}}
+	svc := newPlazaChannelService([]Channel{ch}, groups, nil)
+	out, err := svc.ListPlazaGroups(context.Background())
+	require.NoError(t, err)
+	require.Len(t, out, 1)
+	require.Equal(t, "anthropic-default", out[0].Name)
+	require.Len(t, out[0].Models, 1)
+	require.Equal(t, "claude-sonnet-5", out[0].Models[0].Name)
+	require.Equal(t, "openai", out[0].Models[0].Platform, "transport protocol should remain observable")
+}
+
+func TestListPlazaGroups_CompositeGroupWithoutCustomListUsesChannelBinding(t *testing.T) {
+	ch := plazaPricedChannel(1, "relay", []int64{10}, "openai", "claude-sonnet-5", "gpt-5.6")
+	groups := []Group{{ID: 10, Name: "unified", Platform: PlatformComposite, RateMultiplier: 1}}
+	svc := newPlazaChannelService([]Channel{ch}, groups, nil)
+	out, err := svc.ListPlazaGroups(context.Background())
+	require.NoError(t, err)
+	require.Len(t, out, 1)
+	require.Len(t, out[0].Models, 2)
+	require.Equal(t, "claude-sonnet-5", out[0].Models[0].Name)
+	require.Equal(t, "gpt-5.6", out[0].Models[1].Name)
 }
 
 func TestListPlazaGroups_InactiveChannelSkipped(t *testing.T) {

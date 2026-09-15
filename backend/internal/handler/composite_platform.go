@@ -6,6 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func modelAccessAllowed(apiKey *service.APIKey, model string) bool {
+	return apiKey == nil || apiKey.Group == nil || apiKey.Group.AllowsModel(model)
+}
+
 func ensureCompositeTargetPlatform(c *gin.Context, apiKey *service.APIKey, model string) {
 	if c == nil || c.Request == nil || apiKey == nil || apiKey.Group == nil || apiKey.Group.Platform != service.PlatformComposite {
 		return
@@ -19,6 +23,9 @@ func ensureCompositeTargetPlatform(c *gin.Context, apiKey *service.APIKey, model
 }
 
 func compositeTargetPlatformAllowed(c *gin.Context, apiKey *service.APIKey, model string, allowed ...string) bool {
+	if !modelAccessAllowed(apiKey, model) {
+		return false
+	}
 	if c == nil || c.Request == nil || apiKey == nil || apiKey.Group == nil || apiKey.Group.Platform != service.PlatformComposite {
 		return true
 	}
@@ -36,6 +43,9 @@ func compositeTargetPlatformAllowed(c *gin.Context, apiKey *service.APIKey, mode
 }
 
 func compositeTargetPlatformResolved(c *gin.Context, apiKey *service.APIKey, model string) bool {
+	if !modelAccessAllowed(apiKey, model) {
+		return false
+	}
 	if c == nil || c.Request == nil || apiKey == nil || apiKey.Group == nil || apiKey.Group.Platform != service.PlatformComposite {
 		return true
 	}
