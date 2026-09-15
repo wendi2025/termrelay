@@ -334,6 +334,9 @@ func (h *SubscriptionHandler) ListByUser(c *gin.Context) {
 
 // Helper function to get admin ID from context
 func getAdminIDFromContext(c *gin.Context) int64 {
+	if c.GetString("auth_method") == "admin_api_key" {
+		return 0
+	}
 	subject, ok := middleware2.GetAuthSubjectFromContext(c)
 	if !ok {
 		return 0

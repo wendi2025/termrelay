@@ -207,6 +207,19 @@ func (s *adminServiceImpl) UpdateUser(ctx context.Context, id int64, input *Upda
 		return nil, err
 	}
 
+	// Peer-admin isolation: one administrator must not be able to take over
+	// another administrator's login or remove their administrative access.
+	// Unchanged values are allowed because the admin UI may echo them back.
+	if user.Role == RoleAdmin && input.ActorAdminID != user.ID {
+		changesProtectedField := input.Password != "" ||
+			(input.Email != "" && strings.TrimSpace(input.Email) != strings.TrimSpace(user.Email)) ||
+			(input.Role != "" && input.Role != user.Role) ||
+			(input.Status != "" && input.Status != user.Status)
+		if changesProtectedField {
+			return nil, infraerrors.Forbidden("ADMIN_PEER_PROTECTED", "cannot change another administrator's login, role, or status")
+		}
+	}
+
 	// Protect admin users: cannot disable admin accounts
 	if user.Role == "admin" && input.Status == "disabled" {
 		return nil, errors.New("cannot disable admin user")
@@ -678,7 +691,6 @@ func (s *adminServiceImpl) GetUserRPMStatus(ctx context.Context, userID int64) (
 }
 
 func (s *adminServiceImpl) GetUserUsageStats(ctx context.Context, userID int64, period string) (any, error) {
-	// Return mock data for now
 	return map[string]any{
 		"period":          period,
 		"total_requests":  0,
@@ -688,7 +700,6 @@ func (s *adminServiceImpl) GetUserUsageStats(ctx context.Context, userID int64, 
 	}, nil
 }
 
-// GetUserBalanceHistory returns paginated balance/concurrency change records for a user.
 func (s *adminServiceImpl) GetUserBalanceHistory(ctx context.Context, userID int64, page, pageSize int, codeType string) ([]RedeemCode, int64, float64, error) {
 	params := pagination.PaginationParams{Page: page, PageSize: pageSize}
 	if codeType == RedeemTypeAffiliateBalance {
@@ -712,7 +723,6 @@ func (s *adminServiceImpl) GetUserBalanceHistory(ctx context.Context, userID int
 		return nil, 0, 0, err
 	}
 	total := result.Total
-	// Aggregate total recharged amount (only once, regardless of type filter)
 	totalRecharged, err := s.redeemCodeRepo.SumPositiveBalanceByUser(ctx, userID)
 	if err != nil {
 		return nil, 0, 0, err
@@ -1249,12 +1259,10 @@ func (s *adminServiceImpl) GenerateRedeemCodes(ctx context.Context, input *Gener
 		return nil, ErrRedeemCodeExpired
 	}
 
-	// 如果是订阅类型，验证必须有 GroupID
 	if input.Type == RedeemTypeSubscription {
 		if input.GroupID == nil {
 			return nil, errors.New("group_id is required for subscription type")
 		}
-		// 验证分组存在且为订阅类型
 		group, err := s.groupRepo.GetByID(ctx, *input.GroupID)
 		if err != nil {
 			return nil, fmt.Errorf("group not found: %w", err)
@@ -1277,12 +1285,11 @@ func (s *adminServiceImpl) GenerateRedeemCodes(ctx context.Context, input *Gener
 			Status:    StatusUnused,
 			ExpiresAt: input.ExpiresAt,
 		}
-		// 订阅类型专用字段
 		if input.Type == RedeemTypeSubscription {
 			code.GroupID = input.GroupID
 			code.ValidityDays = input.ValidityDays
 			if code.ValidityDays <= 0 {
-				code.ValidityDays = 30 // 默认30天
+				code.ValidityDays = 30
 			}
 		}
 		if err := s.redeemCodeRepo.Create(ctx, &code); err != nil {
