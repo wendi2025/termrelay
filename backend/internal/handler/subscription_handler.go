@@ -5,9 +5,147 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/pkg/response"
 	middleware2 "github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/service"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+type planAccessRequestInput struct {
+	PlanID int64  `json:"plan_id" binding:"required"`
+	Note   string `json:"note"`
+}
+type teamInviteInput struct {
+	UserID int64 `json:"user_id" binding:"required"`
+}
+
+func (h *SubscriptionHandler) ListTeams(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+	items, err := h.subscriptionService.ListSubscriptionTeams(c.Request.Context(), &subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, items)
+}
+
+func (h *SubscriptionHandler) InviteTeamMember(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+	teamID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid team id")
+		return
+	}
+	var req teamInviteInput
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+	if err := h.subscriptionService.InviteSubscriptionTeamMember(c.Request.Context(), teamID, subject.UserID, req.UserID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Created(c, gin.H{"success": true})
+}
+
+func (h *SubscriptionHandler) AcceptTeamInvitation(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid invitation id")
+		return
+	}
+	if err := h.subscriptionService.AcceptSubscriptionTeamInvitation(c.Request.Context(), id, subject.UserID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"success": true})
+}
+
+func (h *SubscriptionHandler) RemoveTeamMember(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+	teamID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid team id")
+		return
+	}
+	memberID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid user id")
+		return
+	}
+	if err := h.subscriptionService.RemoveSubscriptionTeamMember(c.Request.Context(), teamID, subject.UserID, memberID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"success": true})
+}
+
+func (h *SubscriptionHandler) SubmitPlanAccessRequest(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+	var req planAccessRequestInput
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, err.Error())
+		return
+	}
+	item, err := h.subscriptionService.SubmitPlanAccessRequest(c.Request.Context(), subject.UserID, req.PlanID, req.Note)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Created(c, item)
+}
+
+func (h *SubscriptionHandler) ListPlanAccessRequests(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+	items, err := h.subscriptionService.ListPlanAccessRequests(c.Request.Context(), &subject.UserID, "")
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, items)
+}
+
+func (h *SubscriptionHandler) RevokePlanAccessRequest(c *gin.Context) {
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "User not found in context")
+		return
+	}
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid id")
+		return
+	}
+	if err := h.subscriptionService.RevokeOwnPlanAccessRequest(c.Request.Context(), id, subject.UserID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"success": true})
+}
 
 // SubscriptionSummaryItem represents a subscription item in summary
 type SubscriptionSummaryItem struct {

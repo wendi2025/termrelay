@@ -83,6 +83,16 @@ func RegisterAdminRoutes(
 
 		// 订阅管理
 		registerSubscriptionRoutes(admin, h)
+		access := admin.Group("/subscription-access-requests")
+		{
+			access.GET("", h.Admin.Subscription.ListPlanAccessRequests)
+			access.POST("/:id/:action", h.Admin.Subscription.ReviewPlanAccessRequest)
+		}
+		teams := admin.Group("/subscription-teams")
+		{
+			teams.GET("", h.Admin.Subscription.ListTeams)
+			teams.DELETE("/:id/members/:user_id", h.Admin.Subscription.RemoveTeamMember)
+		}
 
 		// 使用记录管理
 		registerUsageRoutes(admin, h)

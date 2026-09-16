@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	entsql "entgo.io/ent/dialect/sql"
 	dbent "github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/ent/paymentorder"
 	"github.com/Wei-Shaw/sub2api/internal/payment"
@@ -145,6 +146,20 @@ func (s *PaymentService) validateSubOrder(ctx context.Context, req CreateOrderRe
 	}
 	if !group.IsSubscriptionType() {
 		return nil, infraerrors.BadRequest("GROUP_TYPE_MISMATCH", "group is not a subscription type")
+	}
+	if DecodePlanFeatures(plan.Features).Card.PurchasePolicy == "approval" {
+		var rows entsql.Rows
+		if err := s.entClient.Driver().Query(ctx, `SELECT COUNT(*) FROM subscription_access_requests WHERE user_id=$1 AND plan_id=$2 AND status='approved'`, []any{req.UserID, req.PlanID}, &rows); err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+		var count int
+		if rows.Next() {
+			_ = rows.Scan(&count)
+		}
+		if count == 0 {
+			return nil, infraerrors.Forbidden("PLAN_APPROVAL_REQUIRED", "this plan requires an approved access request")
+		}
 	}
 	return plan, nil
 }
