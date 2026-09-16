@@ -28,16 +28,33 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-api.interceptors.response.use((response: AxiosResponse) => {
-  const payload = response.data as ApiEnvelope<unknown>
-  if (payload && typeof payload === 'object' && typeof payload.code === 'number') {
-    if (payload.code !== 0) {
-      return Promise.reject(new Error(payload.message || '请求失败'))
+api.interceptors.response.use(
+  (response: AxiosResponse) => {
+    const payload = response.data as ApiEnvelope<unknown>
+    if (payload && typeof payload === 'object' && typeof payload.code === 'number') {
+      if (payload.code !== 0) {
+        return Promise.reject(new Error(payload.message || '请求失败'))
+      }
+      response.data = payload.data
     }
-    response.data = payload.data
-  }
-  return response
-})
+    return response
+  },
+  (error: AxiosError<Record<string, unknown>>) => {
+    const body = error.response?.data
+    const code = body && typeof body === 'object' && typeof body.code === 'string' ? body.code : ''
+    if (
+      error.response?.status === 423
+      && code === 'ADMIN_COMPLIANCE_ACK_REQUIRED'
+      && typeof window !== 'undefined'
+      && window.location.pathname !== '/admin/compliance'
+    ) {
+      const redirect = `${window.location.pathname}${window.location.search}${window.location.hash}`
+      const query = new URLSearchParams({ redirect })
+      window.location.assign(`/admin/compliance?${query.toString()}`)
+    }
+    return Promise.reject(error)
+  },
+)
 
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {

@@ -17,6 +17,7 @@ import AdminPaymentPlansPage from '../smirel/pages/AdminPaymentPlansPage.vue'
 import AdminPaymentConfigPage from '../smirel/pages/AdminPaymentConfigPage.vue'
 import AdminRevenueSplitPage from '../smirel/pages/AdminRevenueSplitPage.vue'
 import AdminOrdersPage from '../smirel/pages/AdminOrdersPage.vue'
+import AdminCompliancePage from '../smirel/pages/AdminCompliancePage.vue'
 import ModelCatalogPage from '../smirel/pages/ModelCatalogPage.vue'
 import PublicPage from '../smirel/pages/PublicPage.vue'
 import NotFoundPage from '../smirel/pages/NotFoundPage.vue'
@@ -85,6 +86,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/payment/stripe', name: 'StripePayment', component: PublicPage, meta: { title: '支付', publicKind: 'payment' } },
   { path: '/payment/stripe-popup', name: 'StripePayment', component: PublicPage, meta: { title: '支付', publicKind: 'payment' } },
   { path: '/payment/airwallex', name: 'AirwallexPayment', component: PublicPage, meta: { title: '支付', publicKind: 'payment' } },
+  { path: '/admin/compliance', name: 'AdminCompliance', component: AdminCompliancePage, meta: { requiresAuth: true, requiresAdmin: true, title: '管理员合规确认' } },
   { path: '/auth/wechat/payment/callback', name: 'WeChatPaymentCallback', component: PublicPage, meta: { title: '支付回调', publicKind: 'callback' } },
   { path: '/auth/oauth/callback', name: 'SmirelOAuthCallback', component: OAuthCallbackPage, meta: { title: '登录回调' } },
   { path: '/auth/:provider/callback', name: 'OAuthProviderCallback', component: PublicPage, meta: { title: '登录回调', publicKind: 'callback' } },
