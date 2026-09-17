@@ -1,0 +1,15 @@
+/* Keep the selected sidebar item readable in the light workspace theme.
+ * The active surface is intentionally subtle, so the label needs a darker
+ * brand-blue foreground instead of the light text used by the dark theme. */
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active,
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active:hover {
+  color: #0f568f;
+  font-weight: 650;
+  box-shadow: inset 3px 0 0 rgba(24, 119, 201, .72);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active > span,
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active:hover > span {
+  color: inherit;
+}
