@@ -212,7 +212,7 @@ onMounted(() => void loadAll())
 <template>
   <section class="groups-page">
     <header class="page-head">
-      <div><span class="kicker">ROUTING GROUPS</span><h1>分组与模型</h1><p>把上游账号、模型白名单与模型广场统一到同一条真实调度链路。</p></div>
+      <div><span class="kicker">ROUTING GROUPS</span><h1>分组与模型</h1><p>调度分组是长期逻辑路由：套餐绑定分组，真实上游账号可随时增删替换；模型白名单与模型广场跟随分组配置。</p></div>
       <div class="head-actions"><button class="ghost" :disabled="loading" @click="loadAll">{{ loading ? '刷新中' : '刷新' }}</button><button class="primary" @click="openCreate">＋ 新建分组</button></div>
     </header>
 
@@ -228,7 +228,7 @@ onMounted(() => void loadAll())
 
     <section class="panel">
       <header class="toolbar">
-        <div><strong>调度分组</strong><span>{{ visibleGroups.length }} / {{ groups.length }}</span></div>
+        <div><strong>逻辑调度分组</strong><span>{{ visibleGroups.length }} / {{ groups.length }}</span></div>
         <div class="filters"><input v-model="search" placeholder="搜索分组、平台或 ID" /><select v-model="platform"><option value="">全部平台</option><option value="openai">OpenAI Compatible</option><option value="anthropic">Anthropic</option><option value="gemini">Gemini</option><option value="antigravity">Antigravity</option><option value="grok">xAI / Grok</option><option value="composite">Composite</option></select></div>
       </header>
 
@@ -238,7 +238,7 @@ onMounted(() => void loadAll())
             <span class="mark">{{ platformMark(g.platform) }}</span>
             <span class="identity"><strong>{{ g.name }}</strong><small>{{ platformLabel(g.platform) }} · #{{ g.id }}</small></span>
             <span class="state" :class="g.status"><i></i>{{ g.status === 'active' ? '启用' : '停用' }}</span>
-            <span class="metric"><small>账号</small><b>{{ groupAccounts(g).length }}</b></span>
+            <span class="metric"><small>上游账号</small><b>{{ groupAccounts(g).length }}</b></span>
             <span class="metric"><small>模型</small><b>{{ configuredModels(g).length || modelCache[g.id]?.length || 0 }}</b></span>
             <span class="metric"><small>倍率</small><b>{{ Number(g.rate_multiplier || 1).toFixed(2) }}×</b></span>
             <span class="publish" :class="{ on: !!findCatalogChannel(g) }"><i></i>{{ findCatalogChannel(g) ? '已发布' : '未发布' }}</span>
@@ -253,13 +253,13 @@ onMounted(() => void loadAll())
 
             <div class="detail-grid">
               <section class="subpanel">
-                <header><div><strong>账号绑定</strong><small>只显示同平台账号</small></div><button :disabled="busy === `members-${g.id}`" @click="saveMembership(g)">保存绑定</button></header>
+                <header><div><strong>上游账号绑定</strong><small>真实货源，可随时增删替换；不会改变套餐定义</small></div><button :disabled="busy === `members-${g.id}`" @click="saveMembership(g)">保存绑定</button></header>
                 <label v-for="a in eligibleAccounts(g)" :key="a.id" class="account-option">
                   <input v-model="selectedAccounts[g.id]" type="checkbox" :value="a.id" />
                   <span><b>{{ a.name || `Account #${a.id}` }}</b><small>{{ a.type }} · #{{ a.id }}</small></span>
                   <em :class="{ ok: a.status === 'active' && a.schedulable !== false }">{{ a.status === 'active' && a.schedulable !== false ? '可调度' : '不可调度' }}</em>
                 </label>
-                <p v-if="!eligibleAccounts(g).length" class="empty">暂无同平台账号。</p>
+                <p v-if="!eligibleAccounts(g).length" class="empty">当前没有同平台上游账号。套餐和调度分组仍会保留，接入新上游后再绑定即可。</p>
               </section>
 
               <section class="subpanel models-panel">
