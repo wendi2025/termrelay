@@ -163,33 +163,47 @@ type UpdateProviderInstanceRequest struct {
 	AllowUserRefund *bool             `json:"allow_user_refund"`
 }
 type CreatePlanRequest struct {
-	GroupID       int64    `json:"group_id"`
-	Name          string   `json:"name"`
-	Description   string   `json:"description"`
-	Price         float64  `json:"price"`
-	OriginalPrice *float64 `json:"original_price"`
-	Currency      string   `json:"currency"`
-	ValidityDays  int      `json:"validity_days"`
-	ValidityUnit  string   `json:"validity_unit"`
-	Features      string   `json:"features"`
-	ProductName   string   `json:"product_name"`
-	ForSale       bool     `json:"for_sale"`
-	SortOrder     int      `json:"sort_order"`
+	GroupID          int64    `json:"group_id"`
+	Name             string   `json:"name"`
+	Description      string   `json:"description"`
+	Price            float64  `json:"price"`
+	OriginalPrice    *float64 `json:"original_price"`
+	Currency         string   `json:"currency"`
+	ValidityDays     int      `json:"validity_days"`
+	ValidityUnit     string   `json:"validity_unit"`
+	Features         string   `json:"features"`
+	ProductName      string   `json:"product_name"`
+	ForSale          bool     `json:"for_sale"`
+	SortOrder        int      `json:"sort_order"`
+	CardTier         string   `json:"card_tier"`
+	CardBadge        string   `json:"card_badge"`
+	CardFeatured     bool     `json:"card_featured"`
+	CardFootnote     string   `json:"card_footnote"`
+	SeatLimit        int      `json:"seat_limit"`
+	ConcurrencyLimit int      `json:"concurrency_limit"`
+	PurchasePolicy   string   `json:"purchase_policy"`
 }
 
 type UpdatePlanRequest struct {
-	GroupID       *int64   `json:"group_id"`
-	Name          *string  `json:"name"`
-	Description   *string  `json:"description"`
-	Price         *float64 `json:"price"`
-	OriginalPrice *float64 `json:"original_price"`
-	Currency      *string  `json:"currency"`
-	ValidityDays  *int     `json:"validity_days"`
-	ValidityUnit  *string  `json:"validity_unit"`
-	Features      *string  `json:"features"`
-	ProductName   *string  `json:"product_name"`
-	ForSale       *bool    `json:"for_sale"`
-	SortOrder     *int     `json:"sort_order"`
+	GroupID          *int64   `json:"group_id"`
+	Name             *string  `json:"name"`
+	Description      *string  `json:"description"`
+	Price            *float64 `json:"price"`
+	OriginalPrice    *float64 `json:"original_price"`
+	Currency         *string  `json:"currency"`
+	ValidityDays     *int     `json:"validity_days"`
+	ValidityUnit     *string  `json:"validity_unit"`
+	Features         *string  `json:"features"`
+	ProductName      *string  `json:"product_name"`
+	ForSale          *bool    `json:"for_sale"`
+	SortOrder        *int     `json:"sort_order"`
+	CardTier         *string  `json:"card_tier"`
+	CardBadge        *string  `json:"card_badge"`
+	CardFeatured     *bool    `json:"card_featured"`
+	CardFootnote     *string  `json:"card_footnote"`
+	SeatLimit        *int     `json:"seat_limit"`
+	ConcurrencyLimit *int     `json:"concurrency_limit"`
+	PurchasePolicy   *string  `json:"purchase_policy"`
 }
 
 // PaymentConfigService manages payment configuration and CRUD for

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	dbent "github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
@@ -56,6 +57,168 @@ type SubscriptionService struct {
 
 	maintenanceQueue *SubscriptionMaintenanceQueue
 	now              func() time.Time
+}
+
+// PlanAccessRequest is the approval workflow representation used by the panel.
+type PlanAccessRequest struct {
+	ID         int64      `json:"id"`
+	UserID     int64      `json:"user_id"`
+	PlanID     int64      `json:"plan_id"`
+	PlanName   string     `json:"plan_name,omitempty"`
+	Status     string     `json:"status"`
+	Note       string     `json:"note,omitempty"`
+	CreatedAt  time.Time  `json:"created_at"`
+	ReviewedAt *time.Time `json:"reviewed_at,omitempty"`
+}
+
+type SubscriptionTeamSummary struct {
+	ID               int64     `json:"id"`
+	OwnerUserID      int64     `json:"owner_user_id"`
+	GroupID          int64     `json:"group_id"`
+	PlanID           *int64    `json:"plan_id,omitempty"`
+	Status           string    `json:"status"`
+	SeatLimit        int       `json:"seat_limit"`
+	ConcurrencyLimit int       `json:"concurrency_limit"`
+	ExpiresAt        time.Time `json:"expires_at"`
+	MemberCount      int       `json:"member_count"`
+}
+
+func (s *SubscriptionService) ListSubscriptionTeams(ctx context.Context, userID *int64) ([]SubscriptionTeamSummary, error) {
+	query := `SELECT t.id,t.owner_user_id,t.group_id,t.plan_id,t.status,t.seat_limit,t.concurrency_limit,t.expires_at,COUNT(m.user_id) FROM subscription_teams t LEFT JOIN subscription_team_members m ON m.team_id=t.id WHERE ($1::bigint IS NULL OR t.owner_user_id=$1 OR EXISTS (SELECT 1 FROM subscription_team_members mx WHERE mx.team_id=t.id AND mx.user_id=$1)) GROUP BY t.id ORDER BY t.created_at DESC`
+	var userArg any
+	if userID != nil {
+		userArg = *userID
+	}
+	var rows sql.Rows
+	if err := s.entClient.Driver().Query(ctx, query, []any{userArg}, &rows); err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []SubscriptionTeamSummary{}
+	for rows.Next() {
+		var item SubscriptionTeamSummary
+		if err := rows.Scan(&item.ID, &item.OwnerUserID, &item.GroupID, &item.PlanID, &item.Status, &item.SeatLimit, &item.ConcurrencyLimit, &item.ExpiresAt, &item.MemberCount); err != nil {
+			return nil, err
+		}
+		out = append(out, item)
+	}
+	return out, nil
+}
+
+func (s *SubscriptionService) InviteSubscriptionTeamMember(ctx context.Context, teamID, ownerID, inviteeID int64) error {
+	var result sql.Result
+	err := s.entClient.Driver().Exec(ctx, `INSERT INTO subscription_team_invitations (team_id, invitee_user_id, invited_by) SELECT $1,$3,$2 WHERE EXISTS (SELECT 1 FROM subscription_teams t WHERE t.id=$1 AND t.owner_user_id=$2 AND t.status='active' AND t.expires_at>NOW()) AND (SELECT COUNT(*) FROM subscription_team_members m WHERE m.team_id=$1) + (SELECT COUNT(*) FROM subscription_team_invitations i WHERE i.team_id=$1 AND i.status='pending' AND i.expires_at>NOW()) < (SELECT seat_limit FROM subscription_teams WHERE id=$1)`, []any{teamID, ownerID, inviteeID}, &result)
+	if err != nil {
+		return infraerrors.Conflict("TEAM_INVITE_EXISTS", "member already invited or team is full")
+	}
+	affected, _ := result.RowsAffected()
+	if affected == 0 {
+		return infraerrors.Forbidden("TEAM_INVITE_FORBIDDEN", "team is unavailable or you are not the owner")
+	}
+	return nil
+}
+
+func (s *SubscriptionService) AcceptSubscriptionTeamInvitation(ctx context.Context, invitationID, userID int64) error {
+	var result sql.Result
+	if err := s.entClient.Driver().Exec(ctx, `UPDATE subscription_team_invitations SET status='accepted' WHERE id=$1 AND invitee_user_id=$2 AND status='pending' AND expires_at>NOW()`, []any{invitationID, userID}, &result); err != nil {
+		return err
+	}
+	affected, _ := result.RowsAffected()
+	if affected == 0 {
+		return infraerrors.NotFound("TEAM_INVITE_NOT_FOUND", "invitation is expired or unavailable")
+	}
+	var memberResult sql.Result
+	err := s.entClient.Driver().Exec(ctx, `INSERT INTO subscription_team_members (team_id,user_id) SELECT team_id,$2 FROM subscription_team_invitations WHERE id=$1 ON CONFLICT DO NOTHING`, []any{invitationID, userID}, &memberResult)
+	return err
+}
+
+func (s *SubscriptionService) RemoveSubscriptionTeamMember(ctx context.Context, teamID, actorID, memberID int64) error {
+	var result sql.Result
+	if err := s.entClient.Driver().Exec(ctx, `DELETE FROM subscription_team_members WHERE team_id=$1 AND user_id=$2 AND EXISTS (SELECT 1 FROM subscription_teams t WHERE t.id=$1 AND (t.owner_user_id=$3 OR $3=$2))`, []any{teamID, memberID, actorID}, &result); err != nil {
+		return err
+	}
+	affected, _ := result.RowsAffected()
+	if affected == 0 {
+		return infraerrors.NotFound("TEAM_MEMBER_NOT_FOUND", "team member not found")
+	}
+	return nil
+}
+
+func (s *SubscriptionService) AdminRemoveSubscriptionTeamMember(ctx context.Context, teamID, memberID int64) error {
+	var result sql.Result
+	if err := s.entClient.Driver().Exec(ctx, `DELETE FROM subscription_team_members WHERE team_id=$1 AND user_id=$2`, []any{teamID, memberID}, &result); err != nil {
+		return err
+	}
+	affected, _ := result.RowsAffected()
+	if affected == 0 {
+		return infraerrors.NotFound("TEAM_MEMBER_NOT_FOUND", "team member not found")
+	}
+	return nil
+}
+
+func (s *SubscriptionService) SubmitPlanAccessRequest(ctx context.Context, userID, planID int64, note string) (*PlanAccessRequest, error) {
+	if s == nil || s.entClient == nil || userID <= 0 || planID <= 0 {
+		return nil, infraerrors.BadRequest("INVALID_INPUT", "user and plan are required")
+	}
+	var result sql.Result
+	if err := s.entClient.Driver().Exec(ctx, `INSERT INTO subscription_access_requests (user_id, plan_id, note) VALUES ($1,$2,$3)`, []any{userID, planID, note}, &result); err != nil {
+		return nil, infraerrors.Conflict("ACCESS_REQUEST_EXISTS", "an active access request already exists")
+	}
+	return &PlanAccessRequest{UserID: userID, PlanID: planID, Status: "pending", Note: note}, nil
+}
+
+func (s *SubscriptionService) ListPlanAccessRequests(ctx context.Context, userID *int64, status string) ([]PlanAccessRequest, error) {
+	if s == nil || s.entClient == nil {
+		return nil, fmt.Errorf("subscription service is not configured")
+	}
+	query := `SELECT r.id,r.user_id,r.plan_id,p.name,r.status,r.note,r.created_at,r.reviewed_at FROM subscription_access_requests r JOIN subscription_plans p ON p.id=r.plan_id WHERE ($1::bigint IS NULL OR r.user_id=$1) AND ($2='' OR r.status=$2) ORDER BY r.created_at DESC`
+	var userArg any
+	if userID != nil {
+		userArg = *userID
+	}
+	args := []any{userArg, status}
+	var rows sql.Rows
+	if err := s.entClient.Driver().Query(ctx, query, args, &rows); err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []PlanAccessRequest{}
+	for rows.Next() {
+		var item PlanAccessRequest
+		if err := rows.Scan(&item.ID, &item.UserID, &item.PlanID, &item.PlanName, &item.Status, &item.Note, &item.CreatedAt, &item.ReviewedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, item)
+	}
+	return out, nil
+}
+
+func (s *SubscriptionService) ReviewPlanAccessRequest(ctx context.Context, id, reviewerID int64, action string) error {
+	if action != "approve" && action != "reject" && action != "revoke" {
+		return infraerrors.BadRequest("INVALID_ACTION", "invalid access request action")
+	}
+	status := map[string]string{"approve": "approved", "reject": "rejected", "revoke": "revoked"}[action]
+	var result sql.Result
+	if err := s.entClient.Driver().Exec(ctx, `UPDATE subscription_access_requests SET status=$1, reviewed_by=$2, reviewed_at=NOW(), updated_at=NOW() WHERE id=$3`, []any{status, reviewerID, id}, &result); err != nil {
+		return err
+	}
+	affected, _ := result.RowsAffected()
+	if affected == 0 {
+		return infraerrors.NotFound("ACCESS_REQUEST_NOT_FOUND", "access request not found")
+	}
+	return nil
+}
+
+func (s *SubscriptionService) RevokeOwnPlanAccessRequest(ctx context.Context, id, userID int64) error {
+	var result sql.Result
+	if err := s.entClient.Driver().Exec(ctx, `UPDATE subscription_access_requests SET status='revoked', reviewed_by=$2, reviewed_at=NOW(), updated_at=NOW() WHERE id=$1 AND user_id=$2 AND status='pending'`, []any{id, userID}, &result); err != nil {
+		return err
+	}
+	affected, _ := result.RowsAffected()
+	if affected == 0 {
+		return infraerrors.NotFound("ACCESS_REQUEST_NOT_FOUND", "pending access request not found")
+	}
+	return nil
 }
 
 // NewSubscriptionService 创建订阅服务

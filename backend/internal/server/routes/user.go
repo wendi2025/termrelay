@@ -135,6 +135,20 @@ func RegisterUserRoutes(
 			subscriptions.GET("/progress", h.Subscription.GetProgress)
 			subscriptions.GET("/summary", h.Subscription.GetSummary)
 		}
+		access := authenticated.Group("/subscription-access-requests")
+		{
+			access.GET("", h.Subscription.ListPlanAccessRequests)
+			access.POST("", h.Subscription.SubmitPlanAccessRequest)
+			access.POST("/:id/revoke", h.Subscription.RevokePlanAccessRequest)
+		}
+		teams := authenticated.Group("/subscription-teams")
+		{
+			teams.GET("", h.Subscription.ListTeams)
+			teams.POST("/:id/invitations", h.Subscription.InviteTeamMember)
+			teams.DELETE("/:id/members/:user_id", h.Subscription.RemoveTeamMember)
+		}
+		invitations := authenticated.Group("/subscription-team-invitations")
+		invitations.POST("/:id/accept", h.Subscription.AcceptTeamInvitation)
 
 		// 渠道监控（用户只读）
 		monitors := authenticated.Group("/channel-monitors")

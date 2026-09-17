@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -11,6 +12,51 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/payment"
 	infraerrors "github.com/Wei-Shaw/sub2api/internal/pkg/errors"
 )
+
+const planCardMetadataPrefix = "__smirel_plan_card_v1__:"
+
+// PlanCardConfig is the stable API representation of fields that are shown on
+// the subscription card but are not part of the legacy plan schema yet.
+type PlanCardConfig struct {
+	Tier             string `json:"card_tier,omitempty"`
+	Badge            string `json:"card_badge,omitempty"`
+	Featured         bool   `json:"card_featured,omitempty"`
+	Footnote         string `json:"card_footnote,omitempty"`
+	SeatLimit        int    `json:"seat_limit,omitempty"`
+	ConcurrencyLimit int    `json:"concurrency_limit,omitempty"`
+	PurchasePolicy   string `json:"purchase_policy,omitempty"`
+}
+
+func EncodePlanFeatures(features string, cfg PlanCardConfig) string {
+	raw, err := json.Marshal(cfg)
+	if err != nil {
+		return features
+	}
+	clean := DecodePlanFeatures(features)
+	return strings.TrimRight(clean.Features, "\n") + "\n" + planCardMetadataPrefix + string(raw)
+}
+
+type DecodedPlanFeatures struct {
+	Features string
+	Card     PlanCardConfig
+}
+
+func DecodePlanFeatures(raw string) DecodedPlanFeatures {
+	lines := strings.Split(raw, "\n")
+	visible := make([]string, 0, len(lines))
+	var cfg PlanCardConfig
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, planCardMetadataPrefix) {
+			_ = json.Unmarshal([]byte(strings.TrimPrefix(trimmed, planCardMetadataPrefix)), &cfg)
+			continue
+		}
+		if trimmed != "" {
+			visible = append(visible, line)
+		}
+	}
+	return DecodedPlanFeatures{Features: strings.Join(visible, "\n"), Card: cfg}
+}
 
 // normalizePlanCurrency validates and normalizes the display-only currency label.
 // Empty means "no label" and is kept as-is so existing plans stay unchanged.
@@ -48,6 +94,19 @@ func validatePlanRequired(name string, groupID int64, price float64, validityDay
 	return nil
 }
 
+func validatePlanCardConfig(seatLimit, concurrencyLimit int, purchasePolicy string) error {
+	if seatLimit < 1 {
+		return infraerrors.BadRequest("PLAN_SEAT_LIMIT_INVALID", "seat_limit must be >= 1")
+	}
+	if concurrencyLimit < 1 {
+		return infraerrors.BadRequest("PLAN_CONCURRENCY_LIMIT_INVALID", "concurrency_limit must be >= 1")
+	}
+	if purchasePolicy != "" && purchasePolicy != "public" && purchasePolicy != "approval" {
+		return infraerrors.BadRequest("PLAN_PURCHASE_POLICY_INVALID", "purchase_policy must be public or approval")
+	}
+	return nil
+}
+
 // validatePlanPatch validates only the non-nil fields in a patch update.
 func validatePlanPatch(req UpdatePlanRequest) error {
 	if req.Name != nil && strings.TrimSpace(*req.Name) == "" {
@@ -67,6 +126,15 @@ func validatePlanPatch(req UpdatePlanRequest) error {
 	}
 	if req.OriginalPrice != nil && *req.OriginalPrice < 0 {
 		return infraerrors.BadRequest("PLAN_ORIGINAL_PRICE_INVALID", "original price must be >= 0")
+	}
+	if req.SeatLimit != nil && *req.SeatLimit < 1 {
+		return infraerrors.BadRequest("PLAN_SEAT_LIMIT_INVALID", "seat_limit must be >= 1")
+	}
+	if req.ConcurrencyLimit != nil && *req.ConcurrencyLimit < 1 {
+		return infraerrors.BadRequest("PLAN_CONCURRENCY_LIMIT_INVALID", "concurrency_limit must be >= 1")
+	}
+	if req.PurchasePolicy != nil && *req.PurchasePolicy != "public" && *req.PurchasePolicy != "approval" {
+		return infraerrors.BadRequest("PLAN_PURCHASE_POLICY_INVALID", "purchase_policy must be public or approval")
 	}
 	return nil
 }
@@ -140,10 +208,14 @@ func (s *PaymentConfigService) CreatePlan(ctx context.Context, req CreatePlanReq
 	if err != nil {
 		return nil, err
 	}
+	if err := validatePlanCardConfig(maxInt(req.SeatLimit, 1), maxInt(req.ConcurrencyLimit, 5), req.PurchasePolicy); err != nil {
+		return nil, err
+	}
+	features := EncodePlanFeatures(req.Features, PlanCardConfig{Tier: req.CardTier, Badge: req.CardBadge, Featured: req.CardFeatured, Footnote: req.CardFootnote, SeatLimit: maxInt(req.SeatLimit, 1), ConcurrencyLimit: maxInt(req.ConcurrencyLimit, 5), PurchasePolicy: normalizePurchasePolicy(req.PurchasePolicy)})
 	b := s.entClient.SubscriptionPlan.Create().
 		SetGroupID(req.GroupID).SetName(req.Name).SetDescription(req.Description).
 		SetPrice(req.Price).SetCurrency(currency).SetValidityDays(req.ValidityDays).SetValidityUnit(req.ValidityUnit).
-		SetFeatures(req.Features).SetProductName(req.ProductName).
+		SetFeatures(features).SetProductName(req.ProductName).
 		SetForSale(req.ForSale).SetSortOrder(req.SortOrder)
 	if req.OriginalPrice != nil {
 		b.SetOriginalPrice(*req.OriginalPrice)
@@ -159,6 +231,10 @@ func (s *PaymentConfigService) UpdatePlan(ctx context.Context, id int64, req Upd
 		return nil, err
 	}
 	u := s.entClient.SubscriptionPlan.UpdateOneID(id)
+	existing, err := s.entClient.SubscriptionPlan.Get(ctx, id)
+	if err != nil {
+		return nil, infraerrors.NotFound("PLAN_NOT_FOUND", "subscription plan not found")
+	}
 	if req.GroupID != nil {
 		u.SetGroupID(*req.GroupID)
 	}
@@ -188,7 +264,54 @@ func (s *PaymentConfigService) UpdatePlan(ctx context.Context, id int64, req Upd
 		u.SetValidityUnit(*req.ValidityUnit)
 	}
 	if req.Features != nil {
-		u.SetFeatures(*req.Features)
+		decoded := DecodePlanFeatures(existing.Features)
+		decoded.Features = *req.Features
+		if req.CardTier != nil {
+			decoded.Card.Tier = *req.CardTier
+		}
+		if req.CardBadge != nil {
+			decoded.Card.Badge = *req.CardBadge
+		}
+		if req.CardFeatured != nil {
+			decoded.Card.Featured = *req.CardFeatured
+		}
+		if req.CardFootnote != nil {
+			decoded.Card.Footnote = *req.CardFootnote
+		}
+		if req.SeatLimit != nil {
+			decoded.Card.SeatLimit = *req.SeatLimit
+		}
+		if req.ConcurrencyLimit != nil {
+			decoded.Card.ConcurrencyLimit = *req.ConcurrencyLimit
+		}
+		if req.PurchasePolicy != nil {
+			decoded.Card.PurchasePolicy = *req.PurchasePolicy
+		}
+		u.SetFeatures(EncodePlanFeatures(decoded.Features, decoded.Card))
+	} else if req.CardTier != nil || req.CardBadge != nil || req.CardFeatured != nil || req.CardFootnote != nil || req.SeatLimit != nil || req.ConcurrencyLimit != nil || req.PurchasePolicy != nil {
+		decoded := DecodePlanFeatures(existing.Features)
+		if req.CardTier != nil {
+			decoded.Card.Tier = *req.CardTier
+		}
+		if req.CardBadge != nil {
+			decoded.Card.Badge = *req.CardBadge
+		}
+		if req.CardFeatured != nil {
+			decoded.Card.Featured = *req.CardFeatured
+		}
+		if req.CardFootnote != nil {
+			decoded.Card.Footnote = *req.CardFootnote
+		}
+		if req.SeatLimit != nil {
+			decoded.Card.SeatLimit = *req.SeatLimit
+		}
+		if req.ConcurrencyLimit != nil {
+			decoded.Card.ConcurrencyLimit = *req.ConcurrencyLimit
+		}
+		if req.PurchasePolicy != nil {
+			decoded.Card.PurchasePolicy = *req.PurchasePolicy
+		}
+		u.SetFeatures(EncodePlanFeatures(decoded.Features, decoded.Card))
 	}
 	if req.ProductName != nil {
 		u.SetProductName(*req.ProductName)
@@ -200,6 +323,20 @@ func (s *PaymentConfigService) UpdatePlan(ctx context.Context, id int64, req Upd
 		u.SetSortOrder(*req.SortOrder)
 	}
 	return u.Save(ctx)
+}
+
+func maxInt(value, fallback int) int {
+	if value < 1 {
+		return fallback
+	}
+	return value
+}
+
+func normalizePurchasePolicy(value string) string {
+	if value == "approval" {
+		return value
+	}
+	return "public"
 }
 
 func (s *PaymentConfigService) DeletePlan(ctx context.Context, id int64) error {

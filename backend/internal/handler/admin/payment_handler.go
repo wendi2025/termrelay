@@ -337,28 +337,35 @@ func (h *PaymentHandler) ListPlans(c *gin.Context) {
 }
 
 type AdminSubscriptionPlanResult struct {
-	ID              int64     `json:"id"`
-	GroupID         int64     `json:"group_id"`
-	GroupPlatform   string    `json:"group_platform,omitempty"`
-	GroupName       string    `json:"group_name,omitempty"`
-	RateMultiplier  float64   `json:"rate_multiplier,omitempty"`
-	DailyLimitUSD   *float64  `json:"daily_limit_usd,omitempty"`
-	WeeklyLimitUSD  *float64  `json:"weekly_limit_usd,omitempty"`
-	MonthlyLimitUSD *float64  `json:"monthly_limit_usd,omitempty"`
-	ModelScopes     []string  `json:"supported_model_scopes,omitempty"`
-	Name            string    `json:"name"`
-	Description     string    `json:"description"`
-	Price           float64   `json:"price"`
-	OriginalPrice   *float64  `json:"original_price,omitempty"`
-	Currency        string    `json:"currency,omitempty"`
-	ValidityDays    int       `json:"validity_days"`
-	ValidityUnit    string    `json:"validity_unit"`
-	Features        string    `json:"features"`
-	ProductName     string    `json:"product_name"`
-	ForSale         bool      `json:"for_sale"`
-	SortOrder       int       `json:"sort_order"`
-	CreatedAt       time.Time `json:"created_at,omitempty"`
-	UpdatedAt       time.Time `json:"updated_at,omitempty"`
+	ID               int64     `json:"id"`
+	GroupID          int64     `json:"group_id"`
+	GroupPlatform    string    `json:"group_platform,omitempty"`
+	GroupName        string    `json:"group_name,omitempty"`
+	RateMultiplier   float64   `json:"rate_multiplier,omitempty"`
+	DailyLimitUSD    *float64  `json:"daily_limit_usd,omitempty"`
+	WeeklyLimitUSD   *float64  `json:"weekly_limit_usd,omitempty"`
+	MonthlyLimitUSD  *float64  `json:"monthly_limit_usd,omitempty"`
+	ModelScopes      []string  `json:"supported_model_scopes,omitempty"`
+	Name             string    `json:"name"`
+	Description      string    `json:"description"`
+	Price            float64   `json:"price"`
+	OriginalPrice    *float64  `json:"original_price,omitempty"`
+	Currency         string    `json:"currency,omitempty"`
+	ValidityDays     int       `json:"validity_days"`
+	ValidityUnit     string    `json:"validity_unit"`
+	Features         string    `json:"features"`
+	ProductName      string    `json:"product_name"`
+	CardTier         string    `json:"card_tier,omitempty"`
+	CardBadge        string    `json:"card_badge,omitempty"`
+	CardFeatured     bool      `json:"card_featured,omitempty"`
+	CardFootnote     string    `json:"card_footnote,omitempty"`
+	SeatLimit        int       `json:"seat_limit,omitempty"`
+	ConcurrencyLimit int       `json:"concurrency_limit,omitempty"`
+	PurchasePolicy   string    `json:"purchase_policy,omitempty"`
+	ForSale          bool      `json:"for_sale"`
+	SortOrder        int       `json:"sort_order"`
+	CreatedAt        time.Time `json:"created_at,omitempty"`
+	UpdatedAt        time.Time `json:"updated_at,omitempty"`
 }
 
 func adminSubscriptionPlansForResponse(plans []*dbent.SubscriptionPlan, groupInfo map[int64]service.PlanGroupInfo) []AdminSubscriptionPlanResult {
@@ -368,29 +375,37 @@ func adminSubscriptionPlansForResponse(plans []*dbent.SubscriptionPlan, groupInf
 			continue
 		}
 		gi := groupInfo[p.GroupID]
+		decoded := service.DecodePlanFeatures(p.Features)
 		result = append(result, AdminSubscriptionPlanResult{
-			ID:              int64(p.ID),
-			GroupID:         p.GroupID,
-			GroupPlatform:   gi.Platform,
-			GroupName:       gi.Name,
-			RateMultiplier:  gi.RateMultiplier,
-			DailyLimitUSD:   gi.DailyLimitUSD,
-			WeeklyLimitUSD:  gi.WeeklyLimitUSD,
-			MonthlyLimitUSD: gi.MonthlyLimitUSD,
-			ModelScopes:     gi.ModelScopes,
-			Name:            p.Name,
-			Description:     p.Description,
-			Price:           p.Price,
-			OriginalPrice:   p.OriginalPrice,
-			Currency:        p.Currency,
-			ValidityDays:    p.ValidityDays,
-			ValidityUnit:    p.ValidityUnit,
-			Features:        p.Features,
-			ProductName:     p.ProductName,
-			ForSale:         p.ForSale,
-			SortOrder:       p.SortOrder,
-			CreatedAt:       p.CreatedAt,
-			UpdatedAt:       p.UpdatedAt,
+			ID:               int64(p.ID),
+			GroupID:          p.GroupID,
+			GroupPlatform:    gi.Platform,
+			GroupName:        gi.Name,
+			RateMultiplier:   gi.RateMultiplier,
+			DailyLimitUSD:    gi.DailyLimitUSD,
+			WeeklyLimitUSD:   gi.WeeklyLimitUSD,
+			MonthlyLimitUSD:  gi.MonthlyLimitUSD,
+			ModelScopes:      gi.ModelScopes,
+			Name:             p.Name,
+			Description:      p.Description,
+			Price:            p.Price,
+			OriginalPrice:    p.OriginalPrice,
+			Currency:         p.Currency,
+			ValidityDays:     p.ValidityDays,
+			ValidityUnit:     p.ValidityUnit,
+			Features:         decoded.Features,
+			ProductName:      p.ProductName,
+			CardTier:         decoded.Card.Tier,
+			CardBadge:        decoded.Card.Badge,
+			CardFeatured:     decoded.Card.Featured,
+			CardFootnote:     decoded.Card.Footnote,
+			SeatLimit:        decoded.Card.SeatLimit,
+			ConcurrencyLimit: decoded.Card.ConcurrencyLimit,
+			PurchasePolicy:   decoded.Card.PurchasePolicy,
+			ForSale:          p.ForSale,
+			SortOrder:        p.SortOrder,
+			CreatedAt:        p.CreatedAt,
+			UpdatedAt:        p.UpdatedAt,
 		})
 	}
 	return result
@@ -409,7 +424,13 @@ func (h *PaymentHandler) CreatePlan(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
-	response.Created(c, plan)
+	groupInfo := h.configService.GetGroupInfoMap(c.Request.Context(), []*dbent.SubscriptionPlan{plan})
+	items := adminSubscriptionPlansForResponse([]*dbent.SubscriptionPlan{plan}, groupInfo)
+	if len(items) == 0 {
+		response.Created(c, plan)
+		return
+	}
+	response.Created(c, items[0])
 }
 
 // UpdatePlan updates an existing subscription plan.
@@ -429,7 +450,13 @@ func (h *PaymentHandler) UpdatePlan(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
-	response.Success(c, plan)
+	groupInfo := h.configService.GetGroupInfoMap(c.Request.Context(), []*dbent.SubscriptionPlan{plan})
+	items := adminSubscriptionPlansForResponse([]*dbent.SubscriptionPlan{plan}, groupInfo)
+	if len(items) == 0 {
+		response.Success(c, plan)
+		return
+	}
+	response.Success(c, items[0])
 }
 
 // DeletePlan deletes a subscription plan.
