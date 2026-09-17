@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	ErrGroupNotFound = infraerrors.NotFound("GROUP_NOT_FOUND", "group not found")
-	ErrGroupExists   = infraerrors.Conflict("GROUP_EXISTS", "group name already exists")
+	ErrGroupNotFound             = infraerrors.NotFound("GROUP_NOT_FOUND", "group not found")
+	ErrGroupExists               = infraerrors.Conflict("GROUP_EXISTS", "group name already exists")
+	ErrGroupHasSubscriptionPlans = infraerrors.Conflict("GROUP_HAS_SUBSCRIPTION_PLANS", "group is referenced by subscription plans; reassign or remove those plans before deleting the group")
 )
 
 type GroupRepository interface {
