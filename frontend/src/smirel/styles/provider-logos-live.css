@@ -102,9 +102,9 @@
 .workspace-root .provider-mini-mark[data-provider="zhipu"],
 .workspace-root .provider-filter button[data-provider="zhipu"]::before { color: #8fc2ff; }
 
-/* "All models" — atomic-orbit mark.
- * Kept as a single monochrome glyph so it aligns visually with provider logos
- * instead of reading like a nested control. */
+/* "All models" — slightly asymmetric atomic-orbit mark.
+ * The orbit angles, radii and nucleus offset are intentionally uneven so the
+ * glyph feels less mechanical while staying calm beside provider logos. */
 .workspace-root .provider-filter button[data-provider="all"]::before {
   width: 19px;
   height: 19px;
@@ -113,8 +113,8 @@
   background: currentColor;
   border-radius: 0;
   box-shadow: none;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='12' rx='9' ry='3.8' fill='none' stroke='black' stroke-width='1.65'/%3E%3Cellipse cx='12' cy='12' rx='9' ry='3.8' transform='rotate(60 12 12)' fill='none' stroke='black' stroke-width='1.65'/%3E%3Cellipse cx='12' cy='12' rx='9' ry='3.8' transform='rotate(120 12 12)' fill='none' stroke='black' stroke-width='1.65'/%3E%3Ccircle cx='12' cy='12' r='2.1' fill='black'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='12' rx='9' ry='3.8' fill='none' stroke='black' stroke-width='1.65'/%3E%3Cellipse cx='12' cy='12' rx='9' ry='3.8' transform='rotate(60 12 12)' fill='none' stroke='black' stroke-width='1.65'/%3E%3Cellipse cx='12' cy='12' rx='9' ry='3.8' transform='rotate(120 12 12)' fill='none' stroke='black' stroke-width='1.65'/%3E%3Ccircle cx='12' cy='12' r='2.1' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='11.65' cy='11.95' rx='8.95' ry='3.35' transform='rotate(7 11.65 11.95)' fill='none' stroke='black' stroke-width='1.55'/%3E%3Cellipse cx='12.25' cy='12.15' rx='8.15' ry='3.05' transform='rotate(65 12.25 12.15)' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cellipse cx='11.8' cy='11.75' rx='8.55' ry='3.7' transform='rotate(126 11.8 11.75)' fill='none' stroke='black' stroke-width='1.55'/%3E%3Ccircle cx='12.8' cy='11.2' r='2.05' fill='black'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='11.65' cy='11.95' rx='8.95' ry='3.35' transform='rotate(7 11.65 11.95)' fill='none' stroke='black' stroke-width='1.55'/%3E%3Cellipse cx='12.25' cy='12.15' rx='8.15' ry='3.05' transform='rotate(65 12.25 12.15)' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cellipse cx='11.8' cy='11.75' rx='8.55' ry='3.7' transform='rotate(126 11.8 11.75)' fill='none' stroke='black' stroke-width='1.55'/%3E%3Ccircle cx='12.8' cy='11.2' r='2.05' fill='black'/%3E%3C/svg%3E");
   -webkit-mask-position: center;
   mask-position: center;
   -webkit-mask-repeat: no-repeat;
