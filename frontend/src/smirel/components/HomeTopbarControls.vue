@@ -737,6 +737,38 @@ onBeforeUnmount(() => {
   }
 }
 
+@media (max-width: 1500px) {
+  .home-workspace-controls {
+    gap: 5px;
+  }
+
+  .home-control-divider {
+    margin-inline: 5px;
+  }
+
+  .home-mode-switch {
+    width: 132px;
+  }
+
+  .home-language-button {
+    min-width: 66px;
+  }
+}
+
+@media (max-width: 1260px) {
+  .home-workspace-link {
+    display: none;
+  }
+
+  .home-control-divider:first-of-type {
+    display: none;
+  }
+
+  .home-mode-switch {
+    width: 124px;
+  }
+}
+
 @media (max-width: 1100px) {
   .home-mode-switch {
     width: 116px;
@@ -748,9 +780,7 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1040px) {
-  .home-workspace-link,
-  .home-mode-switch,
-  .home-control-divider:first-of-type {
+  .home-mode-switch {
     display: none;
   }
 }
