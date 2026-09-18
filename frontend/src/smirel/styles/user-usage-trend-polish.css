@@ -365,3 +365,20 @@ html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-axis
     transition: none;
   }
 }
+
+
+/* Request log endpoint chip — light-mode guard */
+html.smirel-app[data-theme='light'] .user-usage-page .usage-row code,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row code {
+  border-color: #d9e2e9 !important;
+  color: #607180 !important;
+  background: #f3f7f9 !important;
+  box-shadow: none !important;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .usage-row:not(.usage-table-head):hover code,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row:not(.usage-table-head):hover code {
+  border-color: #cbd9e2 !important;
+  color: #486779 !important;
+  background: #eef4f7 !important;
+}
