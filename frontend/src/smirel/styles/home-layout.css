@@ -122,7 +122,10 @@
 
 .home-page .home-topbar--signed-in .home-nav {
   left: 50%;
-  z-index: 1;
+  z-index: 2;
+  height: 42px;
+  align-items: center;
+  white-space: nowrap;
   transform: translate(-50%, -50%);
 }
 
@@ -131,6 +134,8 @@
   z-index: 3;
   width: auto;
   min-width: 0;
+  height: 42px;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
   transform: translateY(-50%);
