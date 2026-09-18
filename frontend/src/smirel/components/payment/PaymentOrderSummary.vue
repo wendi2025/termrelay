@@ -62,54 +62,71 @@ const feeLabel = computed(() => {
 
 <style scoped>
 .payment-order-summary {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(18, 22, 28, 0.85), rgba(12, 16, 22, 0.95));
-  padding: 16px 18px 18px;
+  padding: 18px;
+  border: 1px solid var(--billing-border, rgba(255,255,255,.08));
+  border-radius: 14px;
+  background: var(--billing-surface, rgba(15,18,24,.9));
+  box-shadow: 0 10px 30px rgba(26, 42, 58, .035);
 }
+
 .payment-order-summary header {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 14px;
   margin-bottom: 12px;
 }
+
 .payment-order-summary .eyebrow {
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
+  color: var(--billing-text, rgba(255,255,255,.9));
+  font-size: .76rem;
+  font-weight: 700;
 }
+
 .payment-order-summary header strong {
-  font-size: 0.84rem;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 600;
+  color: var(--billing-text-soft, rgba(255,255,255,.85));
+  font-size: .78rem;
+  font-weight: 650;
 }
+
 .payment-order-summary ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
+
 .payment-order-summary li {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.65);
+  gap: 14px;
+  color: var(--billing-muted, rgba(255,255,255,.65));
+  font-size: .75rem;
 }
+
 .payment-order-summary li strong {
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 560;
+  color: var(--billing-text-soft, rgba(255,255,255,.92));
+  font-weight: 650;
   font-variant-numeric: tabular-nums;
 }
+
 .payment-order-summary li.receive {
-  padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--billing-border, rgba(255,255,255,.06));
 }
-.payment-order-summary li.receive strong {
-  font-size: 0.96rem;
-  color: #79c4f5;
+
+.payment-order-summary li.receive span {
+  color: var(--billing-text-soft, rgba(255,255,255,.72));
   font-weight: 620;
+}
+
+.payment-order-summary li.receive strong {
+  color: var(--billing-accent-strong, #79c4f5);
+  font-size: 1rem;
+  font-weight: 760;
 }
 </style>
