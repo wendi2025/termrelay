@@ -11,43 +11,9 @@
   --home-motion-soft: cubic-bezier(.2, .75, .25, 1);
 }
 
-/* Top bar gets a quiet first-paint entrance. */
-.home-page .home-topbar {
-  animation: home-topbar-enter .72s var(--home-motion-ease) both;
-}
-
-.home-page .brand-link,
-.home-page .home-nav,
-.home-page .home-actions {
-  animation: home-topbar-item-enter .7s var(--home-motion-ease) both;
-}
-
-.home-page .home-nav { animation-delay: 70ms; }
-.home-page .home-actions { animation-delay: 120ms; }
-
-@keyframes home-topbar-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, -12px, 0);
-    backdrop-filter: blur(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-    backdrop-filter: blur(0);
-  }
-}
-
-@keyframes home-topbar-item-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, -7px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
+/* First-paint / hero motion lives in home-entry.css. This file only owns
+ * below-the-fold, viewport-driven reveals. Keeping those responsibilities
+ * separate avoids double transforms when the page first mounts. */
 
 /* Reveal states are activated only once HomePage has mounted. */
 .home-page.home-motion-ready [data-home-reveal] {
