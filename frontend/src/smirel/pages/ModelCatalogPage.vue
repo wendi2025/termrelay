@@ -353,9 +353,20 @@ function protocol(platform: string) {
 }
 
 function providerInfoForGroup(group: PlazaGroup): ProviderInfo {
-  if (String(group.name || '').toLowerCase().startsWith('smirel')) {
-    return { key: 'composite', name: 'Smirel', mark: 'S' }
+  const platform = String(group.platform || '').trim().toLowerCase()
+
+  // Group badges should represent the actual upstream/provider. Previously any
+  // group whose name started with "Smirel" was forced to the generic composite
+  // glyph, which made valid provider logos look like broken dark squares.
+  if (platform && platform !== 'composite') return providerFromPlatform(platform)
+
+  if (platform === 'composite') {
+    const normalizedName = String(group.name || '').trim().toLowerCase()
+    if (normalizedName.includes('composite')) {
+      return { key: 'composite', name: 'Smirel', mark: 'S' }
+    }
   }
+
   const firstModel = group.models?.[0]
   if (firstModel) return family(firstModel.name, [{ group, model: firstModel }])
   return providerFromPlatform(group.platform)
