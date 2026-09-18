@@ -413,9 +413,10 @@ onBeforeUnmount(() => {
       <article class="keys-overview-card keys-overview-card--keys">
         <span class="keys-metric-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
-            <circle cx="8" cy="15.5" r="3.25" />
-            <path d="m10.5 13 7.15-7.15a2.15 2.15 0 0 1 3.04 3.04L13.55 16" />
-            <path d="m15.3 8.2 2.5 2.5M13.1 10.4l2.5 2.5" />
+            <circle cx="7.6" cy="15.7" r="3.15" />
+            <path d="m9.9 13.4 8.35-8.35" />
+            <path d="m15.35 7.95 1.8 1.8" />
+            <path d="m17.45 5.85 1.8 1.8" />
           </svg>
         </span>
         <div class="keys-metric-copy">
@@ -431,8 +432,10 @@ onBeforeUnmount(() => {
       <article class="keys-overview-card keys-overview-card--groups">
         <span class="keys-metric-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
-            <path d="m12 3.8 8 4.2-8 4.2L4 8l8-4.2Z" />
-            <path d="m4 12 8 4.2 8-4.2M4 16l8 4.2 8-4.2" />
+            <rect x="3.75" y="4.5" width="7.25" height="6.25" rx="1.55" />
+            <rect x="13" y="4.5" width="7.25" height="6.25" rx="1.55" />
+            <rect x="8.4" y="13.25" width="7.25" height="6.25" rx="1.55" />
+            <path d="M7.4 10.75v1.25h9.2v-1.25M12 12v1.25" />
           </svg>
         </span>
         <div class="keys-metric-copy">
@@ -448,7 +451,7 @@ onBeforeUnmount(() => {
       <article class="keys-overview-card keys-overview-card--concurrency">
         <span class="keys-metric-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24">
-            <path d="M13.2 2.8 5.8 13h5.55l-.55 8.2L18.2 11h-5.55l.55-8.2Z" />
+            <path d="M3 12h4.1l2.35-5.15 4.15 10.3L16 12h5" />
           </svg>
         </span>
         <div class="keys-metric-copy">
