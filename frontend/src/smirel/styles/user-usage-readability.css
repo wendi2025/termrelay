@@ -217,6 +217,32 @@ html.smirel-app .user-usage-page .distribution-row > small {
   line-height: 1.5;
 }
 
+/* Model mix uses bordered cards instead of divider rows.
+ * Keep the progress rail inset from the card edge and neutralize the generic
+ * distribution-row divider rules above. */
+html.smirel-app .user-usage-page .model-distribution-list {
+  padding: 12px 14px 14px;
+  gap: 9px;
+}
+
+html.smirel-app .user-usage-page .model-distribution-row {
+  padding: 12px 14px 11px;
+  border: 1px solid #202831;
+}
+
+html.smirel-app .user-usage-page .model-distribution-row + .model-distribution-row {
+  border-top: 1px solid #202831;
+}
+
+html.smirel-app .user-usage-page .model-distribution-row:last-child {
+  border-bottom: 1px solid #202831;
+}
+
+html.smirel-app .user-usage-page .model-distribution-track {
+  width: 100%;
+  margin-top: 10px;
+}
+
 html.smirel-app .user-usage-page .usage-profile-list {
   padding: 7px 22px 16px;
 }
