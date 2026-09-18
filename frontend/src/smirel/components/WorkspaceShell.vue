@@ -320,7 +320,7 @@ watch(() => route.fullPath, (fullPath) => {
       <header class="workspace-topbar workspace-topbar--contextual">
         <div class="workspace-topbar-left">
           <button class="mobile-menu" type="button" :aria-label="t('shell.openNav')" @click="mobileOpen = true"><span></span><span></span><span></span></button>
-          <nav class="workspace-breadcrumb" :aria-label="t('shell.currentLocation')">
+          <nav :key="route.path" class="workspace-breadcrumb" :aria-label="t('shell.currentLocation')">
             <span class="workspace-breadcrumb-home" aria-hidden="true">
               <WorkspaceNavIcon name="dashboard" />
             </span>

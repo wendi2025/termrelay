@@ -1,8 +1,7 @@
 /* Workspace breadcrumb polish.
  *
- * Quiet contextual labels + a compact dashboard glyph + a restrained
- * current-page accent. This keeps the top bar polished without looking like
- * another large card inside the header.
+ * Motion is route-driven: one short orientation cue on page changes, then
+ * everything settles. Keep it calm enough for an admin console.
  */
 
 .workspace-root .workspace-main .workspace-breadcrumb {
@@ -13,6 +12,16 @@
   gap: 7px;
   white-space: nowrap;
   line-height: 1;
+  transform-origin: left center;
+  animation: ws-breadcrumb-enter .26s cubic-bezier(.2,.78,.25,1) both;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-home,
+.workspace-root .workspace-main .workspace-breadcrumb-root,
+.workspace-root .workspace-main .workspace-breadcrumb-group,
+.workspace-root .workspace-main .workspace-breadcrumb-separator,
+.workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title {
+  animation: ws-breadcrumb-piece-in .30s cubic-bezier(.2,.78,.25,1) both;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-home {
@@ -28,6 +37,12 @@
   box-shadow:
     0 1px 0 rgba(255,255,255,.035) inset,
     0 4px 12px rgba(0,0,0,.08);
+  animation-delay: .015s;
+  transition:
+    border-color .18s ease,
+    color .18s ease,
+    box-shadow .18s ease,
+    transform .18s cubic-bezier(.2,.78,.25,1);
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-home .workspace-nav-icon {
@@ -36,6 +51,7 @@
   flex-basis: 14px;
   color: currentColor;
   transform: none;
+  transition: transform .22s cubic-bezier(.2,.78,.25,1);
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-root,
@@ -52,11 +68,13 @@
 
 .workspace-root .workspace-main .workspace-breadcrumb-root {
   color: #8f99a3;
+  animation-delay: .045s;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-group {
   color: #9ca5ae;
   font-weight: 580;
+  animation-delay: .085s;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-separator {
@@ -69,6 +87,7 @@
   font-size: 0;
   line-height: 0;
   opacity: .76;
+  animation-delay: .065s;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-separator::before {
@@ -78,6 +97,9 @@
   border-top: 1.5px solid #515b65;
   border-right: 1.5px solid #515b65;
   transform: rotate(45deg);
+  transition:
+    border-color .18s ease,
+    transform .22s cubic-bezier(.2,.78,.25,1);
 }
 
 .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title {
@@ -100,6 +122,12 @@
   font-weight: 690;
   letter-spacing: -.012em;
   text-overflow: ellipsis;
+  animation-name: ws-breadcrumb-title-in;
+  animation-duration: .36s;
+  animation-delay: .11s;
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease;
 }
 
 .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title::before {
@@ -110,6 +138,26 @@
   border-radius: 50%;
   background: #4da7df;
   box-shadow: 0 0 0 3px rgba(77,167,223,.10);
+  animation: ws-breadcrumb-dot-arrive .48s .17s cubic-bezier(.2,.78,.25,1) both;
+}
+
+/* A tiny depth response on hover; no button-like jump because the trail is
+ * informational, not an action. */
+.workspace-root .workspace-main .workspace-breadcrumb:hover .workspace-breadcrumb-home {
+  border-color: #334454;
+  color: #9aafc0;
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.04) inset,
+    0 6px 16px rgba(0,0,0,.10);
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb:hover .workspace-breadcrumb-home .workspace-nav-icon {
+  transform: translateY(-.5px) scale(1.04);
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb:hover .workspace-breadcrumb-separator::before {
+  transform: translateX(1px) rotate(45deg);
 }
 
 /* Light theme */
@@ -146,6 +194,95 @@ html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-t
 html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title::before {
   background: #2f8fce;
   box-shadow: 0 0 0 3px rgba(47,143,206,.09);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-breadcrumb:hover .workspace-breadcrumb-home {
+  border-color: #c8d9e5;
+  color: #42759a;
+  background: linear-gradient(180deg, #ffffff, #eef5f9);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,1) inset,
+    0 5px 13px rgba(35,70,96,.065);
+}
+
+@keyframes ws-breadcrumb-enter {
+  from {
+    opacity: .72;
+    transform: translateX(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ws-breadcrumb-piece-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ws-breadcrumb-title-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-6px) scale(.985);
+  }
+  72% {
+    opacity: 1;
+    transform: translateX(1px) scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes ws-breadcrumb-dot-arrive {
+  0% {
+    opacity: 0;
+    transform: scale(.45);
+    box-shadow: 0 0 0 0 rgba(77,167,223,.24);
+  }
+  58% {
+    opacity: 1;
+    transform: scale(1.12);
+    box-shadow: 0 0 0 5px rgba(77,167,223,.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 3px rgba(77,167,223,.10);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-root .workspace-main .workspace-breadcrumb,
+  .workspace-root .workspace-main .workspace-breadcrumb-home,
+  .workspace-root .workspace-main .workspace-breadcrumb-root,
+  .workspace-root .workspace-main .workspace-breadcrumb-group,
+  .workspace-root .workspace-main .workspace-breadcrumb-separator,
+  .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title,
+  .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title::before {
+    animation: none !important;
+  }
+
+  .workspace-root .workspace-main .workspace-breadcrumb-home,
+  .workspace-root .workspace-main .workspace-breadcrumb-home .workspace-nav-icon,
+  .workspace-root .workspace-main .workspace-breadcrumb-separator::before,
+  .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title {
+    transition: none !important;
+  }
+
+  .workspace-root .workspace-main .workspace-breadcrumb:hover .workspace-breadcrumb-home,
+  .workspace-root .workspace-main .workspace-breadcrumb:hover .workspace-breadcrumb-home .workspace-nav-icon,
+  .workspace-root .workspace-main .workspace-breadcrumb:hover .workspace-breadcrumb-separator::before {
+    transform: none;
+  }
 }
 
 @media (max-width: 980px) {
