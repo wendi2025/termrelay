@@ -1,0 +1,261 @@
+/* Homepage light theme -----------------------------------------------------
+ * The homepage historically shipped as dark-only. Keep the same restrained
+ * product hierarchy, but map the full landing surface onto the workspace light
+ * palette so the theme toggle is continuous across public and app surfaces.
+ */
+
+html.smirel-app[data-theme='light'] .home-page {
+  --bg: #f4f7f9;
+  --surface: #ffffff;
+  --surface-2: #f7fafc;
+  --surface-hover: #f2f6f9;
+  --border: #dce4ea;
+  --border-strong: #c9d4de;
+  --text: #202830;
+  --muted: #667482;
+  --subtle: #87939f;
+  --accent: #268fd8;
+  --accent-hover: #1982cb;
+  --success: #2ea97c;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 74% 12%, rgba(60, 153, 219, .055), transparent 26%),
+    #f4f7f9;
+}
+
+html.smirel-app[data-theme='light'] body {
+  background: #f4f7f9;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-topbar {
+  border-bottom-color: #dfe6ec;
+  background: rgba(250, 252, 253, .96);
+  box-shadow: 0 1px 0 rgba(28, 42, 55, .025);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+}
+
+html.smirel-app[data-theme='light'] .home-page .brand-link strong {
+  color: #222b34;
+}
+
+html.smirel-app[data-theme='light'] .home-page .brand-link small {
+  color: #7d8994;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-nav {
+  color: #6f7b86;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-nav a:hover,
+html.smirel-app[data-theme='light'] .home-page .quiet-link:hover {
+  color: #1f2b35;
+}
+
+html.smirel-app[data-theme='light'] .home-page .quiet-link {
+  color: #687582;
+}
+
+html.smirel-app[data-theme='light'] .home-page .hero-kicker,
+html.smirel-app[data-theme='light'] .home-page .section-heading > span,
+html.smirel-app[data-theme='light'] .home-page .workspace-copy > span,
+html.smirel-app[data-theme='light'] .home-page .closing-section > div > span,
+html.smirel-app[data-theme='light'] .home-page .closing-status {
+  color: #6d7c89;
+}
+
+html.smirel-app[data-theme='light'] .home-page .hero-copy-block h1,
+html.smirel-app[data-theme='light'] .home-page .section-heading h2,
+html.smirel-app[data-theme='light'] .home-page .workspace-copy h2,
+html.smirel-app[data-theme='light'] .home-page .closing-section h2,
+html.smirel-app[data-theme='light'] .home-page .closing-section.closing-cta h2 {
+  color: #202830 !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .hero-copy-block > p,
+html.smirel-app[data-theme='light'] .home-page .section-heading p,
+html.smirel-app[data-theme='light'] .home-page .workspace-copy p,
+html.smirel-app[data-theme='light'] .home-page .closing-copy p {
+  color: #667583 !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .secondary-button {
+  border-color: #d2dce4;
+  color: #42515f;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .home-page .secondary-button:hover {
+  border-color: #bfccd6;
+  color: #202b34;
+  background: #f5f8fa;
+}
+
+html.smirel-app[data-theme='light'] .home-page .hero-trust,
+html.smirel-app[data-theme='light'] .home-page .closing-meta {
+  color: #74818d;
+}
+
+/* Gateway */
+html.smirel-app[data-theme='light'] .home-page .gateway-preview {
+  border-color: #d7e1e9;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdfe 100%);
+  box-shadow:
+    0 18px 50px rgba(37, 56, 72, .08),
+    inset 0 1px 0 rgba(255, 255, 255, .95);
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-preview::after {
+  background: radial-gradient(circle, rgba(36,153,230,.085) 0%, rgba(36,153,230,.025) 42%, transparent 72%);
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-preview-head,
+html.smirel-app[data-theme='light'] .home-page .gateway-endpoint {
+  border-bottom-color: #e3e9ee;
+  background: rgba(247, 250, 252, .66);
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-preview-head span,
+html.smirel-app[data-theme='light'] .home-page .gateway-endpoint-label span,
+html.smirel-app[data-theme='light'] .home-page .gateway-detail > span {
+  color: #71808e;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-preview-head strong,
+html.smirel-app[data-theme='light'] .home-page .gateway-endpoint code,
+html.smirel-app[data-theme='light'] .home-page .gateway-detail strong,
+html.smirel-app[data-theme='light'] .home-page .gateway-models b {
+  color: #27323c;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-key-link {
+  color: #5f6f7d;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-key-link:hover {
+  border-color: #d5e0e8;
+  color: #216c9f;
+  background: #f4f8fb;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-endpoint-label button {
+  color: #71808e;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-endpoint-label button:hover {
+  color: #2b516c;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-detail {
+  border-bottom-color: #e7ecf0;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-detail::before {
+  border-color: #b9c8d3;
+  background: #f5f8fa;
+  box-shadow: none;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-models b + b::before {
+  color: #a4b0ba;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-preview-foot {
+  border-top-color: #e2e8ed;
+  background: #f7fafc;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-preview-foot a {
+  color: #687784;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-preview-foot a::before {
+  background: #aab7c1;
+}
+
+html.smirel-app[data-theme='light'] .home-page .gateway-preview-foot a:hover {
+  color: #1e6798;
+}
+
+/* Workspace navigation section */
+html.smirel-app[data-theme='light'] .home-page .workspace-section {
+  border-color: #dde5eb;
+}
+
+html.smirel-app[data-theme='light'] .home-page .workspace-links {
+  border-color: #d8e1e8 !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 34px rgba(36, 52, 66, .055);
+}
+
+html.smirel-app[data-theme='light'] .home-page .workspace-links a {
+  border-right-color: #dfe6ec !important;
+  background: transparent !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .workspace-links a:hover {
+  background: #f7fafc !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .workspace-links span {
+  color: #758493 !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .workspace-links strong {
+  color: #28333d !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .workspace-links p {
+  color: #6b7986 !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .workspace-links b {
+  border-color: #d3dde5 !important;
+  color: #678093 !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .workspace-links a:hover b {
+  border-color: #bfd1de !important;
+  color: #2a75a6 !important;
+}
+
+/* Closing surface */
+html.smirel-app[data-theme='light'] .home-page .closing-cta {
+  border-color: #d8e2e9 !important;
+  background:
+    radial-gradient(circle at 86% 0%, rgba(48, 145, 211, .055), transparent 34%),
+    #ffffff !important;
+  box-shadow: 0 14px 36px rgba(35, 51, 64, .055);
+}
+
+html.smirel-app[data-theme='light'] .home-page .closing-meta span {
+  color: #70808d;
+}
+
+html.smirel-app[data-theme='light'] .home-page .closing-primary {
+  color: #fff;
+  background: #268fd8;
+}
+
+html.smirel-app[data-theme='light'] .home-page .closing-secondary {
+  border-color: #d0dae2;
+  color: #4e5d69;
+  background: #f8fafc;
+}
+
+html.smirel-app[data-theme='light'] .home-page .closing-secondary:hover {
+  color: #26333d;
+  background: #f2f6f9;
+}
+
+/* Footer */
+html.smirel-app[data-theme='light'] .home-page .home-footer {
+  border-top-color: #dde5eb;
+  color: #84909a;
+}
+
+@media (max-width: 720px) {
+  html.smirel-app[data-theme='light'] .home-page .home-topbar {
+    background: rgba(250, 252, 253, .985);
+  }
+}
