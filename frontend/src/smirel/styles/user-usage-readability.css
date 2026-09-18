@@ -511,7 +511,7 @@ html.smirel-app .user-usage-page .summary-icon {
     0 7px 18px rgba(0, 0, 0, .06);
 }
 
-html.smirel-app .user-usage-page .summary-icon :deep(.workspace-nav-icon) {
+html.smirel-app .user-usage-page .summary-icon .workspace-nav-icon {
   width: 18px;
   height: 18px;
 }
