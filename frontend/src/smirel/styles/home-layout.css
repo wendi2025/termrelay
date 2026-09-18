@@ -101,6 +101,23 @@
   font-size: .79rem;
 }
 
+.home-page .home-topbar--signed-in {
+  grid-template-columns: minmax(176px, auto) minmax(0, 1fr);
+  column-gap: clamp(20px, 2.6vw, 44px);
+}
+
+.home-page .home-topbar--signed-in .home-actions {
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.home-page .home-topbar--signed-in .brand-link {
+  flex: 0 0 auto;
+}
+
 .home-page .service-state,
 .home-page .hero-trust span:first-child,
 .home-page .route-board-head small {
@@ -704,6 +721,10 @@
   .home-page .home-topbar {
     grid-template-columns: 1fr auto;
     padding: 0 20px;
+  }
+
+  .home-page .home-topbar--signed-in {
+    grid-template-columns: minmax(150px, auto) minmax(0, 1fr);
   }
 
   .home-page .home-nav,
