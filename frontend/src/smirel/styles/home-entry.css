@@ -73,16 +73,33 @@
   animation: homeTopbarRule 880ms 120ms cubic-bezier(.16, 1, .3, 1) both;
 }
 
-.home-page .home-topbar .brand-link {
+.home-page .home-topbar:not(.home-topbar--signed-in) .brand-link {
   animation: homeEntryDown 520ms 45ms cubic-bezier(.16, 1, .3, 1) both;
 }
 
-.home-page .home-nav {
+.home-page .home-topbar:not(.home-topbar--signed-in) .home-nav {
   animation: homeEntryDown 520ms 90ms cubic-bezier(.16, 1, .3, 1) both;
 }
 
-.home-page .home-actions {
+.home-page .home-topbar:not(.home-topbar--signed-in) .home-actions {
   animation: homeEntryDown 520ms 135ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+/* Signed-in header items are vertically/centrally positioned with transform
+ * in home-layout.css. A transform animation with fill-mode "both" overwrote
+ * translateY(-50%) / translate(-50%, -50%) after load, which is why the whole
+ * toolbar appeared to sag downward. Fade these elements without touching
+ * transform so their layout transforms remain authoritative. */
+.home-page .home-topbar--signed-in .brand-link {
+  animation: homeSignedTopbarFade 520ms 45ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.home-page .home-topbar--signed-in .home-nav {
+  animation: homeSignedTopbarFade 520ms 90ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.home-page .home-topbar--signed-in .home-actions {
+  animation: homeSignedTopbarFade 520ms 135ms cubic-bezier(.16, 1, .3, 1) both;
 }
 
 .home-page .hero-kicker {
@@ -204,6 +221,11 @@
 @keyframes homeEntryDown {
   from { opacity: 0; transform: translate3d(0, -8px, 0); filter: blur(3px); }
   to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
+}
+
+@keyframes homeSignedTopbarFade {
+  from { opacity: 0; filter: blur(3px); }
+  to { opacity: 1; filter: blur(0); }
 }
 
 @keyframes homeEntryUp {
