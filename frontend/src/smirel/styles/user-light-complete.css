@@ -784,9 +784,14 @@ html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
 }
 
-html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='openai'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='openai'] {
+  color: #3f4d59;
+}
+
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='openai']::before {
   color: #3f4d59;
+  background: currentColor;
+  opacity: 1;
 }
 
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='anthropic'],
@@ -799,9 +804,14 @@ html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider
   color: #4d7fc3;
 }
 
-html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='xai'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='xai'] {
+  color: #3f4952;
+}
+
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='xai']::before {
   color: #3f4952;
+  background: currentColor;
+  opacity: 1;
 }
 
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='deepseek'],
@@ -824,33 +834,19 @@ html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider
   color: #3f769f;
 }
 
-/* Dedicated collection icons need a light-theme drawing rather than the dark
- * canvas used by the workspace theme. */
+/* Keep the collection mark as a plain glyph in light mode. No nested dark
+ * tile: the surrounding filter button already provides the container. */
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='all']::before {
-  color: transparent;
-  background:
-    linear-gradient(#5f83a8 0 0) 2px 2px / 5px 5px no-repeat,
-    linear-gradient(#7fa6ca 0 0) 11px 2px / 5px 5px no-repeat,
-    linear-gradient(#7fa6ca 0 0) 2px 11px / 5px 5px no-repeat,
-    linear-gradient(#446d96 0 0) 11px 11px / 5px 5px no-repeat,
-    linear-gradient(180deg, #f8fbfe, #e6f0f7);
-  box-shadow:
-    inset 0 0 0 1px #bdd0df,
-    0 1px 0 rgba(255, 255, 255, .78);
-  -webkit-mask-image: none;
-  mask-image: none;
+  color: #6e8ead;
+  background: currentColor;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='all'].active::before {
-  background:
-    linear-gradient(#3979ad 0 0) 2px 2px / 5px 5px no-repeat,
-    linear-gradient(#62a0d2 0 0) 11px 2px / 5px 5px no-repeat,
-    linear-gradient(#62a0d2 0 0) 2px 11px / 5px 5px no-repeat,
-    linear-gradient(#2f6d9f 0 0) 11px 11px / 5px 5px no-repeat,
-    linear-gradient(180deg, #eef7fe, #dcecf9);
-  box-shadow:
-    inset 0 0 0 1px #a8c8e0,
-    0 1px 0 rgba(255, 255, 255, .82);
+  color: #3f83bb;
+  background: currentColor;
+  box-shadow: none;
 }
 
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .group-all-icon {
