@@ -89,7 +89,7 @@ async function copyBase() {
         <span><strong>Smirel</strong><small>API SERVICE</small></span>
       </RouterLink>
 
-      <nav v-if="!isAuthenticated" class="home-nav">
+      <nav class="home-nav">
         <RouterLink to="/model-plaza">模型与价格</RouterLink>
         <RouterLink to="/key-usage">用量查询</RouterLink>
         <a href="https://api.smirel.com" target="_blank" rel="noreferrer">接入文档</a>
