@@ -8,6 +8,7 @@ import '../styles/home-gateway.css'
 import '../styles/home-light.css'
 import '../styles/home-entry.css'
 import '../styles/home-motion.css'
+import '../styles/home-button-motion.css'
 
 const { isAuthenticated, isAdmin } = useSession()
 const copied = ref(false)
