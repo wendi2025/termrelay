@@ -560,7 +560,7 @@ html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-di
   }
 }
 
-@media (max-width: 1500px) {
+@media (max-width: 1750px) {
   .home-account-menu--toolbar .home-account-trigger {
     min-width: 42px;
     width: 42px;
