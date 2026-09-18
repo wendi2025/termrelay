@@ -1,68 +1,340 @@
-/* API key overview readability pass.
+/* API key overview — product metric cards.
  *
- * Root cause: the three-column summary already has enough physical space, but its
- * 11px-ish labels, 21px values and detached helper text compress the information
- * hierarchy. Keep the existing data and structure; only give the summary a more
- * deliberate SaaS metric scale and tighter value/helper relationship.
+ * Keep the overview compact, but give each metric a clear visual anchor.
+ * The three cards intentionally use restrained blue / green / amber accents
+ * so the row scans quickly without turning into a marketing dashboard.
  */
 
 .workspace-root .api-keys-page .keys-overview {
   margin-bottom: 22px;
-  border-color: #2a3038;
-  border-radius: 12px;
-  background: #0f1115;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.workspace-root .api-keys-page .keys-overview article {
-  min-height: 112px;
-  padding: 21px 26px 22px;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto 1fr;
-  column-gap: 13px;
-  row-gap: 12px;
-  align-items: end;
+.workspace-root .api-keys-page .keys-overview .keys-overview-card {
+  --metric-accent: #63aef0;
+  --metric-accent-rgb: 99, 174, 240;
+
+  min-width: 0;
+  min-height: 124px;
+  padding: 22px 24px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #2a3038;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(var(--metric-accent-rgb), .07), transparent 38%),
+    linear-gradient(155deg, #111419, #0f1115);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .018),
+    0 9px 26px rgba(0, 0, 0, .08);
+  transition:
+    border-color .18s ease,
+    background-color .18s ease,
+    box-shadow .18s ease,
+    transform .18s cubic-bezier(.2, .75, .25, 1);
 }
 
-.workspace-root .api-keys-page .keys-overview article + article {
-  border-color: #292f36;
+.workspace-root .api-keys-page .keys-overview .keys-overview-card + .keys-overview-card {
+  border-left: 1px solid #2a3038;
 }
 
-.workspace-root .api-keys-page .keys-overview span {
-  grid-column: 1 / -1;
+.workspace-root .api-keys-page .keys-overview .keys-overview-card:hover {
+  border-color: rgba(var(--metric-accent-rgb), .34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .025),
+    0 13px 32px rgba(0, 0, 0, .12);
+  transform: translateY(-1px);
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-overview-card--groups {
+  --metric-accent: #58c99a;
+  --metric-accent-rgb: 88, 201, 154;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-overview-card--concurrency {
+  --metric-accent: #eea255;
+  --metric-accent-rgb: 238, 162, 85;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(var(--metric-accent-rgb), .17);
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: var(--metric-accent);
+  background: rgba(var(--metric-accent-rgb), .08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025);
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-icon svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-overview-card--concurrency .keys-metric-icon svg {
+  fill: currentColor;
+  stroke: none;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-copy {
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-label {
+  grid-column: auto;
   color: #89939f;
-  font-size: .82rem;
+  font-size: .79rem;
   font-weight: 650;
   line-height: 1.25;
-  letter-spacing: .01em;
+  letter-spacing: .012em;
 }
 
-.workspace-root .api-keys-page .keys-overview strong {
-  align-self: end;
-  color: #f4f6f8;
-  font-size: 2.02rem;
-  font-weight: 700;
-  line-height: .96;
-  letter-spacing: -.045em;
+.workspace-root .api-keys-page .keys-overview .keys-metric-value-row {
+  min-width: 0;
+  margin-top: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
 }
 
-.workspace-root .api-keys-page .keys-overview small {
-  align-self: end;
-  justify-self: start;
+.workspace-root .api-keys-page .keys-overview .keys-metric-value-row > strong {
+  align-self: auto;
+  color: #f5f7f9;
+  font-size: 2.22rem;
+  font-weight: 720;
+  line-height: .9;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-secondary {
+  align-self: auto;
+  justify-self: auto;
   margin: 0 0 2px;
-  color: #74808d;
+  color: #76818d;
   font-size: .78rem;
-  font-weight: 650;
+  font-weight: 680;
   line-height: 1;
-  letter-spacing: .045em;
+  letter-spacing: .035em;
 }
 
-@media (max-width: 640px) {
-  .workspace-root .api-keys-page .keys-overview article {
-    min-height: 102px;
-    padding: 19px 21px 20px;
+.workspace-root .api-keys-page .keys-overview .keys-metric-rate {
+  color: #7f8b96;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-status {
+  min-height: 25px;
+  margin: 0 0 1px;
+  padding: 0 9px;
+  border: 1px solid rgba(71, 204, 146, .17);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #68d7a9;
+  background: rgba(71, 204, 146, .075);
+  font-size: .66rem;
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: .055em;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ed39e;
+  box-shadow: 0 0 0 4px rgba(78, 211, 158, .07);
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-decoration {
+  position: absolute;
+  z-index: 1;
+  right: 14px;
+  bottom: 10px;
+  pointer-events: none;
+  opacity: .42;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-decoration--key {
+  width: 76px;
+  height: 76px;
+  right: -14px;
+  bottom: -28px;
+  border: 13px solid rgba(var(--metric-accent-rgb), .045);
+  border-radius: 50%;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-decoration--layers {
+  width: 78px;
+  height: 48px;
+  right: 9px;
+  bottom: 15px;
+  border-radius: 50%;
+  background:
+    linear-gradient(145deg, transparent 45%, rgba(var(--metric-accent-rgb), .075) 46% 59%, transparent 60%),
+    linear-gradient(145deg, transparent 58%, rgba(var(--metric-accent-rgb), .045) 59% 70%, transparent 71%);
+  transform: skewY(-3deg);
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-decoration--signal {
+  width: 54px;
+  height: 43px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-decoration--signal i {
+  width: 8px;
+  border-radius: 999px;
+  background: rgba(var(--metric-accent-rgb), .12);
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-decoration--signal i:nth-child(1) {
+  height: 17px;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-decoration--signal i:nth-child(2) {
+  height: 27px;
+}
+
+.workspace-root .api-keys-page .keys-overview .keys-metric-decoration--signal i:nth-child(3) {
+  height: 39px;
+}
+
+/* Light theme ------------------------------------------------------------ */
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-overview-card {
+  border-color: #dce3e9;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(var(--metric-accent-rgb), .075), transparent 39%),
+    linear-gradient(155deg, #ffffff, #fbfcfd);
+  box-shadow:
+    0 1px 2px rgba(26, 35, 44, .025),
+    0 9px 24px rgba(40, 57, 73, .045);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-overview-card + .keys-overview-card {
+  border-left-color: #dce3e9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-overview-card:hover {
+  border-color: rgba(var(--metric-accent-rgb), .4);
+  box-shadow:
+    0 1px 2px rgba(26, 35, 44, .02),
+    0 13px 30px rgba(40, 57, 73, .07);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-icon {
+  border-color: rgba(var(--metric-accent-rgb), .16);
+  color: var(--metric-accent);
+  background: rgba(var(--metric-accent-rgb), .09);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-label {
+  color: #667482;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-value-row > strong {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-secondary {
+  color: #748291;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-status {
+  border-color: #cdebdc;
+  color: #16845f;
+  background: #edf9f3;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-status i {
+  background: #20b77e;
+  box-shadow: 0 0 0 4px rgba(32, 183, 126, .08);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-decoration--signal i {
+  background: rgba(var(--metric-accent-rgb), .12);
+}
+
+/* Responsive ------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .workspace-root .api-keys-page .keys-overview {
+    gap: 10px;
   }
 
-  .workspace-root .api-keys-page .keys-overview strong {
-    font-size: 1.9rem;
+  .workspace-root .api-keys-page .keys-overview .keys-overview-card {
+    min-height: 116px;
+    padding: 19px 20px;
+    gap: 14px;
+  }
+
+  .workspace-root .api-keys-page .keys-overview .keys-metric-icon {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+  }
+
+  .workspace-root .api-keys-page .keys-overview .keys-metric-value-row > strong {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .workspace-root .api-keys-page .keys-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-root .api-keys-page .keys-overview .keys-overview-card {
+    min-height: 100px;
+  }
+
+  .workspace-root .api-keys-page .keys-overview .keys-metric-decoration {
+    right: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-root .api-keys-page .keys-overview .keys-overview-card {
+    transition: none;
+  }
+
+  .workspace-root .api-keys-page .keys-overview .keys-overview-card:hover {
+    transform: none;
   }
 }
