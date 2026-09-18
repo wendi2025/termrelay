@@ -459,21 +459,30 @@ onMounted(() => void load())
         </div>
       </article>
 
-      <article class="analytics-panel distribution-panel">
+      <article class="analytics-panel distribution-panel model-distribution-panel">
         <header class="panel-heading">
           <div>
             <small>MODEL MIX</small>
             <h2>模型分布</h2>
           </div>
-          <span class="panel-caption">{{ metric === 'tokens' ? '按 Token' : '按费用' }}</span>
+          <span class="panel-caption model-distribution-caption">{{ metric === 'tokens' ? '按 Token' : '按费用' }}</span>
         </header>
-        <div v-if="modelBreakdown.length" class="distribution-list">
-          <div v-for="(item, index) in modelBreakdown" :key="item.label" class="distribution-row">
+        <div v-if="modelBreakdown.length" class="distribution-list model-distribution-list">
+          <div
+            v-for="(item, index) in modelBreakdown"
+            :key="item.label"
+            class="distribution-row model-distribution-row"
+          >
             <div class="distribution-head">
-              <span><i>{{ String(index + 1).padStart(2, '0') }}</i><strong>{{ item.label }}</strong></span>
-              <b>{{ item.percent }}%</b>
+              <span>
+                <i class="distribution-rank">{{ String(index + 1).padStart(2, '0') }}</i>
+                <strong>{{ item.label }}</strong>
+              </span>
+              <b class="distribution-share">{{ item.percent }}%</b>
             </div>
-            <div class="distribution-track"><i :style="{ width: `${item.percent}%` }"></i></div>
+            <div class="distribution-track model-distribution-track">
+              <i :style="{ width: `${item.percent}%` }"></i>
+            </div>
             <small>{{ metric === 'tokens' ? `${compact(item.tokens)} Tokens` : money(item.cost) }} · {{ item.requests }} 次</small>
           </div>
         </div>
@@ -855,6 +864,174 @@ onMounted(() => void load())
 .distribution-track { margin-top: 8px; height: 4px; border-radius: 99px; overflow: hidden; background: #1c2025; }
 .distribution-track i { display: block; height: 100%; border-radius: inherit; background: #626c76; }
 .distribution-row > small { margin-top: 6px; display: block; color: #5f6872; font-size: .6rem; }
+
+/* Model distribution card ------------------------------------------------ */
+.model-distribution-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 94% -8%, rgba(89, 160, 211, .075), transparent 34%),
+    #0e1013;
+}
+
+.model-distribution-panel::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0 56px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(103, 184, 238, .34), transparent);
+  pointer-events: none;
+}
+
+.model-distribution-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.model-distribution-panel .panel-heading {
+  min-height: 82px;
+  padding: 18px 20px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .018), transparent);
+}
+
+.model-distribution-panel .panel-heading small {
+  margin-bottom: 7px;
+  color: #72808d;
+  letter-spacing: .15em;
+}
+
+.model-distribution-panel .panel-heading h2 {
+  font-size: 1.08rem;
+  font-weight: 690;
+  letter-spacing: -.025em;
+}
+
+.model-distribution-caption {
+  min-height: 29px;
+  padding: 0 11px;
+  border: 1px solid #2a323b;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  color: #93a2af;
+  background: rgba(255, 255, 255, .025);
+  font-size: .66rem;
+  font-weight: 650;
+}
+
+.model-distribution-list {
+  padding: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.model-distribution-row {
+  position: relative;
+  padding: 12px 11px 11px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  transition:
+    transform .18s cubic-bezier(.2, .75, .25, 1),
+    border-color .18s ease,
+    background-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.model-distribution-row:hover {
+  border-color: #252e37;
+  background: rgba(255, 255, 255, .022);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .11);
+  transform: translateY(-1px);
+}
+
+.model-distribution-row + .model-distribution-row {
+  border-top-color: transparent;
+}
+
+.model-distribution-row .distribution-head > span {
+  gap: 10px;
+}
+
+.model-distribution-row .distribution-rank {
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+  border: 1px solid #2a333d;
+  border-radius: 8px;
+  display: inline-grid;
+  place-items: center;
+  color: #7f8c99;
+  background: #13171c;
+  font: 680 .6rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-style: normal;
+  letter-spacing: .025em;
+}
+
+.model-distribution-row .distribution-head strong {
+  color: #d8dde2;
+  font-size: .76rem;
+  font-weight: 640;
+}
+
+.model-distribution-row .distribution-share {
+  min-width: 49px;
+  min-height: 27px;
+  padding: 0 9px;
+  border: 1px solid #2e3d49;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #b9d8ec;
+  background: rgba(63, 139, 191, .09);
+  font-size: .68rem;
+  font-weight: 690;
+  font-variant-numeric: tabular-nums;
+}
+
+.model-distribution-track {
+  height: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+  background: #1d232a;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .22);
+}
+
+.model-distribution-track i {
+  position: relative;
+  background: linear-gradient(90deg, #738797 0%, #8fa6b8 58%, #7bb4da 100%);
+  box-shadow: 0 0 12px rgba(91, 155, 198, .15);
+  transform-origin: left center;
+  animation: model-distribution-grow .5s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.model-distribution-row:nth-child(2) .model-distribution-track i { animation-delay: .035s; }
+.model-distribution-row:nth-child(3) .model-distribution-track i { animation-delay: .07s; }
+.model-distribution-row:nth-child(4) .model-distribution-track i { animation-delay: .105s; }
+.model-distribution-row:nth-child(5) .model-distribution-track i { animation-delay: .14s; }
+.model-distribution-row:nth-child(6) .model-distribution-track i { animation-delay: .175s; }
+
+.model-distribution-row > small {
+  margin-top: 8px;
+  color: #75818d;
+  font-size: .63rem;
+  line-height: 1.45;
+}
+
+@keyframes model-distribution-grow {
+  from {
+    opacity: .28;
+    transform: scaleX(.08);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
 .endpoint-panel { min-height: 285px; }
 .endpoint-list { padding-top: 6px; }
 
@@ -938,6 +1115,12 @@ onMounted(() => void load())
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .model-distribution-row,
+  .model-distribution-track i {
+    animation: none;
+    transition: none;
+  }
+
   .period-switch::before,
   .period-switch button,
   .custom-range-enter-active,
