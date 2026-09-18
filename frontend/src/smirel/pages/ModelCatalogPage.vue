@@ -770,36 +770,28 @@ onMounted(() => void loadCatalog())
 .group-filter-list button.active > b,
 .group-filter-list button.active > em { color: #b8c0c9; }
 .group-all-icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  border-radius: 6px;
-  background:
-    radial-gradient(circle at 4px 4px, #7d9dc0 0 2px, transparent 2.25px),
-    radial-gradient(circle at 14px 4px, #9dbadd 0 2px, transparent 2.25px),
-    radial-gradient(circle at 9px 14px, #5e82aa 0 2.25px, transparent 2.5px),
-    linear-gradient(#9ab4cd 0 0) 5px 5px / 8px 1.5px no-repeat,
-    linear-gradient(#9ab4cd 0 0) 7px 8px / 1.5px 4px no-repeat,
-    linear-gradient(#9ab4cd 0 0) 11px 8px / 1.5px 4px no-repeat,
-    linear-gradient(180deg, #1f252c, #12161b);
-  box-shadow:
-    inset 0 0 0 1px #38434d,
-    0 1px 1px rgba(0, 0, 0, .18);
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  color: #7898b8;
+  background: currentColor;
+  border-radius: 0;
+  box-shadow: none;
   opacity: 1;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.8 4.2 16.1 12 21.2l7.8-5.1L12 2.8zm0 2.9 5.3 9.1-5.3 3.4-5.3-3.4L12 5.7zm-5.2 10.7 4.2 2.7v-1.6l-3.4-2.2-.8 1.1zm10.4 0-.8-1.1-3.4 2.2v1.6l4.2-2.7z'/%3E%3Cpath d='M12 4.2v14.5M5.6 15.4h12.8' fill='none' stroke='black' stroke-width='1.35' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.8 4.2 16.1 12 21.2l7.8-5.1L12 2.8zm0 2.9 5.3 9.1-5.3 3.4-5.3-3.4L12 5.7zm-5.2 10.7 4.2 2.7v-1.6l-3.4-2.2-.8 1.1zm10.4 0-.8-1.1-3.4 2.2v1.6l4.2-2.7z'/%3E%3Cpath d='M12 4.2v14.5M5.6 15.4h12.8' fill='none' stroke='black' stroke-width='1.35' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 
 .group-filter-list button.active .group-all-icon {
-  background:
-    radial-gradient(circle at 4px 4px, #8fc3f3 0 2px, transparent 2.25px),
-    radial-gradient(circle at 14px 4px, #71a8dc 0 2px, transparent 2.25px),
-    radial-gradient(circle at 9px 14px, #4d86bd 0 2.25px, transparent 2.5px),
-    linear-gradient(#a7cbee 0 0) 5px 5px / 8px 1.5px no-repeat,
-    linear-gradient(#a7cbee 0 0) 7px 8px / 1.5px 4px no-repeat,
-    linear-gradient(#a7cbee 0 0) 11px 8px / 1.5px 4px no-repeat,
-    linear-gradient(180deg, #24313e, #17202a);
-  box-shadow:
-    inset 0 0 0 1px #4f7aa0,
-    0 1px 1px rgba(0, 0, 0, .16);
+  color: #4a88bb;
+  background: currentColor;
+  box-shadow: none;
 }
 
 .group-selection-summary {
