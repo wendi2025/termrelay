@@ -35,6 +35,78 @@ html.smirel-app[data-theme='light'] .home-page .home-topbar {
   -webkit-backdrop-filter: blur(18px) saturate(115%);
 }
 
+/* Signed-in homepage toolbar: mirror the workspace light controls. */
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls {
+  --home-toolbar-surface: #ffffff;
+  --home-toolbar-soft: #f5f8fa;
+  --home-toolbar-border: #d8e1e9;
+  --home-toolbar-border-strong: #c7d2dc;
+  --home-toolbar-text: #2b3540;
+  --home-toolbar-muted: #6b7885;
+  --home-toolbar-subtle: #7e8b97;
+  --home-toolbar-accent: #268fd8;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-workspace-link {
+  color: #697784;
+  background: transparent;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-workspace-link:hover {
+  border-color: #d7e0e7;
+  color: #26323c;
+  background: #f5f8fa;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-mode-switch {
+  border-color: #d5dee6 !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(32, 47, 60, .04) !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-mode-indicator {
+  border-color: #c8ddeb !important;
+  background: #eaf4fb !important;
+  box-shadow: 0 3px 10px rgba(42, 79, 107, .08) !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-mode-switch button {
+  color: #7a8793;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-mode-switch button.active {
+  color: #155f97;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-utility-button {
+  border-color: #d6dfe7 !important;
+  color: #687684 !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(32, 47, 60, .035) !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-utility-button:hover,
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-utility-button.active {
+  border-color: #c8d5df !important;
+  color: #2d3b47 !important;
+  background: #f4f8fb !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-control-divider {
+  background: #d4dde5 !important;
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-utility-popover {
+  border-color: #d2dce4;
+  color: #2b3540;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(35, 47, 59, .14);
+}
+
+html.smirel-app[data-theme='light'] .home-page .home-workspace-controls .home-notification-badge {
+  border-color: #f8fafc;
+}
+
 html.smirel-app[data-theme='light'] .home-page .brand-link strong {
   color: #222b34;
 }
