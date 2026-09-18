@@ -724,16 +724,16 @@ onBeforeUnmount(() => {
 
 @media (max-width: 1750px) {
   .home-workspace-link {
-    width: 38px;
-    padding: 0;
+    display: none;
   }
 
-  .home-workspace-link > span {
+  .home-control-divider:first-of-type {
     display: none;
   }
 
   .home-mode-switch {
     width: 148px;
+    margin-left: 0;
   }
 }
 
@@ -756,14 +756,6 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1260px) {
-  .home-workspace-link {
-    display: none;
-  }
-
-  .home-control-divider:first-of-type {
-    display: none;
-  }
-
   .home-mode-switch {
     width: 124px;
   }
