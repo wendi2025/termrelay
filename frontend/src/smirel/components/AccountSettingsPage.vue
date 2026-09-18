@@ -369,9 +369,9 @@ onMounted(() => void loadProfile())
             <span class="account-status-badge"><i></i>{{ statusLabel }}</span>
           </div>
           <p>{{ displayProfile.email || '—' }}</p>
-          <div class="account-tags">
-            <span>{{ roleLabel }}</span>
-            <span>#{{ displayProfile.id || '—' }}</span>
+          <div class="account-meta-row">
+            <span class="account-role-badge">{{ roleLabel }}</span>
+            <span class="account-user-id">用户 #{{ displayProfile.id || '—' }}</span>
           </div>
         </div>
       </div>
@@ -629,12 +629,12 @@ onMounted(() => void loadProfile())
 }
 
 .account-hero {
-  min-height: 156px;
-  padding: 24px 26px;
+  min-height: 136px;
+  padding: 20px 24px;
   border-radius: 12px;
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) minmax(520px, 1.3fr);
-  gap: 28px;
+  grid-template-columns: minmax(320px, .92fr) minmax(540px, 1.08fr);
+  gap: clamp(28px, 4vw, 64px);
   align-items: center;
 }
 
@@ -642,7 +642,7 @@ onMounted(() => void loadProfile())
   display: flex;
   align-items: center;
   min-width: 0;
-  gap: 18px;
+  gap: 16px;
 }
 
 .account-avatar-wrap {
@@ -662,10 +662,10 @@ onMounted(() => void loadProfile())
 }
 
 .account-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-  font-size: 1.3rem;
+  width: 68px;
+  height: 68px;
+  border-radius: 15px;
+  font-size: 1.22rem;
 }
 
 .account-avatar img,
@@ -679,8 +679,8 @@ onMounted(() => void loadProfile())
   position: absolute;
   right: -2px;
   bottom: -2px;
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   border: 3px solid #11161c;
   border-radius: 50%;
   background: #43c487;
@@ -694,28 +694,29 @@ onMounted(() => void loadProfile())
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 9px;
 }
 
 .account-title-row h2 {
   margin: 0;
   color: var(--account-text);
-  font-size: 1.26rem;
-  line-height: 1.25;
-  font-weight: 690;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -.018em;
 }
 
 .account-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 25px;
+  min-height: 24px;
   padding: 0 9px;
   border: 1px solid rgba(67, 196, 135, .24);
   border-radius: 999px;
   background: rgba(67, 196, 135, .08);
   color: #78dca6;
-  font-size: .72rem;
+  font-size: .7rem;
   font-weight: 650;
 }
 
@@ -727,56 +728,79 @@ onMounted(() => void loadProfile())
 }
 
 .account-identity-copy > p {
-  margin: 7px 0 0;
+  margin: 5px 0 0;
   overflow: hidden;
   color: var(--account-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: .82rem;
+  font-size: .8rem;
+  line-height: 1.35;
 }
 
-.account-tags {
+.account-meta-row {
   display: flex;
-  gap: 7px;
-  margin-top: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 10px;
 }
 
-.account-tags span {
-  padding: 4px 8px;
+.account-role-badge {
+  min-height: 24px;
+  padding: 0 8px;
   border: 1px solid var(--account-border);
-  border-radius: 5px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, .018);
   color: #8f99a5;
-  font-size: .68rem;
-  font-weight: 640;
-  letter-spacing: .02em;
+  display: inline-flex;
+  align-items: center;
+  font-size: .69rem;
+  font-weight: 650;
+  letter-spacing: .01em;
+}
+
+.account-user-id {
+  color: var(--account-subtle);
+  font-size: .7rem;
+  font-weight: 560;
 }
 
 .account-metrics {
+  width: min(100%, 760px);
   margin: 0;
+  justify-self: end;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
 }
 
 .account-metrics > div {
   min-width: 0;
-  padding: 4px 22px;
+  padding: 2px 20px;
   border-left: 1px solid var(--account-border);
 }
 
 .account-metrics dt {
   color: var(--account-subtle);
-  font-size: .71rem;
+  font-size: .72rem;
+  font-weight: 560;
+  line-height: 1.3;
 }
 
 .account-metrics dd {
-  margin: 8px 0 0;
+  margin: 7px 0 0;
   overflow: hidden;
   color: #dce3ea;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: .86rem;
-  font-weight: 620;
+  font-size: .92rem;
+  line-height: 1.35;
+  font-weight: 640;
+  letter-spacing: -.01em;
+}
+
+.account-metrics > div:first-child dd {
+  font-size: 1rem;
+  font-weight: 680;
 }
 
 .account-loading {
@@ -1444,6 +1468,11 @@ onMounted(() => void loadProfile())
   .account-hero {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+
+  .account-metrics {
+    width: 100%;
+    justify-self: stretch;
   }
 
   .account-metrics > div:first-child {
