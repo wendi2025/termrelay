@@ -1,65 +1,167 @@
-/* Refine the workspace location breadcrumb into a quieter, more compact control. */
+/* Workspace breadcrumb polish.
+ *
+ * Keep location context compact, but give it enough hierarchy to feel like a
+ * deliberate product control rather than a row of plain labels.
+ */
+
 .workspace-root .workspace-main .workspace-breadcrumb {
-  min-height: 32px;
+  min-height: 36px;
+  padding: 3px 5px 3px 6px;
   gap: 8px;
+  border: 1px solid rgba(255, 255, 255, .035);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .018), rgba(255, 255, 255, .006));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .018) inset;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-root,
 .workspace-root .workspace-main .workspace-breadcrumb-group {
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  color: #707985;
-  font-size: .72rem;
+  color: #7a8490;
+  font-size: .73rem;
   line-height: 1;
   font-weight: 620;
-  letter-spacing: .006em;
+  letter-spacing: .002em;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-root {
+  gap: 8px;
+  padding: 0 7px 0 5px;
+  border-radius: 7px;
+  color: #89939e;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-root::before {
   content: '';
-  width: 5px;
-  height: 5px;
-  flex: 0 0 5px;
-  border-radius: 2px;
-  background: #4e5b68;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, .025);
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border: 1px solid #536170;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #455461, #2d3741);
+  box-shadow:
+    0 0 0 3px rgba(84, 111, 132, .08),
+    0 1px 0 rgba(255, 255, 255, .08) inset;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-group {
-  color: #8a929d;
+  color: #929ba5;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-separator {
   width: 12px;
-  height: 12px;
-  margin: 0;
+  height: 18px;
+  margin: 0 1px;
   display: inline-grid;
   place-items: center;
   color: transparent;
   font-size: 0;
   line-height: 0;
+  opacity: .86;
 }
 
 .workspace-root .workspace-main .workspace-breadcrumb-separator::before {
   content: '';
   width: 5px;
   height: 5px;
-  border-top: 1px solid #424a54;
-  border-right: 1px solid #424a54;
+  border-top: 1.5px solid #4a535e;
+  border-right: 1.5px solid #4a535e;
   transform: rotate(45deg);
 }
 
 .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title {
-  color: #e4e8ed;
+  position: relative;
+  min-height: 28px;
+  padding: 0 10px 0 13px;
+  display: inline-flex;
+  align-items: center;
+  overflow: visible;
+  border: 1px solid #26313c;
+  border-radius: 7px;
+  color: #eef2f6;
+  background: linear-gradient(180deg, rgba(33, 45, 57, .74), rgba(20, 28, 36, .72));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, .025) inset,
+    0 5px 16px rgba(0, 0, 0, .08);
   font-size: .86rem;
   line-height: 1;
-  font-weight: 650;
+  font-weight: 680;
   letter-spacing: -.012em;
+  text-overflow: ellipsis;
+}
+
+.workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #67b9ee, #2f96e8);
+  box-shadow: 0 0 8px rgba(47, 150, 232, .22);
+}
+
+/* Light mode needs its own material treatment instead of inheriting the dark
+ * translucent breadcrumb surface. */
+html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-breadcrumb {
+  border-color: #e2e7ec;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(248, 250, 252, .96));
+  box-shadow:
+    0 1px 2px rgba(30, 42, 54, .035),
+    0 1px 0 rgba(255, 255, 255, .9) inset;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-breadcrumb-root {
+  color: #63707d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-breadcrumb-root::before {
+  border-color: #9db5c8;
+  background: linear-gradient(135deg, #8ebde0, #5a98c8);
+  box-shadow:
+    0 0 0 3px rgba(54, 132, 191, .08),
+    0 1px 0 rgba(255, 255, 255, .4) inset;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-breadcrumb-group {
+  color: #7d8894;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-breadcrumb-separator::before {
+  border-color: #a7b0ba;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title {
+  border-color: #d8e5ef;
+  color: #202831;
+  background: linear-gradient(180deg, #f7fbfe, #eff6fb);
+  box-shadow:
+    0 1px 2px rgba(31, 57, 78, .035),
+    0 1px 0 rgba(255, 255, 255, .9) inset;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title::before {
+  background: linear-gradient(180deg, #55abe4, #2588ca);
+  box-shadow: 0 0 8px rgba(37, 136, 202, .18);
 }
 
 @media (max-width: 980px) {
+  .workspace-root .workspace-main .workspace-breadcrumb {
+    min-height: 34px;
+    padding: 2px 4px;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+
   .workspace-root .workspace-main .workspace-breadcrumb-root::before {
     display: none;
+  }
+
+  .workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title {
+    min-height: 30px;
   }
 }
