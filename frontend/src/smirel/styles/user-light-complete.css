@@ -188,6 +188,56 @@ html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .metric-swi
   box-shadow: inset 0 0 0 1px #d9e0e6;
 }
 
+/* Usage range selector: use a single animated thumb instead of repainting the
+ * active button. This keeps the six options visually stable while the selected
+ * state glides between ranges. */
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch {
+  --period-shell: #ffffff;
+  --period-border: #d8e1e9;
+  --period-thumb-bg: linear-gradient(180deg, #f4f9fd 0%, #edf5fb 100%);
+  --period-thumb-border: #ccdeeb;
+  --period-thumb-shadow: 0 4px 12px rgba(42, 83, 114, .10), inset 0 1px rgba(255, 255, 255, .92);
+  --period-text: #637180;
+  --period-hover: #324b60;
+  --period-active: #155e98;
+  --period-focus: rgba(24, 119, 201, .16);
+
+  border-color: var(--period-border);
+  background: var(--period-shell);
+  box-shadow:
+    0 7px 20px rgba(29, 46, 61, .065),
+    inset 0 1px rgba(255, 255, 255, .9);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 4px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(241, 246, 250, .16));
+  pointer-events: none;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch::before {
+  z-index: 1;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch button {
+  z-index: 2;
+  color: var(--period-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch button:hover:not(.active) {
+  color: var(--period-hover);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch button.active {
+  color: var(--period-active);
+  background: transparent;
+  box-shadow: none;
+}
+
 html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-refresh:hover:not(:disabled) {
   border-color: #c9d1d9;
   color: #20262d;
