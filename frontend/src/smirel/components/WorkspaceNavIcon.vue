@@ -139,6 +139,37 @@ defineProps<{ name: string }>()
       <path d="M7 20.66V19a5 5 0 0 1 10 0v1.66" />
     </template>
 
+    <template v-else-if="name === 'gift'">
+      <rect x="3" y="8" width="18" height="13" rx="2" />
+      <path d="M12 8v13" />
+      <path d="M3 12h18" />
+      <path d="M7.5 8C5.6 8 4.5 7 4.5 5.7S5.5 3.5 6.8 3.5C9 3.5 12 8 12 8" />
+      <path d="M16.5 8c1.9 0 3-1 3-2.3s-1-2.2-2.3-2.2C15 3.5 12 8 12 8" />
+    </template>
+
+    <template v-else-if="name === 'user-cog'">
+      <circle cx="9" cy="8" r="4" />
+      <path d="M2.5 20a6.5 6.5 0 0 1 11.2-4.5" />
+      <circle cx="18" cy="17" r="2.5" />
+      <path d="M18 12.8v1.1M18 20.1v1.1M13.8 17h1.1M21.1 17h1.1M15 14l.8.8M20.2 19.2l.8.8M21 14l-.8.8M15.8 19.2l-.8.8" />
+    </template>
+
+    <template v-else-if="name === 'bell'">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+      <path d="M10 21h4" />
+    </template>
+
+    <template v-else-if="name === 'lifebuoy'">
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="m5.6 5.6 3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9" />
+    </template>
+
+    <template v-else-if="name === 'message-circle'">
+      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 9.5 9.5 0 0 1-4-.9L3 21l1.7-4.4A8.5 8.5 0 1 1 21 11.5Z" />
+      <path d="M8 12h.01M12 12h.01M16 12h.01" />
+    </template>
+
     <template v-else-if="name === 'arrow-up-right'">
       <path d="M7 17 17 7" />
       <path d="M9 7h8v8" />
@@ -150,6 +181,9 @@ defineProps<{ name: string }>()
 
 <style>
 .workspace-sidebar .workspace-nav .workspace-nav-icon {
-  display: none;
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
 }
 </style>
