@@ -1131,3 +1131,47 @@ html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-footer
 html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-footer span:first-child {
   color: #657481;
 }
+
+
+/* -------------------------------------------------------------------------
+ * Model marketplace monochrome logo hardening
+ *
+ * OpenAI and Grok/xAI are monochrome SVG masks. Older provider styles set a
+ * near-white background directly on these pseudo-elements, which can win in
+ * the compiled cascade and make the marks nearly disappear on light surfaces.
+ * Use an explicit background color on the mask itself with final-pass
+ * specificity so the result is deterministic in the Pages build.
+ * ------------------------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='openai']::before {
+  width: 18px !important;
+  height: 18px !important;
+  flex-basis: 18px !important;
+  color: #3b4854 !important;
+  background: #3b4854 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-mask-size: 18px 18px !important;
+  mask-size: 18px 18px !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='xai']::before {
+  width: 18px !important;
+  height: 18px !important;
+  flex-basis: 18px !important;
+  color: #404b55 !important;
+  background: #404b55 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-mask-size: 18px 18px !important;
+  mask-size: 18px 18px !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='openai'].active::before {
+  color: #245f8e !important;
+  background: #245f8e !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='xai'].active::before {
+  color: #2f3942 !important;
+  background: #2f3942 !important;
+}
