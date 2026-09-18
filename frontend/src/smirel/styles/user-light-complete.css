@@ -743,6 +743,55 @@ html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider
   background: #f6f7f8;
 }
 
+/* Provider badges in the group selector are small logo canvases, not dark
+ * status tiles. Keep them light in light mode and preserve enough contrast for
+ * monochrome SVG masks. */
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark {
+  border-color: #dbe2e8;
+  background: #f5f8fa;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='openai'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='openai']::before {
+  color: #52616d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='anthropic'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='anthropic']::before {
+  color: #c46f49;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='google'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='google']::before {
+  color: #5d8fd4;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='xai'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='xai']::before {
+  color: #505962;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='deepseek'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='deepseek']::before {
+  color: #5e8fe2;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='qwen'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='qwen']::before {
+  color: #7e6ee6;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='moonshot'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='moonshot']::before {
+  color: #6d80e8;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mini-mark[data-provider='composite'],
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button[data-provider='composite']::before {
+  color: #4d86b4;
+}
+
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-price-grid > div,
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-specs > div + div,
 html.smirel-app[data-theme='light'] .workspace-root .model-market-page .protocol-list,
