@@ -285,6 +285,7 @@ watch(() => route.fullPath, (fullPath) => {
 
 watch(() => route.path, () => {
   workspaceMain.value?.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 })
 </script>
 
@@ -725,9 +726,11 @@ watch(() => route.path, () => {
 }
 
 .workspace-topbar.workspace-topbar--contextual {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 35;
+  left: var(--workspace-sidebar-width, 232px);
+  right: 0;
+  z-index: 45;
   height: 64px;
   padding: 0 28px 0 34px;
   border-bottom: 1px solid #20232a;
@@ -1265,7 +1268,7 @@ watch(() => route.path, () => {
 }
 
 .workspace-canvas {
-  padding-top: 28px;
+  padding-top: 92px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1323,6 +1326,10 @@ watch(() => route.path, () => {
 
 @media (max-width: 980px) {
   .workspace-topbar.workspace-topbar--contextual {
+    position: sticky;
+    top: 0;
+    left: auto;
+    right: auto;
     height: 56px;
     padding: 0 14px;
   }
