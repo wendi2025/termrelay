@@ -208,10 +208,10 @@ func (s *PaymentConfigService) CreatePlan(ctx context.Context, req CreatePlanReq
 	if err != nil {
 		return nil, err
 	}
-	if err := validatePlanCardConfig(maxInt(req.SeatLimit, 1), maxInt(req.ConcurrencyLimit, 5), req.PurchasePolicy); err != nil {
+	if err := validatePlanCardConfig(planPositiveInt(req.SeatLimit, 1), planPositiveInt(req.ConcurrencyLimit, 5), req.PurchasePolicy); err != nil {
 		return nil, err
 	}
-	features := EncodePlanFeatures(req.Features, PlanCardConfig{Tier: req.CardTier, Badge: req.CardBadge, Featured: req.CardFeatured, Footnote: req.CardFootnote, SeatLimit: maxInt(req.SeatLimit, 1), ConcurrencyLimit: maxInt(req.ConcurrencyLimit, 5), PurchasePolicy: normalizePurchasePolicy(req.PurchasePolicy)})
+	features := EncodePlanFeatures(req.Features, PlanCardConfig{Tier: req.CardTier, Badge: req.CardBadge, Featured: req.CardFeatured, Footnote: req.CardFootnote, SeatLimit: planPositiveInt(req.SeatLimit, 1), ConcurrencyLimit: planPositiveInt(req.ConcurrencyLimit, 5), PurchasePolicy: normalizePurchasePolicy(req.PurchasePolicy)})
 	b := s.entClient.SubscriptionPlan.Create().
 		SetGroupID(req.GroupID).SetName(req.Name).SetDescription(req.Description).
 		SetPrice(req.Price).SetCurrency(currency).SetValidityDays(req.ValidityDays).SetValidityUnit(req.ValidityUnit).
@@ -325,7 +325,7 @@ func (s *PaymentConfigService) UpdatePlan(ctx context.Context, id int64, req Upd
 	return u.Save(ctx)
 }
 
-func maxInt(value, fallback int) int {
+func planPositiveInt(value, fallback int) int {
 	if value < 1 {
 		return fallback
 	}
