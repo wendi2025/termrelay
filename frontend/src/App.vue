@@ -13,7 +13,9 @@ const useWorkspace = computed(() => route.meta.shell === 'workspace')
     <template v-if="useWorkspace">
       <WorkspaceShell>
         <Transition name="workspace-route" mode="out-in">
-          <component :is="Component" :key="route.path" />
+          <div :key="route.path" class="workspace-route-stage">
+            <component :is="Component" />
+          </div>
         </Transition>
       </WorkspaceShell>
       <Teleport to=".workspace-topbar-actions">
