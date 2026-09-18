@@ -328,13 +328,13 @@ onMounted(() => void load())
         <p>查看 API 请求、Token 与费用趋势，了解主要模型和 Endpoint 的消耗情况。</p>
       </div>
       <div class="usage-heading-actions">
-        <div class="period-switch" aria-label="统计范围">
-          <button :class="{ active: period === 'today' }" type="button" @click="selectPeriod('today')">今日</button>
-          <button :class="{ active: period === '7d' }" type="button" @click="selectPeriod('7d')">7 天</button>
-          <button :class="{ active: period === '30d' }" type="button" @click="selectPeriod('30d')">30 天</button>
-          <button :class="{ active: period === '90d' }" type="button" @click="selectPeriod('90d')">90 天</button>
-          <button :class="{ active: period === 'custom' }" type="button" @click="selectPeriod('custom')">自定义</button>
-          <button :class="{ active: period === 'all' }" type="button" @click="selectPeriod('all')">全部</button>
+        <div class="period-switch" :data-period="period" aria-label="统计范围">
+          <button :class="{ active: period === 'today' }" :aria-pressed="period === 'today'" type="button" @click="selectPeriod('today')">今日</button>
+          <button :class="{ active: period === '7d' }" :aria-pressed="period === '7d'" type="button" @click="selectPeriod('7d')">7 天</button>
+          <button :class="{ active: period === '30d' }" :aria-pressed="period === '30d'" type="button" @click="selectPeriod('30d')">30 天</button>
+          <button :class="{ active: period === '90d' }" :aria-pressed="period === '90d'" type="button" @click="selectPeriod('90d')">90 天</button>
+          <button :class="{ active: period === 'custom' }" :aria-pressed="period === 'custom'" type="button" @click="selectPeriod('custom')">自定义</button>
+          <button :class="{ active: period === 'all' }" :aria-pressed="period === 'all'" type="button" @click="selectPeriod('all')">全部</button>
         </div>
         <button class="usage-refresh" type="button" :disabled="loading" aria-label="刷新数据" @click="load">
           <WorkspaceNavIcon name="refresh" />
@@ -342,18 +342,20 @@ onMounted(() => void load())
       </div>
     </header>
 
-    <div v-if="period === 'custom'" class="custom-range-row">
-      <span>自定义时间</span>
-      <label>
-        <small>开始</small>
-        <input v-model="customStart" type="date" :max="customEnd || undefined" />
-      </label>
-      <i>—</i>
-      <label>
-        <small>结束</small>
-        <input v-model="customEnd" type="date" :min="customStart || undefined" />
-      </label>
-    </div>
+    <Transition name="custom-range">
+      <div v-if="period === 'custom'" class="custom-range-row">
+        <span>自定义时间</span>
+        <label>
+          <small>开始</small>
+          <input v-model="customStart" type="date" :max="customEnd || undefined" />
+        </label>
+        <i>—</i>
+        <label>
+          <small>结束</small>
+          <input v-model="customEnd" type="date" :min="customStart || undefined" />
+        </label>
+      </div>
+    </Transition>
 
     <p v-if="error" class="inline-error">{{ error }}</p>
 
@@ -583,7 +585,102 @@ onMounted(() => void load())
 .usage-heading p { margin: 10px 0 0; color: #7b838d; font-size: .88rem; line-height: 1.65; }
 .usage-heading-actions { display: flex; align-items: center; gap: 9px; }
 
-.period-switch,
+.period-switch {
+  --period-index: 1;
+  --period-shell: #0c0f13;
+  --period-border: #29313a;
+  --period-thumb-bg: #18212a;
+  --period-thumb-border: #344351;
+  --period-thumb-shadow: 0 5px 14px rgba(0, 0, 0, .28), inset 0 1px rgba(255, 255, 255, .035);
+  --period-text: #77838f;
+  --period-hover: #c6cfd8;
+  --period-active: #a9d9f8;
+  --period-focus: rgba(72, 169, 232, .18);
+
+  position: relative;
+  isolation: isolate;
+  min-width: 454px;
+  height: 46px;
+  padding: 4px;
+  border: 1px solid var(--period-border);
+  border-radius: 13px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: stretch;
+  overflow: hidden;
+  background: var(--period-shell);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .018);
+}
+
+.period-switch[data-period='today'] { --period-index: 0; }
+.period-switch[data-period='7d'] { --period-index: 1; }
+.period-switch[data-period='30d'] { --period-index: 2; }
+.period-switch[data-period='90d'] { --period-index: 3; }
+.period-switch[data-period='custom'] { --period-index: 4; }
+.period-switch[data-period='all'] { --period-index: 5; }
+
+.period-switch::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 6);
+  border: 1px solid var(--period-thumb-border);
+  border-radius: 9px;
+  background: var(--period-thumb-bg);
+  box-shadow: var(--period-thumb-shadow);
+  transform: translateX(calc(var(--period-index) * 100%));
+  transition:
+    transform .34s cubic-bezier(.22, 1, .36, 1),
+    background-color .2s ease,
+    border-color .2s ease,
+    box-shadow .2s ease;
+  pointer-events: none;
+}
+
+.period-switch button {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--period-text);
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-size: .77rem;
+  font-weight: 650;
+  letter-spacing: .005em;
+  cursor: pointer;
+  transition:
+    color .2s ease,
+    transform .16s cubic-bezier(.2, .75, .25, 1);
+}
+
+.period-switch button:hover:not(.active) {
+  color: var(--period-hover);
+}
+
+.period-switch button.active {
+  color: var(--period-active);
+  background: transparent;
+  box-shadow: none;
+  transform: translateY(-.5px);
+}
+
+.period-switch button:active {
+  transform: scale(.965);
+}
+
+.period-switch button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--period-focus);
+}
+
 .metric-switch {
   padding: 3px;
   border: 1px solid #272b31;
@@ -592,8 +689,7 @@ onMounted(() => void load())
   align-items: center;
   background: #0f1114;
 }
-.period-switch { flex-wrap: wrap; justify-content: flex-end; }
-.period-switch button,
+
 .metric-switch button {
   min-height: 33px;
   padding: 0 13px;
@@ -605,8 +701,12 @@ onMounted(() => void load())
   font-size: .72rem;
   cursor: pointer;
 }
-.period-switch button.active,
-.metric-switch button.active { color: #eef0f2; background: #202329; box-shadow: inset 0 1px rgba(255,255,255,.04); }
+
+.metric-switch button.active {
+  color: #eef0f2;
+  background: #202329;
+  box-shadow: inset 0 1px rgba(255,255,255,.04);
+}
 
 .custom-range-row {
   min-height: 54px;
@@ -634,6 +734,36 @@ onMounted(() => void load())
   background: #111317;
   font: inherit;
   font-size: .68rem;
+}
+
+.custom-range-enter-active,
+.custom-range-leave-active {
+  overflow: hidden;
+  transition:
+    opacity .2s ease,
+    transform .28s cubic-bezier(.22, 1, .36, 1),
+    max-height .28s cubic-bezier(.22, 1, .36, 1),
+    margin .28s cubic-bezier(.22, 1, .36, 1),
+    padding .28s cubic-bezier(.22, 1, .36, 1);
+}
+
+.custom-range-enter-from,
+.custom-range-leave-to {
+  min-height: 0;
+  max-height: 0;
+  margin-top: -14px;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  transform: translateY(-8px) scale(.992);
+}
+
+.custom-range-enter-to,
+.custom-range-leave-from {
+  max-height: 140px;
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .usage-refresh { width: 41px; height: 41px; flex: 0 0 41px; border: 1px solid #272b31; border-radius: 9px; display: grid; place-items: center; color: #8c949e; background: #0f1114; cursor: pointer; }
@@ -776,9 +906,9 @@ onMounted(() => void load())
 
 @media (max-width: 760px) {
   .usage-heading { min-height: auto; padding-top: 16px; }
-  .usage-heading-actions { align-items: stretch; }
-  .period-switch { overflow-x: auto; flex-wrap: nowrap; }
-  .period-switch button { flex: 0 0 auto; padding: 0 10px; }
+  .usage-heading-actions { align-items: stretch; overflow-x: auto; padding-bottom: 2px; }
+  .period-switch { min-width: 420px; flex: 1 0 420px; }
+  .period-switch button { padding: 0 8px; font-size: .73rem; }
   .usage-heading h1 { font-size: 1.9rem; }
   .custom-range-row { margin-top: -8px; align-items: stretch; flex-wrap: wrap; justify-content: flex-start; }
   .custom-range-row > span { width: 100%; margin: 0; }
@@ -799,4 +929,14 @@ onMounted(() => void load())
   .usage-profile-list dd { text-align: left; }
   .log-footer { align-items: flex-start; flex-direction: column; justify-content: center; padding: 10px 20px; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .period-switch::before,
+  .period-switch button,
+  .custom-range-enter-active,
+  .custom-range-leave-active {
+    transition: none;
+  }
+}
+
 </style>
