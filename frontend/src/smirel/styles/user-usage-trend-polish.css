@@ -152,26 +152,40 @@ html.smirel-app .workspace-root .user-usage-page .trend-line {
   filter: drop-shadow(0 2px 5px rgba(60, 149, 207, .18));
 }
 
-html.smirel-app .workspace-root .user-usage-page .trend-point circle {
-  fill: #0f1419;
-  stroke: #69b0df;
-  stroke-width: 2.05;
-  opacity: 1;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .24));
-  transition:
-    r .15s cubic-bezier(.2, .7, .2, 1),
-    fill .15s ease,
-    stroke .15s ease,
-    filter .15s ease;
+html.smirel-app .workspace-root .user-usage-page .trend-point-layer {
+  position: absolute;
+  z-index: 2;
+  inset: 23px 26px 42px;
+  pointer-events: none;
 }
 
-html.smirel-app .workspace-root .user-usage-page .trend-point:hover circle {
-  r: 7px;
-  fill: #58a6da;
-  stroke: #dff3ff;
-  filter:
-    drop-shadow(0 0 0 rgba(0, 0, 0, 0))
-    drop-shadow(0 0 6px rgba(80, 169, 224, .5));
+html.smirel-app .workspace-root .user-usage-page .trend-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #0f1419;
+  border-radius: 50%;
+  background: #63addd;
+  box-shadow:
+    0 0 0 1px rgba(99, 173, 221, .28),
+    0 2px 5px rgba(0, 0, 0, .22);
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: crosshair;
+  transition:
+    width .15s cubic-bezier(.2, .7, .2, 1),
+    height .15s cubic-bezier(.2, .7, .2, 1),
+    background-color .15s ease,
+    box-shadow .15s ease;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-dot:hover {
+  width: 10px;
+  height: 10px;
+  background: #83c6ee;
+  box-shadow:
+    0 0 0 2px rgba(102, 181, 229, .18),
+    0 0 10px rgba(80, 169, 224, .28);
 }
 
 html.smirel-app .workspace-root .user-usage-page .trend-axis {
@@ -270,19 +284,19 @@ html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-line
   filter: drop-shadow(0 2px 4px rgba(55, 122, 166, .12));
 }
 
-html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-point circle {
-  fill: #ffffff;
-  stroke: #547f9e;
-  stroke-width: 2.1;
-  filter: drop-shadow(0 2px 4px rgba(41, 75, 98, .12));
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-dot {
+  border-color: #ffffff;
+  background: #4f84a8;
+  box-shadow:
+    0 0 0 1px rgba(75, 118, 148, .34),
+    0 2px 5px rgba(41, 75, 98, .12);
 }
 
-html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-point:hover circle {
-  fill: #4c87b0;
-  stroke: #ffffff;
-  filter:
-    drop-shadow(0 0 0 rgba(0, 0, 0, 0))
-    drop-shadow(0 0 6px rgba(76, 135, 176, .34));
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-dot:hover {
+  background: #39779f;
+  box-shadow:
+    0 0 0 2px rgba(76, 135, 176, .12),
+    0 3px 9px rgba(41, 75, 98, .18);
 }
 
 html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-axis small {
@@ -323,8 +337,14 @@ html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-axis
     inset: 23px 14px 45px;
   }
 
-  html.smirel-app .workspace-root .user-usage-page .trend-line-svg {
+  html.smirel-app .workspace-root .user-usage-page .trend-line-svg,
+  html.smirel-app .workspace-root .user-usage-page .trend-point-layer {
     inset: 17px 14px 37px;
+    width: auto;
+    height: auto;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-line-svg {
     width: calc(100% - 28px);
     height: calc(100% - 54px);
   }
@@ -341,7 +361,7 @@ html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-axis
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html.smirel-app .workspace-root .user-usage-page .trend-point circle {
+  html.smirel-app .workspace-root .user-usage-page .trend-dot {
     transition: none;
   }
 }

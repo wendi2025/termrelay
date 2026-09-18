@@ -436,12 +436,19 @@ onMounted(() => void load())
             </defs>
             <path v-if="trendAreaPath" class="trend-area" :d="trendAreaPath" />
             <path v-if="trendLinePath" class="trend-line" :d="trendLinePath" />
-            <g v-for="point in trendPoints" :key="point.fullLabel" class="trend-point">
-              <circle :cx="point.x" :cy="point.y" r="6">
-                <title>{{ point.fullLabel }} · {{ trendValue(point) }} · {{ point.requests }} 次请求</title>
-              </circle>
-            </g>
           </svg>
+          <div class="trend-point-layer" aria-hidden="true">
+            <span
+              v-for="point in trendPoints"
+              :key="`dot-${point.fullLabel}`"
+              class="trend-dot"
+              :style="{
+                left: `${(point.x / chartWidth) * 100}%`,
+                top: `${(point.y / 190) * 100}%`,
+              }"
+              :title="`${point.fullLabel} · ${trendValue(point)} · ${point.requests} 次请求`"
+            ></span>
+          </div>
           <div class="trend-axis" :style="{ gridTemplateColumns: `repeat(${Math.max(trendData.length, 1)}, minmax(0, 1fr))` }">
             <small
               v-for="item in trendData"
