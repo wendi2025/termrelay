@@ -290,7 +290,7 @@ watch(() => route.fullPath, (fullPath) => {
       <div class="workspace-brand-row">
         <RouterLink to="/home" class="brand-link" @click="mobileOpen = false">
           <img :src="logoUrl" alt="Smirel" />
-          <span><strong>Smirel</strong><small>API SERVICE</small></span>
+          <span class="workspace-brand-copy"><strong>Smirel</strong><small>API SERVICE</small></span>
         </RouterLink>
         <button class="mobile-close" type="button" :aria-label="t('shell.closeNav')" @click="mobileOpen = false">×</button>
       </div>
@@ -521,10 +521,82 @@ watch(() => route.fullPath, (fullPath) => {
 </template>
 
 <style scoped>
+.workspace-brand-row {
+  height: 66px;
+  padding: 0 3px 14px;
+}
+
+.workspace-brand-row .brand-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 50px;
+  padding: 0 9px;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition:
+    background-color .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.workspace-brand-row .brand-link:hover {
+  border-color: var(--ws-border);
+  background: var(--ws-surface-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .018);
+}
+
+.workspace-brand-row .brand-link:focus-visible {
+  outline: none;
+  border-color: #3b759f;
+  box-shadow: 0 0 0 3px rgba(47, 150, 232, .10);
+}
+
 .workspace-brand-row .brand-link img {
-  width: 76px;
+  width: 82px;
   height: auto;
+  max-height: 34px;
+  flex: 0 0 82px;
   object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(47, 150, 232, .10));
+}
+
+.workspace-brand-copy {
+  position: relative;
+  min-width: 0;
+  padding-left: 13px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.workspace-brand-copy::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--ws-border);
+  transform: translateY(-50%);
+}
+
+.workspace-brand-copy strong {
+  color: var(--ws-text);
+  font-size: .98rem;
+  line-height: 1;
+  font-weight: 720;
+  letter-spacing: -.025em;
+}
+
+.workspace-brand-copy small {
+  color: var(--ws-subtle);
+  font-size: .55rem;
+  line-height: 1;
+  font-weight: 720;
+  letter-spacing: .18em;
 }
 
 .workspace-nav a {
