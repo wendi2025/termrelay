@@ -306,6 +306,80 @@ html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .distributi
   background: #7f8d99;
 }
 
+/* Model distribution card */
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-panel {
+  border-color: #dce4eb;
+  background:
+    radial-gradient(circle at 94% -8%, rgba(57, 143, 207, .07), transparent 34%),
+    #ffffff;
+  box-shadow:
+    0 10px 28px rgba(35, 49, 63, .055),
+    0 1px 2px rgba(35, 49, 63, .035);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-panel::before {
+  background: linear-gradient(90deg, transparent, rgba(52, 145, 210, .34), transparent);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-panel .panel-heading {
+  border-bottom-color: #e4e9ee;
+  background: linear-gradient(180deg, rgba(52, 145, 210, .018), transparent);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-panel .panel-heading small {
+  color: #6f8090;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-panel .panel-heading h2 {
+  color: #232a31;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-caption {
+  border-color: #d9e3ea;
+  color: #627485;
+  background: #f7fafc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-row {
+  border-bottom-color: transparent;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-row:hover {
+  border-color: #dce4eb;
+  background: #f8fbfd;
+  box-shadow: 0 7px 18px rgba(39, 57, 73, .055);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-row .distribution-rank {
+  border-color: #dbe4eb;
+  color: #718191;
+  background: #f4f7fa;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-row .distribution-head strong {
+  color: #2b333b;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-row .distribution-share {
+  border-color: #cfe1ee;
+  color: #236e9f;
+  background: #f0f7fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-track {
+  background: #e8edf2;
+  box-shadow: inset 0 1px 2px rgba(41, 57, 72, .06);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-track i {
+  background: linear-gradient(90deg, #7c8f9f 0%, #93a9ba 58%, #72acd2 100%);
+  box-shadow: 0 2px 8px rgba(83, 137, 176, .12);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .model-distribution-row > small {
+  color: #70808f;
+}
+
 /* -------------------------------------------------------------------------
  * Billing / subscriptions
  * ------------------------------------------------------------------------- */
