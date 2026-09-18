@@ -102,31 +102,38 @@
 }
 
 .home-page .home-topbar--signed-in {
-  display: flex;
-  grid-template-columns: none;
-  align-items: center;
-  column-gap: 18px;
+  display: block;
+  overflow: visible;
+}
+
+.home-page .home-topbar--signed-in .brand-link,
+.home-page .home-topbar--signed-in .home-nav,
+.home-page .home-topbar--signed-in .home-actions {
+  position: absolute;
+  top: 50%;
+  margin: 0;
 }
 
 .home-page .home-topbar--signed-in .brand-link {
-  flex: 0 0 auto;
+  left: clamp(24px, 3vw, 56px);
+  z-index: 3;
+  transform: translateY(-50%);
 }
 
 .home-page .home-topbar--signed-in .home-nav {
-  position: absolute;
   left: 50%;
-  top: 50%;
   z-index: 1;
   transform: translate(-50%, -50%);
 }
 
 .home-page .home-topbar--signed-in .home-actions {
+  right: clamp(24px, 3vw, 56px);
+  z-index: 3;
   width: auto;
   min-width: 0;
-  margin-left: auto;
-  justify-self: auto;
   justify-content: flex-end;
   gap: 8px;
+  transform: translateY(-50%);
 }
 
 .home-page .service-state,
@@ -735,8 +742,15 @@
   }
 
   .home-page .home-topbar--signed-in {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: block;
+  }
+
+  .home-page .home-topbar--signed-in .brand-link {
+    left: 20px;
+  }
+
+  .home-page .home-topbar--signed-in .home-actions {
+    right: 20px;
   }
 
   .home-page .home-topbar--signed-in .home-nav {
