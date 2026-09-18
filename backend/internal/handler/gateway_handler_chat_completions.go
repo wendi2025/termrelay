@@ -157,12 +157,39 @@ func (h *GatewayHandler) ChatCompletions(c *gin.Context) {
 	if groupPlatform == service.PlatformGemini && selectionSessionHash != "" {
 		selectionSessionHash = "gemini:" + selectionSessionHash
 	}
-
-	// 3. Account selection + failover loop
 	fs := NewFailoverState(h.maxAccountSwitches, false)
 	if groupPlatform == service.PlatformGemini {
 		fs = NewFailoverState(h.maxAccountSwitchesGemini, false)
 	}
+	var terminalAccount *service.Account
+	terminalCompleted := false
+	defer func() {
+		if terminalCompleted || terminalAccount == nil {
+			return
+		}
+		status, errorType := "failed", "upstream_exhausted"
+		if c.Request.Context().Err() != nil {
+			status, errorType = "canceled", "client_canceled"
+		}
+		h.gatewayService.RecordTerminalUsage(c.Request.Context(), &service.TerminalUsageInput{
+			APIKey:             apiKey,
+			User:               apiKey.User,
+			Account:            terminalAccount,
+			Model:              reqModel,
+			RequestedModel:     reqModel,
+			InboundEndpoint:    GetInboundEndpoint(c),
+			UpstreamEndpoint:   GetUpstreamEndpoint(c, terminalAccount.Platform),
+			RequestPayloadHash: service.HashUsageRequestPayload(body),
+			DurationMs:         int(time.Since(requestStart).Milliseconds()),
+			RetryCount:         fs.SwitchCount,
+			Stream:             reqStream,
+			Status:             status,
+			ErrorType:          errorType,
+			ChannelUsageFields: clientRequestedUsageFields(c, channelMapping, reqModel, ""),
+		})
+	}()
+
+	// 3. Account selection + failover loop
 
 	for {
 		if c.Request.Context().Err() != nil {
@@ -199,6 +226,7 @@ func (h *GatewayHandler) ChatCompletions(c *gin.Context) {
 			}
 		}
 		account := selection.Account
+		terminalAccount = account
 		setOpsSelectedAccount(c, account.ID, account.Platform)
 
 		// 4. Acquire account concurrency slot
@@ -264,15 +292,29 @@ func (h *GatewayHandler) ChatCompletions(c *gin.Context) {
 			result, err = h.gatewayService.ForwardAsChatCompletions(c.Request.Context(), c, account, forwardBody, parsedReq)
 		}
 
+		h.gatewayService.ReportAccountPoolAttempt(account.ID, result, err)
 		if accountReleaseFunc != nil {
 			accountReleaseFunc()
+		}
+
+		// A client disconnect is terminal for the whole request. Never reinterpret
+		// context cancellation as an upstream failure and never start another attempt.
+		if requestErr := c.Request.Context().Err(); requestErr != nil {
+			reqLog.Debug("gateway.cc.request_canceled", zap.Error(requestErr))
+			return
 		}
 
 		if err != nil {
 			var failoverErr *service.UpstreamFailoverError
 			if errors.As(err, &failoverErr) {
-				if c.Writer.Size() != writerSizeBeforeForward {
-					h.handleCCFailoverExhausted(c, failoverErr, true)
+				// HTTP commitment is the hard failover boundary. Writer.Written() also
+				// becomes true for header-only WriteHeader/Flush, even when Size() did
+				// not change, so this closes the header-only retry/double-generation gap.
+				if gatewayResponseCommitted(c) {
+					reqLog.Warn("gateway.cc.failover_blocked_committed_response",
+						zap.Int64("account_id", account.ID),
+						zap.Int("upstream_status", failoverErr.StatusCode),
+					)
 					return
 				}
 				action := fs.HandleFailoverError(c.Request.Context(), h.gatewayService, account.ID, account.Platform, account.GetPoolModeRetryCount(), failoverErr)
@@ -302,6 +344,7 @@ func (h *GatewayHandler) ChatCompletions(c *gin.Context) {
 		}
 
 		// 6. Record usage
+		terminalCompleted = true
 		userAgent := c.GetHeader("User-Agent")
 		clientIP := ip.GetClientIP(c)
 		requestPayloadHash := service.HashUsageRequestPayload(body)

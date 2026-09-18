@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	middleware2 "github.com/Wei-Shaw/sub2api/internal/server/middleware"
@@ -26,6 +27,7 @@ type openAIResponsesFailoverCancelUpstream struct {
 	mu         sync.Mutex
 	accountIDs []int64
 	onFirstDo  func()
+	firstDelay time.Duration
 }
 
 func (u *openAIResponsesFailoverCancelUpstream) Do(_ *http.Request, _ string, accountID int64, _ int) (*http.Response, error) {
@@ -35,6 +37,9 @@ func (u *openAIResponsesFailoverCancelUpstream) Do(_ *http.Request, _ string, ac
 	u.mu.Unlock()
 	if first && u.onFirstDo != nil {
 		u.onFirstDo()
+	}
+	if first && u.firstDelay > 0 {
+		time.Sleep(u.firstDelay)
 	}
 	return &http.Response{
 		StatusCode: 520,
@@ -191,4 +196,21 @@ func TestOpenAIGatewayHandlerResponses_FailoverContinuesForConnectedClient(t *te
 	require.Equal(t, []int64{1, 2}, upstream.calls(), "在线客户端应正常切换账号")
 	require.Equal(t, http.StatusBadGateway, rec.Code)
 	require.Equal(t, "upstream_error", gjson.GetBytes(rec.Body.Bytes(), "error.type").String())
+}
+
+func TestOpenAIGatewayHandlerResponses_DoesNotFailoverAfterCompactKeepaliveWrite(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	upstream := &openAIResponsesFailoverCancelUpstream{firstDelay: 1200 * time.Millisecond}
+	handler := newOpenAIResponsesFailoverTestHandler(t, upstream)
+	handler.cfg.Gateway.StreamKeepaliveInterval = 1
+	c, rec := newOpenAIResponsesFailoverTestContext(t, nil)
+	body := []byte(`{"model":"gpt-5.1","stream":true,"input":[{"type":"compaction_trigger"}]}`)
+	c.Request = httptest.NewRequest(http.MethodPost, "/v1/responses", bytes.NewReader(body))
+	c.Request.Header.Set("Content-Type", "application/json")
+
+	handler.Responses(c)
+
+	require.Equal(t, []int64{1}, upstream.calls(), "compact keepalive commit 后不得切换到账号 2")
+	require.Contains(t, rec.Body.String(), ": keepalive\n\n", "first attempt must commit the compact keepalive")
 }

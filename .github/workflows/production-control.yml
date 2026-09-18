@@ -1,0 +1,16 @@
+name: Production Control
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  production-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify TermRelay production image source
+        run: /bin/sh deploy/tests/termrelay-production-source-test.sh

@@ -121,6 +121,22 @@ type OrderListParams struct {
 	Keyword     string
 }
 
+// RefundOptions 是退款准备阶段的放行口径。
+//
+// 三个开关彼此正交，组合出的三条常用路径：
+//   - 原路退款：Offline=false, Deduct=true  —— 调用渠道退款接口把钱退回客户
+//   - 强制原路退款：Offline=false, Force=true, Deduct=true —— 平台故障/重复扣款
+//   - 线下退款：Offline=true  —— 渠道没有退款接口（多数聚合支付）或客户已线下收到钱，
+//     系统只做记账：改订单状态、回扣余额/订阅、冲回共建分成，不调用任何上游接口。
+type RefundOptions struct {
+	// Force 放宽 24h / 已消耗额度限制（平台故障、重复扣款等场景）
+	Force bool
+	// Deduct 退款同时回扣该订单带来的余额本金 / 订阅天数
+	Deduct bool
+	// Offline 线下退款：跳过渠道退款接口，纯记账
+	Offline bool
+}
+
 type RefundPlan struct {
 	OrderID         int64
 	Order           *dbent.PaymentOrder
@@ -133,6 +149,8 @@ type RefundPlan struct {
 	BalanceToDeduct float64
 	SubDaysToDeduct int
 	SubscriptionID  int64
+	// Offline 为 true 表示这笔退款不调用渠道接口，只做本地记账
+	Offline bool
 }
 
 type RefundResult struct {
@@ -198,11 +216,21 @@ type PaymentService struct {
 	resumeService            *PaymentResumeService
 	affiliateService         *AffiliateService
 	notificationEmailService *NotificationEmailService
+	refundCalculator         *RefundCalculator
+	balanceLedger            *BalanceLedgerService
+	revenueSplit             *RevenueSplitService
 }
 
 func NewPaymentService(entClient *dbent.Client, registry *payment.Registry, loadBalancer payment.LoadBalancer, redeemService *RedeemService, subscriptionSvc *SubscriptionService, configService *PaymentConfigService, userRepo UserRepository, groupRepo GroupRepository, affiliateService *AffiliateService) *PaymentService {
 	svc := &PaymentService{entClient: entClient, registry: registry, loadBalancer: newVisibleMethodLoadBalancer(loadBalancer, configService), redeemService: redeemService, subscriptionSvc: subscriptionSvc, configService: configService, userRepo: userRepo, groupRepo: groupRepo, affiliateService: affiliateService}
 	svc.resumeService = psNewPaymentResumeService(configService)
+	if entClient != nil {
+		// Smirel 退款/分账：退款公式（方案 9.1/9.2）+ 余额账本（方案 9.2）
+		svc.refundCalculator = NewRefundCalculator(NewEntRefundLoader(entClient))
+		svc.balanceLedger = NewBalanceLedgerService(entClient)
+		// Smirel 共建者分账：客户支付成功后按固定比例计提（只记账，不出金）
+		svc.revenueSplit = NewRevenueSplitService(entClient)
+	}
 	return svc
 }
 

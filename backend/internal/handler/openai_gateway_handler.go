@@ -30,6 +30,7 @@ import (
 // OpenAIGatewayHandler handles OpenAI API gateway requests
 type OpenAIGatewayHandler struct {
 	gatewayService             *service.OpenAIGatewayService
+	accountPoolReporter        *service.GatewayService
 	billingCacheService        *service.BillingCacheService
 	apiKeyService              *service.APIKeyService
 	usageRecordWorkerPool      *service.UsageRecordWorkerPool
@@ -95,6 +96,38 @@ const maxOpenAIFirstOutputTimeoutSwitches = 1
 
 func openAIForwardSucceededForScheduling(result *service.OpenAIForwardResult) bool {
 	return result.SucceededForScheduling()
+}
+
+func (h *OpenAIGatewayHandler) beginAccountPoolAttempt(account *service.Account) bool {
+	if h == nil || h.accountPoolReporter == nil || account == nil {
+		return true
+	}
+	return h.accountPoolReporter.BeginAccountPoolAttempt(account.ID)
+}
+
+func (h *OpenAIGatewayHandler) abandonAccountPoolAttempt(account *service.Account) {
+	if h == nil || h.accountPoolReporter == nil || account == nil {
+		return
+	}
+	h.accountPoolReporter.AbandonAccountPoolAttempt(account.ID)
+}
+
+func (h *OpenAIGatewayHandler) reportAccountPoolAttempt(account *service.Account, result *service.OpenAIForwardResult, err error) {
+	if h == nil || h.accountPoolReporter == nil || account == nil {
+		return
+	}
+	if result != nil && result.ClientDisconnect {
+		h.accountPoolReporter.AbandonAccountPoolAttempt(account.ID)
+		return
+	}
+	if err == nil && result != nil && !result.SucceededForScheduling() {
+		err = &service.UpstreamFailoverError{StatusCode: http.StatusBadGateway}
+	}
+	var firstTokenMs *int
+	if result != nil {
+		firstTokenMs = result.FirstTokenMs
+	}
+	h.accountPoolReporter.ReportAccountPoolOutcome(account.ID, firstTokenMs, err)
 }
 
 func resolveOpenAIMessagesDispatchMappedModel(apiKey *service.APIKey, requestedModel string) string {
@@ -521,6 +554,15 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 			return
 		}
 
+		if !h.beginAccountPoolAttempt(account) {
+			if accountReleaseFunc != nil {
+				accountReleaseFunc()
+			}
+			failedAccountIDs[account.ID] = struct{}{}
+			reqLog.Debug("openai.account_pool_circuit_skipped", zap.Int64("account_id", account.ID))
+			continue
+		}
+
 		// Forward request
 		service.SetOpsLatencyMs(c, service.OpsRoutingLatencyMsKey, time.Since(routingStart).Milliseconds())
 		forwardStart := time.Now()
@@ -539,6 +581,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 			}()
 			return h.gatewayService.Forward(c.Request.Context(), c, account, attemptBody)
 		}()
+		h.reportAccountPoolAttempt(account, result, err)
 		cyberBlockKeyHTTP := ""
 		if service.GetOpsCyberPolicy(c) != nil {
 			cyberBlockKeyHTTP = service.CyberSessionBlockKey(apiKey.ID, c, sessionHashBody)
@@ -1063,6 +1106,15 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 			return
 		}
 
+		if !h.beginAccountPoolAttempt(account) {
+			if accountReleaseFunc != nil {
+				accountReleaseFunc()
+			}
+			failedAccountIDs[account.ID] = struct{}{}
+			reqLog.Debug("openai_messages.account_pool_circuit_skipped", zap.Int64("account_id", account.ID))
+			continue
+		}
+
 		service.SetOpsLatencyMs(c, service.OpsRoutingLatencyMsKey, time.Since(routingStart).Milliseconds())
 		forwardStart := time.Now()
 
@@ -1078,6 +1130,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 			}()
 			return h.gatewayService.ForwardAsAnthropic(c.Request.Context(), c, account, forwardBody, promptCacheKey, defaultMappedModel)
 		}()
+		h.reportAccountPoolAttempt(account, result, err)
 		cyberBlockKeyMsg := ""
 		if service.GetOpsCyberPolicy(c) != nil {
 			cyberBlockKeyMsg = service.CyberSessionBlockKey(apiKey.ID, c, body)
@@ -1784,6 +1837,16 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 			}
 			accountReleaseFunc = fastReleaseFunc
 		}
+		if !h.beginAccountPoolAttempt(account) {
+			if accountReleaseFunc != nil {
+				accountReleaseFunc()
+			}
+			failedAccountIDs[account.ID] = struct{}{}
+			reqLog.Debug("openai.websocket_account_pool_circuit_skipped", zap.Int64("account_id", account.ID))
+			continue
+		}
+		var accountPoolAttemptPending atomic.Bool
+		accountPoolAttemptPending.Store(true)
 		currentAccountRelease = wrapReleaseOnDone(ctx, accountReleaseFunc)
 		if err := h.gatewayService.BindStickySession(ctx, apiKey.GroupID, sessionHash, account.ID); err != nil {
 			reqLog.Warn("openai.websocket_bind_sticky_session_failed", zap.Int64("account_id", account.ID), zap.Error(err))
@@ -1791,6 +1854,9 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 
 		token, _, err := h.gatewayService.GetRequestCredential(ctx, c, account)
 		if err != nil {
+			if accountPoolAttemptPending.Swap(false) {
+				h.reportAccountPoolAttempt(account, nil, err)
+			}
 			reqLog.Warn("openai.websocket_get_access_token_failed", zap.Int64("account_id", account.ID), zap.Error(err))
 			if ctx.Err() != nil {
 				return
@@ -1895,11 +1961,24 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 					}
 					return service.NewOpenAIWSClientCloseError(coderws.StatusTryAgainLater, "account is busy, please retry later", nil)
 				}
+				if !h.beginAccountPoolAttempt(account) {
+					if accountReleaseFunc != nil {
+						accountReleaseFunc()
+					}
+					if userReleaseFunc != nil {
+						userReleaseFunc()
+					}
+					return service.NewOpenAIWSClientCloseError(coderws.StatusTryAgainLater, "account temporarily unavailable", nil)
+				}
+				accountPoolAttemptPending.Store(true)
 				currentUserRelease = wrapReleaseOnDone(ctx, userReleaseFunc)
 				currentAccountRelease = wrapReleaseOnDone(ctx, accountReleaseFunc)
 				return nil
 			},
 			AfterTurn: func(turn int, result *service.OpenAIForwardResult, turnErr error) {
+				if (turnErr != nil || result != nil) && accountPoolAttemptPending.Swap(false) {
+					h.reportAccountPoolAttempt(account, result, turnErr)
+				}
 				// F1: cyber 标记按 turn 生命周期清理——defer 保证任意早返回路径都执行；
 				// CyberBlocked 必须在 submit 前同步预捕获（task 闭包由 worker 池异步执行，
 				// 届时 defer 已清除标记）。
@@ -2012,7 +2091,16 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 		// WebSocket 首包可能很大，hash 必须在 hooks 外算成字符串，避免 AfterTurn 闭包保活请求体。
 		requestPayloadHash = service.HashUsageRequestPayload(wsFirstMessage)
 
-		if err := h.gatewayService.ProxyResponsesWebSocketFromClient(ctx, c, wsConn, account, token, wsFirstMessage, hooks); err != nil {
+		proxyErr := h.gatewayService.ProxyResponsesWebSocketFromClient(ctx, c, wsConn, account, token, wsFirstMessage, hooks)
+		if accountPoolAttemptPending.Swap(false) {
+			if proxyErr != nil {
+				h.reportAccountPoolAttempt(account, nil, proxyErr)
+			} else {
+				h.abandonAccountPoolAttempt(account)
+			}
+		}
+		if proxyErr != nil {
+			err := proxyErr
 			var failoverErr *service.UpstreamFailoverError
 			if errors.As(err, &failoverErr) {
 				if handleWSFailover(account, failoverErr) {

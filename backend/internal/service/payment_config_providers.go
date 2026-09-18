@@ -59,19 +59,32 @@ func (s *PaymentConfigService) ListProviderInstancesWithConfig(ctx context.Conte
 	}
 	result := make([]ProviderInstanceResponse, 0, len(instances))
 	for _, inst := range instances {
-		resp := ProviderInstanceResponse{
-			ID: int64(inst.ID), ProviderKey: inst.ProviderKey, Name: inst.Name,
-			SupportedTypes: splitTypes(inst.SupportedTypes), Limits: inst.Limits,
-			Enabled: inst.Enabled, RefundEnabled: inst.RefundEnabled, AllowUserRefund: inst.AllowUserRefund,
-			SortOrder: inst.SortOrder, PaymentMode: inst.PaymentMode,
-		}
-		resp.Config, err = s.decryptAndMaskConfig(inst.ProviderKey, inst.Config)
-		if err != nil {
-			return nil, fmt.Errorf("decrypt config for instance %d: %w", inst.ID, err)
+		resp, maskErr := s.MaskedProviderInstance(inst)
+		if maskErr != nil {
+			return nil, fmt.Errorf("decrypt config for instance %d: %w", inst.ID, maskErr)
 		}
 		result = append(result, resp)
 	}
 	return result, nil
+}
+
+// MaskedProviderInstance converts a stored instance into the admin-facing DTO,
+// masking sensitive config fields. Create/Update handlers return this instead of
+// the ent entity: the entity's config column holds the raw decrypted JSON blob,
+// so returning it directly would leak provider secrets to the admin client.
+func (s *PaymentConfigService) MaskedProviderInstance(inst *dbent.PaymentProviderInstance) (ProviderInstanceResponse, error) {
+	resp := ProviderInstanceResponse{
+		ID: int64(inst.ID), ProviderKey: inst.ProviderKey, Name: inst.Name,
+		SupportedTypes: splitTypes(inst.SupportedTypes), Limits: inst.Limits,
+		Enabled: inst.Enabled, RefundEnabled: inst.RefundEnabled, AllowUserRefund: inst.AllowUserRefund,
+		SortOrder: inst.SortOrder, PaymentMode: inst.PaymentMode,
+	}
+	cfg, err := s.decryptAndMaskConfig(inst.ProviderKey, inst.Config)
+	if err != nil {
+		return resp, err
+	}
+	resp.Config = cfg
+	return resp, nil
 }
 
 // decryptAndMaskConfig returns the stored config with sensitive fields omitted.
@@ -105,8 +118,8 @@ var pendingOrderStatuses = []string{
 
 // providerSensitiveConfigFields is the authoritative list of config keys that
 // are treated as secrets per provider. Must stay in sync with the frontend
-// definition at frontend/src/components/payment/providerConfig.ts
-// (PROVIDER_CONFIG_FIELDS, fields with sensitive: true).
+// definition at frontend/src/smirel/api/paymentProviderSchemas.ts
+// (PROVIDER_SCHEMAS, fields with sensitive: true).
 //
 // Key matching is case-insensitive. Non-listed keys (e.g. appId, notifyUrl,
 // stripe publishableKey) are returned in plaintext by the admin GET API.

@@ -1,0 +1,397 @@
+/* Smirel commercial dark workspace topbar.
+ *
+ * Typography pass: the previous header used nearly identical tiny weights for
+ * breadcrumb context, quick links and account text. The hierarchy technically
+ * existed, but visually everything sat on one grey baseline. Keep the same
+ * structure and actions, but make the current location dominant, secondary
+ * context quieter, and utility labels easier to scan at a glance.
+ */
+
+.workspace-root .workspace-main .workspace-topbar.workspace-topbar--contextual {
+  z-index: 38;
+  height: 58px;
+  padding: 0 34px;
+  border-bottom-color: #1f2329;
+  background: rgba(9, 10, 13, .985);
+  text-rendering: optimizeLegibility;
+}
+
+.workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-left {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-root,
+.workspace-root .workspace-main .workspace-breadcrumb-group {
+  color: #737c87;
+  font-size: .77rem;
+  line-height: 1;
+  font-weight: 560;
+  letter-spacing: 0;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-group {
+  color: #8a929d;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-separator {
+  margin: 0 1px;
+  color: #3d434b;
+  font-size: .72rem;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title {
+  min-width: 0;
+  overflow: hidden;
+  color: #f1f3f5;
+  font-size: .92rem;
+  line-height: 1;
+  font-weight: 680;
+  letter-spacing: -.018em;
+  text-overflow: ellipsis;
+}
+
+.workspace-root .workspace-main .workspace-topbar-actions {
+  min-width: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workspace-root .workspace-main .workspace-topbar-link {
+  min-height: 35px;
+  padding: 0 11px;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #8a929d;
+  background: transparent;
+  font-size: .78rem;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -.006em;
+  transition:
+    color .16s ease,
+    background-color .16s ease,
+    border-color .16s ease,
+    transform .16s cubic-bezier(.2, .75, .25, 1);
+}
+
+.workspace-root .workspace-main .workspace-topbar-link .workspace-nav-icon {
+  width: 16px;
+  height: 16px;
+  flex-basis: 16px;
+  color: #68727d;
+  transform: none;
+}
+
+.workspace-root .workspace-main .workspace-topbar-link:hover {
+  border-color: #262b32;
+  background: #111419;
+  color: #e0e4e9;
+  transform: translateY(-1px);
+}
+
+.workspace-root .workspace-main .workspace-topbar-link:hover .workspace-nav-icon {
+  color: #b4bdc7;
+  transform: none;
+}
+
+.workspace-root .workspace-main .workspace-topbar-link:active {
+  transform: translateY(0) scale(.985);
+}
+
+.workspace-root .workspace-main .workspace-topbar-link:focus-visible {
+  outline: none;
+  border-color: #35536b;
+  box-shadow: 0 0 0 3px rgba(47, 150, 232, .09);
+}
+
+.workspace-root .workspace-main .workspace-topbar-link.active {
+  border-color: #263646;
+  background: #101923;
+  color: #e2edf6;
+}
+
+.workspace-root .workspace-main .workspace-topbar-link.active .workspace-nav-icon {
+  color: #6fb8e9;
+}
+
+.workspace-root .workspace-main .workspace-topbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 9px;
+  background: #272b32;
+}
+
+/* Theme picker: keep the control minimal, but give the state hierarchy and
+ * option affordance enough structure to read as a finished product surface. */
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel {
+  top: 48px;
+  width: 288px;
+  padding: 10px;
+  border-color: var(--ws-border-strong);
+  border-radius: 14px;
+  background: var(--ws-surface);
+  box-shadow: 0 22px 58px rgba(0, 0, 0, .28), 0 1px 0 rgba(255, 255, 255, .025) inset;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-head {
+  margin: 0 2px 5px;
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--ws-border);
+  gap: 0;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-head strong {
+  color: var(--ws-text);
+  font-size: .85rem;
+  line-height: 1.2;
+  font-weight: 680;
+  letter-spacing: -.012em;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-head small {
+  display: none;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 12px 0 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 11px;
+  color: var(--ws-muted);
+  background: transparent;
+  font-size: .79rem;
+  line-height: 1;
+  font-weight: 580;
+  letter-spacing: -.006em;
+  transition: color .14s ease, background-color .14s ease, border-color .14s ease;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row + .workspace-choice-row {
+  margin-top: 3px;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border: 1px solid #404750;
+  border-radius: 50%;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 2px transparent;
+  transition: border-color .14s ease, box-shadow .14s ease;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row:nth-of-type(1)::before {
+  background: #0a0c0f;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row:nth-of-type(2)::before {
+  border-color: #8a929c;
+  background: #f2f4f6;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row:nth-of-type(3)::before {
+  border-color: #69717a;
+  background: linear-gradient(135deg, #eff2f5 0 49%, #171a1f 50% 100%);
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row:hover {
+  border-color: var(--ws-border);
+  color: var(--ws-text-soft);
+  background: var(--ws-surface-soft);
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row.selected {
+  border-color: var(--ws-border-strong);
+  color: var(--ws-text);
+  background: var(--ws-surface-soft);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .015) inset;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row.selected::before {
+  border-color: #5ca9dd;
+  box-shadow: 0 0 0 3px rgba(47, 150, 232, .11);
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row > span {
+  min-width: 0;
+  color: inherit;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row > svg {
+  width: 16px;
+  height: 16px;
+  justify-self: end;
+  stroke: #62b2eb;
+  stroke-width: 2;
+}
+
+.workspace-root .workspace-main .workspace-utility-control > .workspace-utility-button:not(.workspace-language-button) + .workspace-choice-panel .workspace-choice-row:focus-visible {
+  outline: none;
+  border-color: #35536b;
+  box-shadow: 0 0 0 3px rgba(47, 150, 232, .08);
+}
+
+.workspace-root .workspace-main .workspace-profile-link {
+  height: 36px;
+  min-height: 36px;
+  padding: 2px 8px 2px 4px;
+  gap: 9px;
+  align-self: center;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  transition:
+    background-color .16s ease,
+    border-color .16s ease,
+    transform .16s cubic-bezier(.2, .75, .25, 1);
+}
+
+.workspace-root .workspace-main .workspace-profile-link:hover {
+  border-color: #292e36;
+  background: #111419;
+  transform: translateY(-1px);
+}
+
+.workspace-root .workspace-main .workspace-profile-link:active {
+  transform: translateY(0) scale(.99);
+}
+
+.workspace-root .workspace-main .workspace-profile-link:focus-visible {
+  outline: none;
+  border-color: #35536b;
+  box-shadow: 0 0 0 3px rgba(47, 150, 232, .09);
+}
+
+.workspace-root .workspace-main .workspace-profile-link .mini-avatar {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-color: #2c323a;
+  border-radius: 8px;
+  background: #15181d;
+  color: #e7eaee;
+  font-size: .73rem;
+  font-weight: 650;
+}
+
+.workspace-root .workspace-main .workspace-profile-copy {
+  gap: 0;
+  justify-content: center;
+}
+
+.workspace-root .workspace-main .workspace-profile-copy strong {
+  max-width: 138px;
+  color: #dde1e6;
+  font-size: .79rem;
+  line-height: 1;
+  font-weight: 640;
+  letter-spacing: -.008em;
+}
+
+.workspace-root .workspace-main .workspace-profile-copy small {
+  display: none;
+}
+
+.workspace-root .workspace-main .workspace-profile-chevron {
+  width: 12px;
+  height: 12px;
+  flex-basis: 12px;
+  margin-left: 2px;
+  color: #525b66;
+  transition: color .16s ease, transform .16s ease;
+}
+
+.workspace-root .workspace-main .workspace-profile-link:hover .workspace-profile-chevron {
+  color: #929daa;
+  transform: translateX(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-root .workspace-main .workspace-topbar-link,
+  .workspace-root .workspace-main .workspace-profile-link,
+  .workspace-root .workspace-main .workspace-profile-chevron {
+    transition: none;
+  }
+
+  .workspace-root .workspace-main .workspace-topbar-link:hover,
+  .workspace-root .workspace-main .workspace-topbar-link:active,
+  .workspace-root .workspace-main .workspace-profile-link:hover,
+  .workspace-root .workspace-main .workspace-profile-link:active,
+  .workspace-root .workspace-main .workspace-profile-link:hover .workspace-profile-chevron {
+    transform: none;
+  }
+}
+
+@media (max-width: 1260px) {
+  .workspace-root .workspace-main .workspace-topbar-link {
+    width: 35px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .workspace-root .workspace-main .workspace-topbar-link > span {
+    display: none;
+  }
+}
+
+@media (max-width: 1120px) {
+  .workspace-root .workspace-main .workspace-topbar.workspace-topbar--contextual {
+    padding: 0 24px;
+  }
+
+  .workspace-root .workspace-main .workspace-profile-copy,
+  .workspace-root .workspace-main .workspace-profile-chevron {
+    display: none;
+  }
+
+  .workspace-root .workspace-main .workspace-profile-link {
+    min-width: 36px;
+    padding: 3px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 980px) {
+  .workspace-root .workspace-main .workspace-topbar.workspace-topbar--contextual {
+    height: 56px;
+    padding: 0 14px;
+  }
+
+  .workspace-root .workspace-main .workspace-breadcrumb-root,
+  .workspace-root .workspace-main .workspace-breadcrumb-group,
+  .workspace-root .workspace-main .workspace-breadcrumb-separator,
+  .workspace-root .workspace-main .workspace-topbar-link,
+  .workspace-root .workspace-main .workspace-topbar-divider {
+    display: none;
+  }
+
+  .workspace-root .workspace-main .workspace-profile-link {
+    min-height: 36px;
+    border-color: transparent;
+    background: transparent;
+  }
+}

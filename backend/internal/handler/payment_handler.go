@@ -71,11 +71,19 @@ func (h *PaymentHandler) GetPlans(c *gin.Context) {
 		ProductName        string   `json:"product_name"`
 		ForSale            bool     `json:"for_sale"`
 		SortOrder          int      `json:"sort_order"`
+		CardTier           string   `json:"card_tier,omitempty"`
+		CardBadge          string   `json:"card_badge,omitempty"`
+		CardFeatured       bool     `json:"card_featured,omitempty"`
+		CardFootnote       string   `json:"card_footnote,omitempty"`
+		SeatLimit          int      `json:"seat_limit,omitempty"`
+		ConcurrencyLimit   int      `json:"concurrency_limit,omitempty"`
+		PurchasePolicy     string   `json:"purchase_policy,omitempty"`
 	}
 	groupInfo := h.configService.GetGroupInfoMap(c.Request.Context(), plans)
 	result := make([]planWithPlatform, 0, len(plans))
 	for _, p := range plans {
 		gi := groupInfo[p.GroupID]
+		decoded := service.DecodePlanFeatures(p.Features)
 		result = append(result, planWithPlatform{
 			ID: int64(p.ID), GroupID: p.GroupID,
 			GroupPlatform: gi.Platform, GroupName: gi.Name,
@@ -83,8 +91,11 @@ func (h *PaymentHandler) GetPlans(c *gin.Context) {
 			PeakStart: gi.PeakStart, PeakEnd: gi.PeakEnd, PeakRateMultiplier: gi.PeakRateMultiplier,
 			Name: p.Name, Description: p.Description, Price: p.Price, OriginalPrice: p.OriginalPrice,
 			Currency:     p.Currency,
-			ValidityDays: p.ValidityDays, ValidityUnit: p.ValidityUnit, Features: p.Features,
+			ValidityDays: p.ValidityDays, ValidityUnit: p.ValidityUnit, Features: decoded.Features,
 			ProductName: p.ProductName, ForSale: p.ForSale, SortOrder: p.SortOrder,
+			CardTier: decoded.Card.Tier, CardBadge: decoded.Card.Badge, CardFeatured: decoded.Card.Featured,
+			CardFootnote: decoded.Card.Footnote, SeatLimit: decoded.Card.SeatLimit,
+			ConcurrencyLimit: decoded.Card.ConcurrencyLimit, PurchasePolicy: decoded.Card.PurchasePolicy,
 		})
 	}
 	response.Success(c, result)
@@ -124,6 +135,7 @@ func (h *PaymentHandler) GetCheckoutInfo(c *gin.Context) {
 	planList := make([]checkoutPlan, 0, len(plans))
 	for _, p := range plans {
 		gi := groupInfo[p.GroupID]
+		decoded := service.DecodePlanFeatures(p.Features)
 		planList = append(planList, checkoutPlan{
 			ID: int64(p.ID), GroupID: p.GroupID,
 			GroupPlatform: gi.Platform, GroupName: gi.Name,
@@ -135,8 +147,11 @@ func (h *PaymentHandler) GetCheckoutInfo(c *gin.Context) {
 			ModelScopes: gi.ModelScopes,
 			Name:        p.Name, Description: p.Description, Price: p.Price, OriginalPrice: p.OriginalPrice,
 			Currency:     p.Currency,
-			ValidityDays: p.ValidityDays, ValidityUnit: p.ValidityUnit, Features: parseFeatures(p.Features),
-			ProductName: p.ProductName,
+			ValidityDays: p.ValidityDays, ValidityUnit: p.ValidityUnit, Features: parseFeatures(decoded.Features),
+			ProductName: p.ProductName, CardTier: decoded.Card.Tier, CardBadge: decoded.Card.Badge,
+			CardFeatured: decoded.Card.Featured, CardFootnote: decoded.Card.Footnote,
+			SeatLimit: decoded.Card.SeatLimit, ConcurrencyLimit: decoded.Card.ConcurrencyLimit,
+			PurchasePolicy: decoded.Card.PurchasePolicy,
 		})
 	}
 
@@ -196,6 +211,13 @@ type checkoutPlan struct {
 	ValidityUnit       string   `json:"validity_unit"`
 	Features           []string `json:"features"`
 	ProductName        string   `json:"product_name"`
+	CardTier           string   `json:"card_tier,omitempty"`
+	CardBadge          string   `json:"card_badge,omitempty"`
+	CardFeatured       bool     `json:"card_featured,omitempty"`
+	CardFootnote       string   `json:"card_footnote,omitempty"`
+	SeatLimit          int      `json:"seat_limit,omitempty"`
+	ConcurrencyLimit   int      `json:"concurrency_limit,omitempty"`
+	PurchasePolicy     string   `json:"purchase_policy,omitempty"`
 }
 
 // parseFeatures splits a newline-separated features string into a string slice.
@@ -439,6 +461,84 @@ func (h *PaymentHandler) GetRefundEligibleProviders(c *gin.Context) {
 		return
 	}
 	response.Success(c, gin.H{"provider_instance_ids": ids})
+}
+
+// GetRefundPreview returns the refund quote and 9.3 audit detail for one of the
+// authenticated user's own orders. Read-only: nothing is charged or reserved.
+// GET /api/v1/payment/orders/:id/refund-preview
+func (h *PaymentHandler) GetRefundPreview(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+
+	orderID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "Invalid order ID")
+		return
+	}
+
+	preview, err := h.paymentService.PreviewRefund(c.Request.Context(), orderID, subject.UserID, false)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, preview)
+}
+
+// GetBalanceLedger returns the authenticated user's balance split (recharge
+// principal vs bonus) with recent ledger entries.
+// GET /api/v1/payment/ledger
+func (h *PaymentHandler) GetBalanceLedger(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	if err != nil || limit <= 0 {
+		limit = 50
+	}
+	breakdown, entries, err := h.paymentService.BalanceLedgerBreakdown(c.Request.Context(), subject.UserID, limit)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"breakdown": breakdown, "entries": entries})
+}
+
+// GetMyRevenueSplit returns the calling user's own revenue-split summary and
+// recent entries. Only bookkeeping for co-builders: it never touches balance.
+// GET /api/v1/payment/revenue-split
+func (h *PaymentHandler) GetMyRevenueSplit(c *gin.Context) {
+	subject, ok := requireAuth(c)
+	if !ok {
+		return
+	}
+
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "50"))
+	if err != nil || limit <= 0 {
+		limit = 50
+	}
+	if limit > 200 {
+		limit = 200
+	}
+
+	summary, err := h.paymentService.MyRevenueSplit(c.Request.Context(), subject.UserID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	entries, _, err := h.paymentService.ListRevenueSplitEntries(c.Request.Context(), service.RevenueSplitEntryFilter{
+		BeneficiaryUserID: subject.UserID,
+		Page:              1,
+		PageSize:          limit,
+	})
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"summary": summary, "entries": entries})
 }
 
 // VerifyOrderRequest is the request body for verifying a payment order.

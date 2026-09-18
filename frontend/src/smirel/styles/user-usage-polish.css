@@ -1,0 +1,505 @@
+/* User usage center — commercial dark polish.
+ * Root cause addressed here: the dedicated usage page already has the right
+ * information architecture, but its panels still read with near-equal visual
+ * weight. These overrides strengthen hierarchy without changing data logic.
+ */
+
+html.smirel-app .user-usage-page {
+  max-width: 1320px;
+  padding-bottom: 42px;
+}
+
+html.smirel-app .user-usage-page .usage-heading {
+  min-height: 124px;
+  padding: 8px 0 26px;
+  align-items: flex-end;
+}
+
+html.smirel-app .user-usage-page .usage-eyebrow {
+  margin-bottom: 11px;
+  color: #68717c;
+  letter-spacing: .14em;
+}
+
+html.smirel-app .user-usage-page .usage-eyebrow i {
+  width: 5px;
+  height: 5px;
+  background: #8a95a2;
+  box-shadow: none;
+}
+
+html.smirel-app .user-usage-page .usage-heading h1 {
+  color: #f5f6f8;
+  font-size: 2.25rem;
+  line-height: 1.06;
+  font-weight: 720;
+  letter-spacing: -.047em;
+}
+
+html.smirel-app .user-usage-page .usage-heading p {
+  max-width: 680px;
+  margin-top: 10px;
+  color: #818a94;
+  font-size: .87rem;
+  line-height: 1.7;
+}
+
+html.smirel-app .user-usage-page .usage-heading-actions {
+  gap: 9px;
+  padding-bottom: 1px;
+}
+
+html.smirel-app .user-usage-page .period-switch,
+html.smirel-app .user-usage-page .metric-switch {
+  gap: 2px;
+  padding: 3px;
+  border-color: #282d34;
+  border-radius: 10px;
+  background: #0c0e11;
+  box-shadow: inset 0 1px rgba(255,255,255,.015);
+}
+
+html.smirel-app .user-usage-page .period-switch button {
+  min-height: 34px;
+  min-width: 58px;
+  padding: 0 13px;
+  border-radius: 7px;
+  color: #737c87;
+  font-size: .72rem;
+  font-weight: 600;
+}
+
+html.smirel-app .user-usage-page .period-switch button.active,
+html.smirel-app .user-usage-page .metric-switch button.active {
+  color: #f4f5f7;
+  background: #1b1e23;
+  box-shadow: inset 0 0 0 1px #30353d, 0 1px 2px rgba(0,0,0,.24);
+}
+
+html.smirel-app .user-usage-page .usage-refresh {
+  width: 41px;
+  min-height: 41px;
+  border-color: #282d34;
+  border-radius: 10px;
+  color: #858e98;
+  background: #0d0f12;
+}
+
+html.smirel-app .user-usage-page .usage-refresh:hover:not(:disabled) {
+  color: #e4e7ea;
+  border-color: #3a4048;
+  background: #121419;
+}
+
+/* Summary cards */
+html.smirel-app .user-usage-page .usage-summary-grid {
+  gap: 13px;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card {
+  position: relative;
+  min-height: 138px;
+  padding: 20px 21px;
+  border-color: #242931;
+  border-radius: 13px;
+  background: #101216;
+  box-shadow: inset 0 1px rgba(255,255,255,.012);
+  transition: transform .16s ease, border-color .16s ease, background-color .16s ease;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card:hover {
+  transform: translateY(-1px);
+  border-color: #323841;
+  background: #111419;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card:nth-child(2)::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #747f8b 50%, transparent);
+  opacity: .72;
+}
+
+html.smirel-app .user-usage-page .summary-icon {
+  width: 36px;
+  height: 36px;
+  border-color: #2d333b;
+  border-radius: 9px;
+  color: #818b96;
+  background: #15181d;
+}
+
+html.smirel-app .user-usage-page .summary-copy > span {
+  color: #9098a2;
+  font-size: .78rem;
+  font-weight: 620;
+}
+
+html.smirel-app .user-usage-page .summary-copy > strong {
+  margin-top: 11px;
+  color: #f3f5f6;
+  font-size: 1.78rem;
+  line-height: 1;
+  font-weight: 690;
+  letter-spacing: -.04em;
+}
+
+html.smirel-app .user-usage-page .summary-copy > small {
+  margin-top: 13px;
+  color: #68717b;
+  font-size: .67rem;
+  line-height: 1.45;
+}
+
+/* Analytics toolbar */
+html.smirel-app .user-usage-page .analytics-toolbar {
+  min-height: 60px;
+  margin-top: 14px;
+  padding: 0 11px 0 18px;
+  border-color: #242930;
+  border-radius: 12px;
+  background: #0c0e11;
+}
+
+html.smirel-app .user-usage-page .toolbar-context {
+  gap: 10px;
+  color: #a1a8b0;
+  font-size: .77rem;
+}
+
+html.smirel-app .user-usage-page .toolbar-context b {
+  min-height: 24px;
+  padding: 0 9px;
+  border-color: #2a3037;
+  color: #717a84;
+  background: #111318;
+}
+
+html.smirel-app .user-usage-page .metric-switch button {
+  min-height: 31px;
+  padding: 0 12px;
+  color: #707985;
+  font-size: .68rem;
+}
+
+/* Main analytics: deliberate 12-column hierarchy */
+html.smirel-app .user-usage-page .analytics-grid {
+  margin-top: 13px;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 13px;
+}
+
+html.smirel-app .user-usage-page .analytics-panel {
+  border-color: #242930;
+  border-radius: 13px;
+  background: #0d0f12;
+  box-shadow: inset 0 1px rgba(255,255,255,.01);
+}
+
+html.smirel-app .user-usage-page .trend-panel {
+  grid-column: span 8;
+  min-height: 360px;
+}
+
+html.smirel-app .user-usage-page .distribution-panel:not(.endpoint-panel) {
+  grid-column: span 4;
+  min-height: 360px;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel,
+html.smirel-app .user-usage-page .overview-panel {
+  grid-column: span 6;
+  min-height: 286px;
+}
+
+html.smirel-app .user-usage-page .panel-heading {
+  min-height: 78px;
+  padding: 18px 21px;
+  border-bottom-color: #20252b;
+}
+
+html.smirel-app .user-usage-page .panel-heading small {
+  margin-bottom: 7px;
+  color: #626c77;
+  letter-spacing: .12em;
+}
+
+html.smirel-app .user-usage-page .panel-heading h2 {
+  color: #eaedf0;
+  font-size: .98rem;
+  font-weight: 670;
+  letter-spacing: -.015em;
+}
+
+html.smirel-app .user-usage-page .panel-caption,
+html.smirel-app .user-usage-page .panel-total span {
+  color: #6d7680;
+}
+
+html.smirel-app .user-usage-page .panel-total strong {
+  color: #f0f2f4;
+  font-size: 1.02rem;
+  font-weight: 670;
+}
+
+/* Chart */
+html.smirel-app .user-usage-page .trend-chart {
+  height: 276px;
+  padding: 24px 22px 17px;
+}
+
+html.smirel-app .user-usage-page .trend-grid-lines {
+  inset: 24px 22px 45px;
+}
+
+html.smirel-app .user-usage-page .trend-grid-lines i {
+  background: transparent;
+  border-top: 1px dashed #20242a;
+}
+
+html.smirel-app .user-usage-page .trend-bars {
+  grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+  gap: clamp(10px, 1.8vw, 22px);
+}
+
+html.smirel-app .user-usage-page .trend-column:only-child {
+  grid-column: 1 / -1;
+  width: 110px;
+  justify-self: center;
+}
+
+html.smirel-app .user-usage-page .trend-value-wrap {
+  width: min(44px, 68%);
+}
+
+html.smirel-app .user-usage-page .trend-value {
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, #9da7b2 0%, #697480 100%);
+  box-shadow: inset 0 1px rgba(255,255,255,.08);
+  opacity: .82;
+  transition: opacity .15s ease, height .22s ease;
+}
+
+html.smirel-app .user-usage-page .trend-column:hover .trend-value {
+  opacity: 1;
+}
+
+html.smirel-app .user-usage-page .trend-column > small {
+  color: #66707a;
+  font-size: .62rem;
+}
+
+html.smirel-app .user-usage-page .trend-tooltip {
+  border-color: #343a42;
+  color: #d9dde1;
+  background: #171a1f;
+  box-shadow: 0 8px 18px rgba(0,0,0,.22);
+}
+
+/* Distribution and overview */
+html.smirel-app .user-usage-page .distribution-list {
+  padding: 17px 21px 20px;
+}
+
+html.smirel-app .user-usage-page .distribution-row {
+  padding: 8px 0;
+}
+
+html.smirel-app .user-usage-page .distribution-head strong,
+html.smirel-app .user-usage-page .distribution-head code {
+  color: #c8cdd2;
+  font-size: .69rem;
+}
+
+html.smirel-app .user-usage-page .distribution-head b {
+  color: #e1e4e7;
+  font-size: .72rem;
+}
+
+html.smirel-app .user-usage-page .distribution-track {
+  height: 5px;
+  margin-top: 9px;
+  background: #1b1f24;
+}
+
+html.smirel-app .user-usage-page .distribution-track i {
+  background: #78838f;
+}
+
+html.smirel-app .user-usage-page .distribution-row > small {
+  margin-top: 7px;
+  color: #626c76;
+  font-size: .61rem;
+}
+
+html.smirel-app .user-usage-page .usage-profile-list {
+  padding: 8px 21px 16px;
+}
+
+html.smirel-app .user-usage-page .usage-profile-list > div {
+  min-height: 53px;
+  grid-template-columns: 160px minmax(0, 1fr);
+  border-bottom-color: #1f2329;
+}
+
+html.smirel-app .user-usage-page .usage-profile-list dt {
+  color: #69727c;
+  font-size: .66rem;
+}
+
+html.smirel-app .user-usage-page .usage-profile-list dd {
+  color: #cdd2d7;
+  font-size: .72rem;
+  font-weight: 620;
+}
+
+/* Request log */
+html.smirel-app .user-usage-page .usage-log-panel {
+  margin-top: 14px;
+  border-color: #242930;
+  border-radius: 13px;
+  background: #0d0f12;
+}
+
+html.smirel-app .user-usage-page .usage-log-heading {
+  min-height: 92px;
+  padding: 19px 21px;
+  border-bottom-color: #20252b;
+}
+
+html.smirel-app .user-usage-page .usage-log-heading h2 {
+  color: #ebedf0;
+  font-size: .98rem;
+  font-weight: 670;
+}
+
+html.smirel-app .user-usage-page .usage-log-heading p {
+  margin-top: 7px;
+  color: #68717b;
+  font-size: .68rem;
+}
+
+html.smirel-app .user-usage-page .usage-search,
+html.smirel-app .user-usage-page .log-filters select {
+  min-height: 39px;
+  border-color: #292e35;
+  border-radius: 8px;
+  background: #111318;
+}
+
+html.smirel-app .user-usage-page .usage-search {
+  width: 300px;
+  padding: 0 12px;
+}
+
+html.smirel-app .user-usage-page .usage-search input,
+html.smirel-app .user-usage-page .log-filters select {
+  color: #b9c0c7;
+  font-size: .69rem;
+}
+
+html.smirel-app .user-usage-page .usage-table-head {
+  min-height: 44px;
+  color: #68727c;
+  background: #0b0d10;
+  font-size: .62rem;
+  font-weight: 650;
+}
+
+html.smirel-app .user-usage-page .usage-row:not(.usage-table-head) {
+  min-height: 61px;
+  border-bottom-color: #1f2329;
+  transition: background-color .12s ease;
+}
+
+html.smirel-app .user-usage-page .usage-row:not(.usage-table-head):hover {
+  background: #111318;
+}
+
+html.smirel-app .user-usage-page .usage-row time,
+html.smirel-app .user-usage-page .usage-row > span {
+  color: #818a94;
+  font-size: .68rem;
+}
+
+html.smirel-app .user-usage-page .usage-model-cell strong {
+  color: #d5d9dd;
+  font-size: .71rem;
+  font-weight: 640;
+}
+
+html.smirel-app .user-usage-page .usage-model-cell i {
+  background: #798591;
+  box-shadow: none;
+}
+
+html.smirel-app .user-usage-page .usage-row code {
+  color: #87919b;
+  font-size: .64rem;
+}
+
+html.smirel-app .user-usage-page .usage-cost {
+  color: #dce0e4;
+  font-size: .69rem;
+}
+
+html.smirel-app .user-usage-page .log-footer {
+  min-height: 49px;
+  padding: 0 21px;
+  border-top-color: #20252b;
+  color: #626b75;
+}
+
+html.smirel-app .user-usage-page .panel-empty {
+  color: #59626d;
+}
+
+html.smirel-app .user-usage-page .panel-empty strong {
+  color: #818b95;
+  font-size: .8rem;
+}
+
+html.smirel-app .user-usage-page .panel-empty span {
+  color: #565f69;
+  font-size: .67rem;
+}
+
+@media (max-width: 1120px) {
+  html.smirel-app .user-usage-page .trend-panel,
+  html.smirel-app .user-usage-page .distribution-panel:not(.endpoint-panel),
+  html.smirel-app .user-usage-page .endpoint-panel,
+  html.smirel-app .user-usage-page .overview-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  html.smirel-app .user-usage-page .usage-heading {
+    min-height: auto;
+    padding-top: 18px;
+  }
+
+  html.smirel-app .user-usage-page .usage-heading h1 {
+    font-size: 1.9rem;
+  }
+
+  html.smirel-app .user-usage-page .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html.smirel-app .user-usage-page .trend-panel,
+  html.smirel-app .user-usage-page .distribution-panel:not(.endpoint-panel),
+  html.smirel-app .user-usage-page .endpoint-panel,
+  html.smirel-app .user-usage-page .overview-panel {
+    grid-column: 1;
+  }
+
+  html.smirel-app .user-usage-page .usage-search {
+    width: auto;
+  }
+}

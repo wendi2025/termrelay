@@ -13,7 +13,7 @@ type HTMLCache struct {
 	mu              sync.RWMutex
 	cachedHTML      []byte
 	etag            string
-	baseHTMLHash    string // Hash of the original index.html (immutable after build)
+	baseHTMLHash    string // Hash of the active index.html template
 	settingsVersion uint64 // Incremented when settings change
 }
 
@@ -28,13 +28,21 @@ func NewHTMLCache() *HTMLCache {
 	return &HTMLCache{}
 }
 
-// SetBaseHTML initializes the cache with the base HTML template
+// SetBaseHTML sets the active HTML template. If the template changes (for
+// example after a runtime frontend hot swap), any rendered cache is invalidated.
 func (c *HTMLCache) SetBaseHTML(baseHTML []byte) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	hash := sha256.Sum256(baseHTML)
-	c.baseHTMLHash = hex.EncodeToString(hash[:8]) // First 8 bytes for brevity
+	nextHash := hex.EncodeToString(hash[:8]) // First 8 bytes for brevity
+	if c.baseHTMLHash == nextHash {
+		return
+	}
+
+	c.baseHTMLHash = nextHash
+	c.cachedHTML = nil
+	c.etag = ""
 }
 
 // Invalidate marks the cache as stale

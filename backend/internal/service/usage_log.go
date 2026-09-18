@@ -192,6 +192,12 @@ type UsageLog struct {
 	VideoResolution      *string
 	VideoDurationSeconds *int
 
+	// Status is success, failed, or canceled. ErrorType is populated for a
+	// non-success terminal record and intentionally never drives billing.
+	Status    string
+	ErrorType *string
+	EndedAt   *time.Time
+
 	CreatedAt time.Time
 
 	User         *User

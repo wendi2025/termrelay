@@ -43,7 +43,14 @@ func RegisterPaymentRoutes(
 			orders.POST("/:id/cancel", paymentHandler.CancelOrder)
 			orders.POST("/:id/refund-request", paymentHandler.RequestRefund)
 			orders.GET("/refund-eligible-providers", paymentHandler.GetRefundEligibleProviders)
+			orders.GET("/:id/refund-preview", paymentHandler.GetRefundPreview)
 		}
+
+		// 余额分账账本（方案 9.2：充值本金 / 赠送余额 / 扣费归属）
+		authenticated.GET("/ledger", paymentHandler.GetBalanceLedger)
+
+		// 共建者分账（受益人自助查看自己的待结算 / 已结算金额，只读）
+		authenticated.GET("/revenue-split", paymentHandler.GetMyRevenueSplit)
 	}
 
 	// --- Public payment endpoints (no auth) ---
@@ -88,8 +95,10 @@ func RegisterPaymentRoutes(
 			adminOrders.GET("/:id", adminPaymentHandler.GetOrderDetail)
 			adminOrders.POST("/:id/cancel", adminPaymentHandler.CancelOrder)
 			adminOrders.POST("/:id/retry", adminPaymentHandler.RetryFulfillment)
+			adminOrders.POST("/:id/simulate-paid", adminPaymentHandler.SimulatePaid)
 			adminOrders.POST("/:id/refund", adminPaymentHandler.ProcessRefund)
 			adminOrders.POST("/:id/refund/query", adminPaymentHandler.QueryAndFinalizeRefund)
+			adminOrders.GET("/:id/refund-preview", adminPaymentHandler.GetRefundPreview)
 		}
 
 		// Subscription Plans
@@ -108,6 +117,32 @@ func RegisterPaymentRoutes(
 			providers.POST("", adminPaymentHandler.CreateProvider)
 			providers.PUT("/:id", adminPaymentHandler.UpdateProvider)
 			providers.DELETE("/:id", adminPaymentHandler.DeleteProvider)
+		}
+
+		// Revenue Split（共建者分账）
+		//
+		// 只做记账：客户付款后按比例给每个共建者计提一笔「应分金额」，
+		// 钱仍整笔留在平台收款账户，由管理员线下打款后再回填流水号核销。
+		// 任何"系统自动把钱转给第三方"的做法都属无牌照资金清分，禁止实现。
+		split := adminGroup.Group("/revenue-split")
+		{
+			split.GET("/config", adminPaymentHandler.GetRevenueSplitConfig)
+			split.PUT("/config", adminPaymentHandler.UpdateRevenueSplitConfig)
+			split.GET("/rules", adminPaymentHandler.ListRevenueSplitRules)
+			split.PUT("/rules", adminPaymentHandler.ReplaceRevenueSplitRules)
+			split.POST("/preview", adminPaymentHandler.PreviewRevenueSplit)
+
+			split.GET("/entries", adminPaymentHandler.ListRevenueSplitEntries)
+			split.GET("/summary", adminPaymentHandler.RevenueSplitSummary)
+
+			split.GET("/settlements", adminPaymentHandler.ListRevenueSplitSettlements)
+			split.POST("/settlements", adminPaymentHandler.CreateRevenueSplitSettlement)
+			split.GET("/settlements/:id", adminPaymentHandler.GetRevenueSplitSettlement)
+			split.POST("/settlements/:id/pay", adminPaymentHandler.MarkRevenueSplitSettlementPaid)
+			split.POST("/settlements/:id/cancel", adminPaymentHandler.CancelRevenueSplitSettlement)
+
+			// 历史订单补计提（幂等）
+			split.POST("/orders/:id/accrue", adminPaymentHandler.AccrueRevenueSplitForOrder)
 		}
 	}
 }

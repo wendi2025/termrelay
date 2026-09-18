@@ -44,9 +44,10 @@ type modelPlazaOfficialPricing struct {
 	CacheReadPrice    *float64 `json:"cache_read_price"`
 }
 
-// modelPlazaModel 广场模型条目：渠道定价（白名单形态）+ 官方参考价。
+// modelPlazaModel 广场模型条目：用户请求模型 + 映射后模型标识 + 渠道定价（白名单形态）+ 官方参考价。
 type modelPlazaModel struct {
 	Name            string                     `json:"name"`
+	MappedModel     string                     `json:"mapped_model,omitempty"`
 	Platform        string                     `json:"platform"`
 	Pricing         *userSupportedModelPricing `json:"pricing"`
 	OfficialPricing *modelPlazaOfficialPricing `json:"official_pricing"`
@@ -158,6 +159,7 @@ func toModelPlazaGroupDTO(g *service.PlazaGroup, userRates map[int64]float64) mo
 		m := &g.Models[i]
 		models = append(models, modelPlazaModel{
 			Name:            m.Name,
+			MappedModel:     m.MappedModel,
 			Platform:        m.Platform,
 			Pricing:         toUserPricing(m.Pricing),
 			OfficialPricing: toModelPlazaOfficialPricing(m.OfficialPricing),

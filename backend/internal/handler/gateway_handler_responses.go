@@ -43,7 +43,6 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		zap.Any("group_id", apiKey.GroupID),
 	)
 
-	// Read request body
 	body, err := readLenientJSONRequestBodyWithPrealloc(c.Request, h.cfg)
 	if err != nil {
 		if maxErr, ok := extractMaxBytesError(err); ok {
@@ -53,22 +52,18 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		h.responsesErrorResponse(c, http.StatusBadRequest, "invalid_request_error", "Failed to read request body")
 		return
 	}
-
 	if len(body) == 0 {
 		h.responsesErrorResponse(c, http.StatusBadRequest, "invalid_request_error", "Request body is empty")
 		return
 	}
 
 	setOpsRequestContext(c, "", false)
-
-	// Validate JSON
 	if !gjson.ValidBytes(body) {
 		logRequestBodyParseFailure(reqLog, body, nil)
 		h.responsesErrorResponse(c, http.StatusBadRequest, "invalid_request_error", "Failed to parse request body")
 		return
 	}
 
-	// Extract model and stream using gjson (like OpenAI handler)
 	modelResult := gjson.GetBytes(body, "model")
 	if !modelResult.Exists() || modelResult.Type != gjson.String || modelResult.String() == "" {
 		h.responsesErrorResponse(c, http.StatusBadRequest, "invalid_request_error", "model is required")
@@ -94,15 +89,8 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		requestCtx = service.WithOpenAIImageGenerationIntent(requestCtx)
 	}
 
-	// 解析渠道级模型映射
 	channelMapping, _ := h.gatewayService.ResolveChannelMappingAndRestrict(requestCtx, apiKey.GroupID, reqModel)
 
-	// Claude Code only restriction:
-	// /v1/responses is never a Claude Code endpoint.
-	// When claude_code_only is enabled, this endpoint is rejected.
-	// The existing service-layer checkClaudeCodeRestriction handles degradation
-	// to fallback groups when the Forward path calls SelectAccountForModelWithExclusions.
-	// Here we just reject at handler level since /v1/responses clients can't be Claude Code.
 	if apiKey.Group != nil && apiKey.Group.ClaudeCodeOnly {
 		h.responsesErrorResponse(c, http.StatusForbidden, "permission_error",
 			"This group is restricted to Claude Code clients (/v1/messages only)")
@@ -114,19 +102,18 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		return
 	}
 
-	// Error passthrough binding
 	if h.errorPassthroughService != nil {
 		service.BindErrorPassthroughService(c, h.errorPassthroughService)
 	}
 
 	subscription, _ := middleware2.GetSubscriptionFromContext(c)
-
 	service.SetOpsLatencyMs(c, service.OpsAuthLatencyMsKey, time.Since(requestStart).Milliseconds())
 
 	userReleaseFunc, err := h.concurrencyHelper.AcquireUserSlotWithWait(c, subject.UserID, subject.Concurrency, reqStream, &streamStarted)
 	if err != nil {
 		reqLog.Warn("gateway.responses.user_slot_acquire_failed", zap.Error(err))
-		h.handleConcurrencyError(c, err, "user", streamStarted)
+		status, code, message := concurrencyErrorResponse(err, "user")
+		h.responsesStreamingAwareError(c, status, code, message, streamStarted)
 		return
 	}
 	userReleaseFunc = wrapReleaseOnDone(c.Request.Context(), userReleaseFunc)
@@ -134,18 +121,16 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		defer userReleaseFunc()
 	}
 
-	// 2. Re-check billing
 	if err := h.billingCacheService.CheckBillingEligibility(requestCtx, apiKey.User, apiKey, apiKey.Group, subscription, service.QuotaPlatform(requestCtx, apiKey)); err != nil {
 		reqLog.Info("gateway.responses.billing_check_failed", zap.Error(err))
 		status, code, message, retryAfter := billingErrorDetails(err)
 		if retryAfter > 0 {
 			c.Header("Retry-After", strconv.Itoa(retryAfter))
 		}
-		h.responsesErrorResponse(c, status, code, message)
+		h.responsesStreamingAwareError(c, status, code, message, streamStarted)
 		return
 	}
 
-	// Parse request for session hash
 	bodyRef := service.NewRequestBodyRef(body)
 	parsedReq, _ := service.ParseGatewayRequest(bodyRef, "responses")
 	if parsedReq == nil {
@@ -157,9 +142,34 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		APIKeyID:  apiKey.ID,
 	}
 	sessionHash := h.gatewayService.GenerateSessionHash(parsedReq)
-
-	// 3. Account selection + failover loop
 	fs := NewFailoverState(h.maxAccountSwitches, false)
+	var terminalAccount *service.Account
+	terminalCompleted := false
+	defer func() {
+		if terminalCompleted || terminalAccount == nil {
+			return
+		}
+		status, errorType := "failed", "upstream_exhausted"
+		if requestCtx.Err() != nil {
+			status, errorType = "canceled", "client_canceled"
+		}
+		h.gatewayService.RecordTerminalUsage(requestCtx, &service.TerminalUsageInput{
+			APIKey:             apiKey,
+			User:               apiKey.User,
+			Account:            terminalAccount,
+			Model:              reqModel,
+			RequestedModel:     reqModel,
+			InboundEndpoint:    GetInboundEndpoint(c),
+			UpstreamEndpoint:   GetUpstreamEndpoint(c, terminalAccount.Platform),
+			RequestPayloadHash: service.HashUsageRequestPayload(body),
+			DurationMs:         int(time.Since(requestStart).Milliseconds()),
+			RetryCount:         fs.SwitchCount,
+			Stream:             reqStream,
+			Status:             status,
+			ErrorType:          errorType,
+			ChannelUsageFields: clientRequestedUsageFields(c, channelMapping, reqModel, ""),
+		})
+	}()
 
 	for {
 		if requestCtx.Err() != nil {
@@ -176,7 +186,7 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 				if !cls.ModelNotFound {
 					message = "No available accounts: " + err.Error()
 				}
-				h.responsesErrorResponse(c, cls.Status, cls.ErrType, message)
+				h.responsesStreamingAwareError(c, cls.Status, cls.ErrType, message, streamStarted)
 				return
 			}
 			action := fs.HandleSelectionExhausted(requestCtx)
@@ -190,20 +200,20 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 				if fs.LastFailoverErr != nil {
 					h.handleResponsesFailoverExhausted(c, fs.LastFailoverErr, streamStarted)
 				} else {
-					h.responsesErrorResponse(c, http.StatusBadGateway, "server_error", "All available accounts exhausted")
+					h.responsesStreamingAwareError(c, http.StatusBadGateway, "server_error", "All available accounts exhausted", streamStarted)
 				}
 				return
 			}
 		}
 		account := selection.Account
+		terminalAccount = account
 		setOpsSelectedAccount(c, account.ID, account.Platform)
 
-		// 4. Acquire account concurrency slot
 		accountReleaseFunc := selection.ReleaseFunc
 		if !selection.Acquired {
 			if selection.WaitPlan == nil {
 				markOpsRoutingCapacityLimited(c)
-				h.responsesErrorResponse(c, http.StatusServiceUnavailable, "api_error", "No available accounts")
+				h.responsesStreamingAwareError(c, http.StatusServiceUnavailable, "api_error", "No available accounts", streamStarted)
 				return
 			}
 			accountReleaseFunc, err = h.concurrencyHelper.AcquireAccountSlotWithWaitTimeout(
@@ -216,13 +226,13 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 			)
 			if err != nil {
 				reqLog.Warn("gateway.responses.account_slot_acquire_failed", zap.Int64("account_id", account.ID), zap.Error(err))
-				h.handleConcurrencyError(c, err, "account", streamStarted)
+				status, code, message := concurrencyErrorResponse(err, "account")
+				h.responsesStreamingAwareError(c, status, code, message, streamStarted)
 				return
 			}
 		}
 		accountReleaseFunc = wrapReleaseOnDone(c.Request.Context(), accountReleaseFunc)
 
-		// 5. Forward request
 		writerSizeBeforeForward := c.Writer.Size()
 		forwardBody := body
 		if channelMapping.Mapped {
@@ -232,7 +242,7 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 		setActualUpstreamEndpoint(c, "")
 		if shouldUseAntigravityCompat(account) {
 			if h.antigravityGatewayService == nil {
-				h.responsesErrorResponse(c, http.StatusBadGateway, "upstream_error", "Antigravity compatibility service is not configured")
+				h.responsesStreamingAwareError(c, http.StatusBadGateway, "upstream_error", "Antigravity compatibility service is not configured", streamStarted)
 				if accountReleaseFunc != nil {
 					accountReleaseFunc()
 				}
@@ -244,15 +254,27 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 			result, err = h.gatewayService.ForwardAsResponses(requestCtx, c, account, forwardBody, parsedReq)
 		}
 
+		h.gatewayService.ReportAccountPoolAttempt(account.ID, result, err)
 		if accountReleaseFunc != nil {
 			accountReleaseFunc()
 		}
 
 		if err != nil {
+			if requestCtx.Err() != nil {
+				reqLog.Info("gateway.responses.failover_aborted_client_disconnected",
+					zap.Int64("account_id", account.ID),
+					zap.Error(requestCtx.Err()),
+				)
+				return
+			}
+
 			var failoverErr *service.UpstreamFailoverError
 			if errors.As(err, &failoverErr) {
-				// Can't failover if streaming content already sent
-				if c.Writer.Size() != writerSizeBeforeForward {
+				if gatewayResponseCommitted(c) {
+					reqLog.Warn("gateway.responses.failover_blocked_response_committed",
+						zap.Int64("account_id", account.ID),
+						zap.Int("upstream_status", failoverErr.StatusCode),
+					)
 					h.handleResponsesFailoverExhausted(c, failoverErr, true)
 					return
 				}
@@ -271,7 +293,12 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 			upstreamErrorAlreadyCommunicated := gatewayForwardErrorAlreadyCommunicated(c, writerSizeBeforeForward, err)
 			wroteFallback := false
 			if !upstreamErrorAlreadyCommunicated {
-				wroteFallback = h.ensureForwardErrorResponse(c, streamStarted)
+				if streamStarted || (gatewayResponseCommitted(c) && gatewayResponseIsSSE(c)) {
+					h.responsesStreamingAwareError(c, http.StatusBadGateway, "upstream_error", "Upstream request failed", streamStarted)
+					wroteFallback = true
+				} else {
+					wroteFallback = h.ensureForwardErrorResponse(c, streamStarted)
+				}
 			}
 			reqLog.Error("gateway.responses.forward_failed",
 				zap.Int64("account_id", account.ID),
@@ -282,7 +309,7 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 			return
 		}
 
-		// 6. Record usage
+		terminalCompleted = true
 		userAgent := c.GetHeader("User-Agent")
 		clientIP := ip.GetClientIP(c)
 		requestPayloadHash := service.HashUsageRequestPayload(body)
@@ -318,7 +345,6 @@ func (h *GatewayHandler) Responses(c *gin.Context) {
 	}
 }
 
-// responsesErrorResponse writes an error in OpenAI Responses API format.
 func (h *GatewayHandler) responsesErrorResponse(c *gin.Context, status int, code, message string) {
 	c.JSON(status, gin.H{
 		"error": gin.H{
@@ -328,17 +354,13 @@ func (h *GatewayHandler) responsesErrorResponse(c *gin.Context, status int, code
 	})
 }
 
-// handleResponsesFailoverExhausted writes a failover-exhausted error in Responses format.
 func (h *GatewayHandler) handleResponsesFailoverExhausted(c *gin.Context, lastErr *service.UpstreamFailoverError, streamStarted bool) {
-	if streamStarted {
-		return // Can't write error after stream started
-	}
 	if lastErr != nil {
 		copyFailoverRetryAfter(c, lastErr.ResponseHeaders)
 	}
 	if lastErr != nil && lastErr.IsCredentialFailure() {
 		status, message := credentialFailoverClientResponse(lastErr)
-		h.responsesErrorResponse(c, status, "server_error", message)
+		h.responsesStreamingAwareError(c, status, "server_error", message, streamStarted)
 		return
 	}
 	statusCode := http.StatusBadGateway
@@ -347,8 +369,8 @@ func (h *GatewayHandler) handleResponsesFailoverExhausted(c *gin.Context, lastEr
 	}
 	if lastErr != nil && service.IsOpenAISilentRefusalErrorBody(lastErr.ResponseBody) {
 		service.SetOpsUpstreamError(c, statusCode, service.OpenAISilentRefusalClientMessage(), "")
-		h.responsesErrorResponse(c, http.StatusBadGateway, "upstream_error", service.OpenAISilentRefusalClientMessage())
+		h.responsesStreamingAwareError(c, http.StatusBadGateway, "upstream_error", service.OpenAISilentRefusalClientMessage(), streamStarted)
 		return
 	}
-	h.responsesErrorResponse(c, statusCode, "server_error", "All available accounts exhausted")
+	h.responsesStreamingAwareError(c, statusCode, "server_error", "All available accounts exhausted", streamStarted)
 }

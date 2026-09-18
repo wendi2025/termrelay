@@ -1,0 +1,168 @@
+/* Smirel commercial interaction system.
+ *
+ * Root cause: actionable controls were styled independently by app.css,
+ * home-layout.css, workspace-layout.css and page-scoped styles. Hover behavior
+ * existed, but press, keyboard focus, disabled state and motion timing were not
+ * consistent. Keep each surface's visual hierarchy, but give every control the
+ * same interaction grammar.
+ */
+
+html.smirel-app {
+  --ui-motion-fast: 90ms;
+  --ui-motion-base: 160ms;
+  --ui-motion-ease: cubic-bezier(.2, .72, .2, 1);
+  --ui-focus: rgba(47, 150, 232, .22);
+  --ui-primary-shadow: 0 8px 22px rgba(36, 153, 230, .16);
+  --ui-neutral-shadow: 0 7px 18px rgba(0, 0, 0, .20);
+}
+
+/* All native buttons share timing, cursor and keyboard focus. */
+html.smirel-app button {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--ui-motion-base);
+  transition-timing-function: var(--ui-motion-ease);
+}
+
+html.smirel-app :is(
+  button,
+  a.primary-button,
+  a.secondary-button,
+  a.ghost-button,
+  a.top-console,
+  a.closing-primary,
+  a.closing-secondary,
+  a.workspace-profile-link,
+  .account-menu > a,
+  .account-actions > a
+):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ui-focus);
+}
+
+/* Primary actions: one restrained lift, one restrained press. */
+html.smirel-app :is(.primary-button, .top-console, .closing-primary) {
+  cursor: pointer;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--ui-motion-base);
+  transition-timing-function: var(--ui-motion-ease);
+}
+
+html.smirel-app :is(.primary-button, .top-console, .closing-primary):not(:disabled):not([aria-disabled='true']):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ui-primary-shadow);
+}
+
+html.smirel-app :is(.primary-button, .top-console, .closing-primary):not(:disabled):not([aria-disabled='true']):active {
+  transform: translateY(1px);
+  box-shadow: none;
+  transition-duration: var(--ui-motion-fast);
+}
+
+/* Secondary and ghost actions use the same motion with a quieter shadow. */
+html.smirel-app :is(.secondary-button, .ghost-button, .closing-secondary) {
+  cursor: pointer;
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--ui-motion-base);
+  transition-timing-function: var(--ui-motion-ease);
+}
+
+html.smirel-app :is(.secondary-button, .ghost-button, .closing-secondary):not(:disabled):not([aria-disabled='true']):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ui-neutral-shadow);
+}
+
+html.smirel-app :is(.secondary-button, .ghost-button, .closing-secondary):not(:disabled):not([aria-disabled='true']):active {
+  transform: translateY(1px);
+  box-shadow: none;
+  transition-duration: var(--ui-motion-fast);
+}
+
+/* Compact utility controls should feel tactile without visually jumping. */
+html.smirel-app :is(
+  .account-trigger,
+  .account-menu > button,
+  .account-menu > a,
+  .gateway-endpoint-label button,
+  .workspace-root .table-row button,
+  .workspace-root .account-actions button,
+  .workspace-root .account-actions a,
+  .workspace-profile-link,
+  .mobile-menu,
+  .mobile-close
+) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--ui-motion-base);
+  transition-timing-function: var(--ui-motion-ease);
+}
+
+html.smirel-app :is(
+  .account-trigger,
+  .account-menu > button,
+  .account-menu > a,
+  .gateway-endpoint-label button,
+  .workspace-root .table-row button,
+  .workspace-root .account-actions button,
+  .workspace-root .account-actions a,
+  .workspace-profile-link,
+  .mobile-menu,
+  .mobile-close
+):not(:disabled):active {
+  transform: translateY(1px);
+  transition-duration: var(--ui-motion-fast);
+}
+
+/* Directional actions use the arrow itself as the motion cue. */
+html.smirel-app :is(.closing-primary, .gateway-key-link, .gateway-preview-foot a) b {
+  display: inline-block;
+  transition: transform var(--ui-motion-base) var(--ui-motion-ease), color var(--ui-motion-base) var(--ui-motion-ease);
+}
+
+html.smirel-app :is(.closing-primary, .gateway-key-link, .gateway-preview-foot a):hover b {
+  transform: translateX(2px);
+}
+
+html.smirel-app :is(.closing-primary, .gateway-key-link, .gateway-preview-foot a):active b {
+  transform: translateX(1px);
+}
+
+/* Disabled/loading controls never keep hover elevation. */
+html.smirel-app :is(button:disabled, .primary-button[aria-disabled='true'], .secondary-button[aria-disabled='true'], .ghost-button[aria-disabled='true']) {
+  opacity: .48;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Touch devices should not retain desktop hover elevation after a tap. */
+@media (hover: none) {
+  html.smirel-app :is(.primary-button, .top-console, .closing-primary, .secondary-button, .ghost-button, .closing-secondary):hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.smirel-app button,
+  html.smirel-app :is(
+    .primary-button,
+    .top-console,
+    .closing-primary,
+    .secondary-button,
+    .ghost-button,
+    .closing-secondary,
+    .account-trigger,
+    .account-menu > button,
+    .account-menu > a,
+    .gateway-endpoint-label button,
+    .workspace-root .table-row button,
+    .workspace-root .account-actions button,
+    .workspace-root .account-actions a,
+    .workspace-profile-link,
+    .mobile-menu,
+    .mobile-close
+  ),
+  html.smirel-app :is(.closing-primary, .gateway-key-link, .gateway-preview-foot a) b {
+    transition-duration: .01ms !important;
+    transform: none !important;
+  }
+}

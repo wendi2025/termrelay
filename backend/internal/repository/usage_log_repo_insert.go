@@ -149,6 +149,21 @@ func (r *usageLogRepository) Create(ctx context.Context, log *service.UsageLog) 
 	if log == nil {
 		return false, nil
 	}
+	// Failed/canceled rows are intentionally sparse and bypass the high-volume
+	// success batcher. They are never part of billing, and keeping this path
+	// synchronous guarantees that a canceled request still gets its terminal
+	// audit row after the client context has gone away.
+	if status := strings.ToLower(strings.TrimSpace(log.Status)); status == "failed" || status == "canceled" {
+		return r.createTerminalSingle(ctx, log)
+	}
+	// A client may retry a request with the same id after a terminal upstream
+	// failure. Remove only that sparse terminal row before the normal insert so
+	// the successful, billable record is the single authoritative outcome.
+	if strings.EqualFold(strings.TrimSpace(log.Status), "success") && strings.TrimSpace(log.RequestID) != "" {
+		if err := r.deleteTerminalUsageLog(ctx, log.RequestID, log.APIKeyID); err != nil {
+			return false, err
+		}
+	}
 
 	if tx := dbent.TxFromContext(ctx); tx != nil {
 		return r.createSingle(ctx, tx.Client(), log)
@@ -159,6 +174,61 @@ func (r *usageLogRepository) Create(ctx context.Context, log *service.UsageLog) 
 	}
 	log.RequestID = requestID
 	return r.createBatched(ctx, log)
+}
+
+func (r *usageLogRepository) deleteTerminalUsageLog(ctx context.Context, requestID string, apiKeyID int64) error {
+	_, err := r.sql.ExecContext(ctx, `
+		DELETE FROM usage_logs
+		WHERE request_id = $1 AND api_key_id = $2 AND status IN ('failed', 'canceled')`,
+		strings.TrimSpace(requestID), apiKeyID)
+	return err
+}
+
+func (r *usageLogRepository) createTerminalSingle(ctx context.Context, log *service.UsageLog) (bool, error) {
+	if ctx != nil && ctx.Err() != nil {
+		return false, service.MarkUsageLogCreateNotPersisted(ctx.Err())
+	}
+	createdAt := log.CreatedAt
+	if createdAt.IsZero() {
+		createdAt = time.Now()
+	}
+	endedAt := log.EndedAt
+	if endedAt == nil {
+		endedAt = &createdAt
+	}
+	requestID := strings.TrimSpace(log.RequestID)
+	if requestID == "" {
+		return false, service.MarkUsageLogCreateNotPersisted(errors.New("terminal usage request_id is empty"))
+	}
+	model := strings.TrimSpace(log.Model)
+	if model == "" {
+		return false, service.MarkUsageLogCreateNotPersisted(errors.New("terminal usage model is empty"))
+	}
+	requestedModel := strings.TrimSpace(log.RequestedModel)
+	if requestedModel == "" {
+		requestedModel = model
+	}
+	result, err := r.sql.ExecContext(ctx, `
+		INSERT INTO usage_logs (
+			user_id, api_key_id, account_id, request_id, model, requested_model,
+			upstream_model, group_id, stream, request_type, duration_ms, channel_id,
+			inbound_endpoint, upstream_endpoint, model_mapping_chain,
+			status, error_type, ended_at, created_at
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
+		ON CONFLICT (request_id, api_key_id) DO NOTHING`,
+		log.UserID, log.APIKeyID, log.AccountID, requestID, model, requestedModel,
+		nullString(log.UpstreamModel), nullInt64(log.GroupID), log.Stream, int16(log.EffectiveRequestType()),
+		nullInt(log.DurationMs), nullInt64(log.ChannelID), nullString(log.InboundEndpoint), nullString(log.UpstreamEndpoint),
+		nullString(log.ModelMappingChain), log.Status, nullString(log.ErrorType), endedAt, createdAt,
+	)
+	if err != nil {
+		return false, err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return rows > 0, nil
 }
 
 func (r *usageLogRepository) CreateBestEffort(ctx context.Context, log *service.UsageLog) error {

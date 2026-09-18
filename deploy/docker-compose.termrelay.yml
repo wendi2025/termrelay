@@ -1,0 +1,15 @@
+# TermRelay production deployment overlay.
+#
+# Use together with docker-compose.yml so production does not silently deploy
+# the mutable upstream `weishaw/sub2api:latest` image.
+#
+# Example:
+#   export TERMRELAY_IMAGE_REF=ghcr.io/yuchenm1303-png/sub2api:1.2.3
+#   docker compose -f docker-compose.yml -f docker-compose.termrelay.yml up -d
+#
+# For the strongest reproducibility, pin TERMRELAY_IMAGE_REF to a digest:
+#   ghcr.io/yuchenm1303-png/sub2api@sha256:...
+
+services:
+  sub2api:
+    image: ${TERMRELAY_IMAGE_REF:?Set TERMRELAY_IMAGE_REF to a TermRelay release image from ghcr.io/yuchenm1303-png/sub2api}

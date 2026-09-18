@@ -1,0 +1,623 @@
+/* Usage analytics readability pass.
+ * Root cause: the page uses large commercial panels while much of the actual
+ * information is rendered at 9-11px-equivalent sizes. This pass raises the
+ * reading floor and rebalances spacing so the page feels intentional rather
+ * than simply scaled up.
+ */
+
+html.smirel-app .user-usage-page {
+  --usage-text-primary: #d9dee3;
+  --usage-text-secondary: #9aa3ad;
+  --usage-text-muted: #747e89;
+}
+
+html.smirel-app .user-usage-page .usage-heading p {
+  max-width: 720px;
+  color: #89929c;
+  font-size: .93rem;
+  line-height: 1.68;
+}
+
+html.smirel-app .user-usage-page .period-switch button {
+  min-height: 36px;
+  min-width: 62px;
+  font-size: .77rem;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card {
+  min-height: 144px;
+  padding: 22px;
+  gap: 17px;
+}
+
+html.smirel-app .user-usage-page .summary-icon {
+  width: 39px;
+  height: 39px;
+  flex-basis: 39px;
+}
+
+html.smirel-app .user-usage-page .summary-copy > span {
+  color: #a0a8b1;
+  font-size: .83rem;
+  font-weight: 630;
+}
+
+html.smirel-app .user-usage-page .summary-copy > strong {
+  margin-top: 11px;
+  font-size: 1.9rem;
+  font-weight: 700;
+}
+
+html.smirel-app .user-usage-page .summary-copy > small {
+  margin-top: 13px;
+  color: #76808a;
+  font-size: .74rem;
+  line-height: 1.5;
+}
+
+html.smirel-app .user-usage-page .analytics-toolbar {
+  min-height: 64px;
+  padding-left: 20px;
+}
+
+html.smirel-app .user-usage-page .toolbar-context {
+  gap: 11px;
+  color: #adb4bc;
+  font-size: .82rem;
+  font-weight: 620;
+}
+
+html.smirel-app .user-usage-page .toolbar-context b {
+  min-height: 26px;
+  padding: 0 10px;
+  color: #7f8993;
+  font-size: .69rem;
+}
+
+html.smirel-app .user-usage-page .metric-switch button {
+  min-height: 33px;
+  padding: 0 13px;
+  font-size: .75rem;
+  font-weight: 600;
+}
+
+html.smirel-app .user-usage-page .analytics-grid {
+  gap: 14px;
+}
+
+html.smirel-app .user-usage-page .analytics-panel {
+  border-color: #272c33;
+}
+
+html.smirel-app .user-usage-page .trend-panel,
+html.smirel-app .user-usage-page .distribution-panel:not(.endpoint-panel) {
+  min-height: 382px;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel,
+html.smirel-app .user-usage-page .overview-panel {
+  min-height: 304px;
+}
+
+html.smirel-app .user-usage-page .panel-heading {
+  min-height: 86px;
+  padding: 20px 22px;
+}
+
+html.smirel-app .user-usage-page .panel-heading small,
+html.smirel-app .user-usage-page .usage-log-heading > div > small {
+  margin-bottom: 8px;
+  color: #74808c;
+  font-size: .64rem;
+  line-height: 1;
+  letter-spacing: .13em;
+}
+
+html.smirel-app .user-usage-page .panel-heading h2,
+html.smirel-app .user-usage-page .usage-log-heading h2 {
+  color: #f0f2f4;
+  font-size: 1.08rem;
+  line-height: 1.2;
+  font-weight: 680;
+  letter-spacing: -.018em;
+}
+
+html.smirel-app .user-usage-page .panel-caption {
+  color: #818b95;
+  font-size: .74rem;
+  font-weight: 540;
+}
+
+html.smirel-app .user-usage-page .panel-total span {
+  color: #808a94;
+  font-size: .7rem;
+}
+
+html.smirel-app .user-usage-page .panel-total strong {
+  margin-top: 5px;
+  font-size: 1.13rem;
+  font-weight: 690;
+}
+
+html.smirel-app .user-usage-page .trend-chart {
+  height: 294px;
+  padding: 26px 24px 18px;
+}
+
+html.smirel-app .user-usage-page .trend-grid-lines {
+  inset: 26px 24px 48px;
+}
+
+html.smirel-app .user-usage-page .trend-value-wrap {
+  width: min(48px, 70%);
+}
+
+html.smirel-app .user-usage-page .trend-column > small {
+  color: #7b858f;
+  font-size: .7rem;
+  font-weight: 520;
+}
+
+html.smirel-app .user-usage-page .trend-tooltip {
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: .71rem;
+  font-weight: 620;
+}
+
+html.smirel-app .user-usage-page .distribution-list {
+  padding: 18px 22px 22px;
+}
+
+html.smirel-app .user-usage-page .distribution-row {
+  padding: 10px 0 12px;
+}
+
+html.smirel-app .user-usage-page .distribution-row + .distribution-row {
+  border-top: 1px solid #1f242a;
+}
+
+html.smirel-app .user-usage-page .distribution-head {
+  min-height: 24px;
+}
+
+html.smirel-app .user-usage-page .distribution-head span {
+  gap: 9px;
+}
+
+html.smirel-app .user-usage-page .distribution-head span > i {
+  color: #68737e;
+  font-size: .64rem;
+  font-weight: 700;
+}
+
+html.smirel-app .user-usage-page .distribution-head strong,
+html.smirel-app .user-usage-page .distribution-head code {
+  color: #d6dbe0;
+  font-size: .78rem;
+  font-weight: 620;
+}
+
+html.smirel-app .user-usage-page .distribution-head b {
+  color: #f0f2f4;
+  font-size: .8rem;
+  font-weight: 680;
+}
+
+html.smirel-app .user-usage-page .distribution-track {
+  height: 6px;
+  margin-top: 10px;
+  border-radius: 999px;
+}
+
+html.smirel-app .user-usage-page .distribution-row > small {
+  margin-top: 8px;
+  color: #77818b;
+  font-size: .7rem;
+  line-height: 1.5;
+}
+
+html.smirel-app .user-usage-page .usage-profile-list {
+  padding: 7px 22px 16px;
+}
+
+html.smirel-app .user-usage-page .usage-profile-list > div {
+  min-height: 59px;
+  grid-template-columns: 170px minmax(0, 1fr);
+}
+
+html.smirel-app .user-usage-page .usage-profile-list dt {
+  color: #7f8993;
+  font-size: .75rem;
+}
+
+html.smirel-app .user-usage-page .usage-profile-list dd {
+  color: #d7dce1;
+  font-size: .79rem;
+  font-weight: 630;
+}
+
+html.smirel-app .user-usage-page .usage-profile-list dd code {
+  color: #b7c0c8;
+  font-size: .75rem;
+}
+
+html.smirel-app .user-usage-page .usage-log-panel {
+  margin-top: 15px;
+  border-color: #272c33;
+}
+
+html.smirel-app .user-usage-page .usage-log-heading {
+  min-height: 104px;
+  padding: 21px 22px;
+}
+
+html.smirel-app .user-usage-page .usage-log-heading p {
+  margin-top: 8px;
+  color: #7c8690;
+  font-size: .76rem;
+  line-height: 1.55;
+}
+
+html.smirel-app .user-usage-page .log-filters {
+  gap: 10px;
+}
+
+html.smirel-app .user-usage-page .usage-search,
+html.smirel-app .user-usage-page .log-filters select {
+  min-height: 42px;
+}
+
+html.smirel-app .user-usage-page .usage-search {
+  width: 320px;
+  padding: 0 13px;
+}
+
+html.smirel-app .user-usage-page .usage-search input,
+html.smirel-app .user-usage-page .log-filters select {
+  font-size: .75rem;
+}
+
+html.smirel-app .user-usage-page .usage-table {
+  min-width: 880px;
+}
+
+html.smirel-app .user-usage-page .usage-row {
+  padding: 0 22px;
+  gap: 20px;
+}
+
+html.smirel-app .user-usage-page .usage-table-head {
+  min-height: 48px;
+  color: #78828c;
+  font-size: .69rem;
+  font-weight: 680;
+  letter-spacing: .025em;
+}
+
+html.smirel-app .user-usage-page .usage-row:not(.usage-table-head) {
+  min-height: 66px;
+}
+
+html.smirel-app .user-usage-page .usage-row time,
+html.smirel-app .user-usage-page .usage-row > span {
+  color: #919aa4;
+  font-size: .75rem;
+}
+
+html.smirel-app .user-usage-page .usage-model-cell {
+  gap: 9px;
+}
+
+html.smirel-app .user-usage-page .usage-model-cell i {
+  width: 6px;
+  height: 6px;
+  flex-basis: 6px;
+}
+
+html.smirel-app .user-usage-page .usage-model-cell strong {
+  color: #e0e4e8;
+  font-size: .79rem;
+  font-weight: 640;
+}
+
+html.smirel-app .user-usage-page .usage-row code {
+  color: #9ca6b0;
+  font-size: .72rem;
+  line-height: 1.25;
+}
+
+html.smirel-app .user-usage-page .usage-number {
+  color: #b8c0c8;
+  font-size: .76rem;
+  font-weight: 570;
+}
+
+html.smirel-app .user-usage-page .usage-cost {
+  color: #e1e5e9;
+  font-size: .77rem;
+  font-weight: 650;
+}
+
+html.smirel-app .user-usage-page .usage-empty {
+  min-height: 150px;
+  color: #7e8892;
+  font-size: .76rem;
+}
+
+html.smirel-app .user-usage-page .log-footer {
+  min-height: 54px;
+  padding: 0 22px;
+  color: #717b85;
+  font-size: .7rem;
+  line-height: 1.45;
+}
+
+html.smirel-app .user-usage-page .panel-empty strong {
+  font-size: .86rem;
+}
+
+html.smirel-app .user-usage-page .panel-empty span {
+  font-size: .73rem;
+}
+
+@media (max-width: 1120px) {
+  html.smirel-app .user-usage-page .trend-panel,
+  html.smirel-app .user-usage-page .distribution-panel:not(.endpoint-panel),
+  html.smirel-app .user-usage-page .endpoint-panel,
+  html.smirel-app .user-usage-page .overview-panel {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  html.smirel-app .user-usage-page .usage-heading p {
+    font-size: .86rem;
+  }
+
+  html.smirel-app .user-usage-page .usage-summary-card {
+    min-height: 132px;
+  }
+
+  html.smirel-app .user-usage-page .analytics-toolbar {
+    padding: 13px;
+  }
+
+  html.smirel-app .user-usage-page .panel-heading,
+  html.smirel-app .user-usage-page .usage-log-heading {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  html.smirel-app .user-usage-page .usage-profile-list > div {
+    grid-template-columns: 1fr;
+  }
+
+  html.smirel-app .user-usage-page .usage-search {
+    width: auto;
+  }
+}
+
+
+/* Summary cards — refined visual hierarchy */
+html.smirel-app .user-usage-page .usage-summary-grid {
+  gap: 14px;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card {
+  --summary-accent: #7f8c99;
+  --summary-accent-rgb: 127, 140, 153;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 152px;
+  padding: 23px 24px;
+  gap: 18px;
+  align-items: flex-start;
+  border: 1px solid #252b32;
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(var(--summary-accent-rgb), .035), transparent 42%),
+    linear-gradient(180deg, #111419 0%, #0f1216 100%);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .018),
+    0 1px 1px rgba(0, 0, 0, .14),
+    0 10px 30px rgba(0, 0, 0, .10);
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease,
+    background-color .18s ease;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: -1px;
+  left: 22px;
+  right: 22px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(var(--summary-accent-rgb), .2) 16%,
+    rgba(var(--summary-accent-rgb), .82) 50%,
+    rgba(var(--summary-accent-rgb), .2) 84%,
+    transparent 100%
+  );
+  opacity: .78;
+  pointer-events: none;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 150px;
+  height: 150px;
+  top: -76px;
+  left: -58px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--summary-accent-rgb), .10), transparent 70%);
+  pointer-events: none;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card:nth-child(1) {
+  --summary-accent: #7d9fbe;
+  --summary-accent-rgb: 125, 159, 190;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card:nth-child(2) {
+  --summary-accent: #8c86bd;
+  --summary-accent-rgb: 140, 134, 189;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card:nth-child(3) {
+  --summary-accent: #71a58f;
+  --summary-accent-rgb: 113, 165, 143;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card:nth-child(4) {
+  --summary-accent: #b09a72;
+  --summary-accent-rgb: 176, 154, 114;
+}
+
+html.smirel-app .user-usage-page .usage-summary-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--summary-accent-rgb), .30);
+  background:
+    linear-gradient(145deg, rgba(var(--summary-accent-rgb), .05), transparent 44%),
+    linear-gradient(180deg, #13161b 0%, #101318 100%);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .025),
+    0 2px 3px rgba(0, 0, 0, .14),
+    0 16px 38px rgba(0, 0, 0, .13);
+}
+
+html.smirel-app .user-usage-page .summary-icon {
+  position: relative;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border: 1px solid rgba(var(--summary-accent-rgb), .22);
+  border-radius: 12px;
+  color: var(--summary-accent);
+  background: rgba(var(--summary-accent-rgb), .075);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .025),
+    0 7px 18px rgba(0, 0, 0, .06);
+}
+
+html.smirel-app .user-usage-page .summary-icon .workspace-nav-icon {
+  width: 18px;
+  height: 18px;
+}
+
+html.smirel-app .user-usage-page .summary-copy {
+  min-width: 0;
+  min-height: 106px;
+  flex: 1;
+  padding-top: 1px;
+}
+
+html.smirel-app .user-usage-page .summary-copy > span {
+  color: #a0a9b3;
+  font-size: .82rem;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -.005em;
+}
+
+html.smirel-app .user-usage-page .summary-copy > strong {
+  margin-top: 10px;
+  color: #f4f6f8;
+  font-size: clamp(1.82rem, 2vw, 2.08rem);
+  line-height: 1;
+  font-weight: 730;
+  letter-spacing: -.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+html.smirel-app .user-usage-page .summary-copy > small {
+  margin-top: 14px;
+  color: #727d88;
+  font-size: .73rem;
+  line-height: 1.45;
+  font-weight: 520;
+}
+
+/* Light mode gets a true elevated surface instead of a recolored dark card. */
+html.smirel-app[data-theme='light'] .user-usage-page .usage-summary-card {
+  border-color: #dde4eb;
+  background:
+    linear-gradient(145deg, rgba(var(--summary-accent-rgb), .05), transparent 42%),
+    linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
+  box-shadow:
+    0 1px 2px rgba(24, 34, 45, .035),
+    0 10px 30px rgba(35, 48, 62, .055);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .usage-summary-card::before {
+  opacity: .66;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .usage-summary-card::after {
+  background: radial-gradient(circle, rgba(var(--summary-accent-rgb), .12), transparent 70%);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .usage-summary-card:hover {
+  border-color: rgba(var(--summary-accent-rgb), .42);
+  background:
+    linear-gradient(145deg, rgba(var(--summary-accent-rgb), .07), transparent 46%),
+    linear-gradient(180deg, #ffffff 0%, #fafbfd 100%);
+  box-shadow:
+    0 2px 4px rgba(24, 34, 45, .04),
+    0 16px 38px rgba(35, 48, 62, .085);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .summary-icon {
+  border-color: rgba(var(--summary-accent-rgb), .27);
+  color: var(--summary-accent);
+  background: rgba(var(--summary-accent-rgb), .085);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .8),
+    0 6px 14px rgba(35, 48, 62, .045);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .summary-copy > span {
+  color: #5f6b78;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .summary-copy > strong {
+  color: #18222d;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .summary-copy > small {
+  color: #7a8591;
+}
+
+@media (max-width: 760px) {
+  html.smirel-app .user-usage-page .usage-summary-card {
+    min-height: 136px;
+    padding: 20px;
+    gap: 15px;
+    border-radius: 14px;
+  }
+
+  html.smirel-app .user-usage-page .summary-icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  html.smirel-app .user-usage-page .summary-copy {
+    min-height: 94px;
+  }
+
+  html.smirel-app .user-usage-page .summary-copy > strong {
+    font-size: 1.82rem;
+  }
+}

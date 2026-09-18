@@ -1,0 +1,310 @@
+/* Admin users commercial typography pass.
+ * Root cause: the scoped .admin-users-identity span rule also matched the avatar,
+ * forcing the avatar across the identity grid and squeezing user text into a narrow
+ * column. This layer fixes that structural selector fallout first, then rebalances
+ * the page around readable 12-14px operational text without inflating the shell.
+ */
+
+.workspace-root .admin-users-page .admin-users-heading {
+  min-height: 82px;
+  margin-bottom: 20px;
+}
+
+.workspace-root .admin-users-page .admin-users-eyebrow {
+  margin-bottom: 9px;
+  color: #737d89;
+  font-size: .72rem;
+  letter-spacing: .10em;
+}
+
+.workspace-root .admin-users-page .admin-users-heading h1 {
+  font-size: 2.05rem;
+}
+
+.workspace-root .admin-users-page .admin-users-heading p {
+  margin-top: 8px;
+  color: #9299a3;
+  font-size: .94rem;
+  line-height: 1.55;
+}
+
+.workspace-root .admin-users-page .admin-users-primary-button,
+.workspace-root .admin-users-page .admin-users-secondary-button {
+  min-height: 42px;
+  padding-inline: 15px;
+  font-size: .86rem;
+}
+
+.workspace-root .admin-users-page .admin-users-summary {
+  gap: 13px;
+}
+
+.workspace-root .admin-users-page .admin-users-summary-card {
+  min-height: 118px;
+  padding: 18px 19px;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 15px;
+  align-items: center;
+}
+
+.workspace-root .admin-users-page .admin-users-summary-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.workspace-root .admin-users-page .admin-users-summary-card > div > span {
+  color: #969da6;
+  font-size: .83rem;
+  font-weight: 600;
+}
+
+.workspace-root .admin-users-page .admin-users-summary-card strong {
+  margin-top: 7px;
+  font-size: 1.78rem;
+}
+
+.workspace-root .admin-users-page .admin-users-summary-card small {
+  margin-top: 8px;
+  color: #7a838e;
+  font-size: .76rem;
+  line-height: 1.35;
+}
+
+.workspace-root .admin-users-page .admin-users-panel {
+  margin-top: 16px;
+}
+
+.workspace-root .admin-users-page .admin-users-toolbar {
+  min-height: 70px;
+  padding: 12px 14px;
+  gap: 9px;
+}
+
+.workspace-root .admin-users-page .admin-users-search {
+  width: min(450px, 44vw);
+  height: 44px;
+  padding-inline: 13px;
+  gap: 10px;
+}
+
+.workspace-root .admin-users-page .admin-users-search input {
+  font-size: .87rem;
+}
+
+.workspace-root .admin-users-page .admin-users-toolbar select {
+  height: 44px;
+  min-width: 136px;
+  padding-left: 12px;
+  font-size: .84rem;
+}
+
+.workspace-root .admin-users-page .admin-users-clear {
+  font-size: .78rem;
+}
+
+.workspace-root .admin-users-page .admin-users-table-heading {
+  min-height: 58px;
+  padding-inline: 18px;
+}
+
+.workspace-root .admin-users-page .admin-users-table-heading strong {
+  color: #e3e6ea;
+  font-size: .91rem;
+  font-weight: 650;
+}
+
+.workspace-root .admin-users-page .admin-users-table-heading span {
+  padding: 4px 9px;
+  color: #8c949e;
+  font-size: .75rem;
+}
+
+.workspace-root .admin-users-page .admin-users-table-heading small {
+  color: #7b838e;
+  font-size: .76rem;
+}
+
+.workspace-root .admin-users-page .admin-users-table-head,
+.workspace-root .admin-users-page .admin-users-row {
+  min-width: 1120px;
+  grid-template-columns:
+    minmax(280px, 2fr)
+    minmax(116px, .72fr)
+    minmax(108px, .66fr)
+    minmax(126px, .78fr)
+    minmax(104px, .62fr)
+    minmax(166px, 1fr)
+    minmax(96px, .58fr);
+  gap: 18px;
+}
+
+.workspace-root .admin-users-page .admin-users-table-head {
+  height: 48px;
+  padding-inline: 18px;
+  color: #858e99;
+  font-size: .76rem;
+  font-weight: 640;
+  letter-spacing: .01em;
+}
+
+.workspace-root .admin-users-page .admin-users-row {
+  min-height: 82px;
+  padding: 12px 18px;
+  color: #b5bbc3;
+  font-size: .84rem;
+}
+
+.workspace-root .admin-users-page .admin-users-identity {
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 13px;
+}
+
+/* Fix the original broad span selector: the avatar must remain a normal first-column item. */
+.workspace-root .admin-users-page .admin-users-identity > .admin-users-avatar {
+  grid-column: auto;
+  width: 40px;
+  height: 40px;
+  margin-top: 0;
+  color: #8ec5ed;
+  font-size: .82rem;
+  font-weight: 700;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.workspace-root .admin-users-page .admin-users-identity > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 9px;
+  row-gap: 4px;
+  align-items: baseline;
+}
+
+.workspace-root .admin-users-page .admin-users-identity strong {
+  min-width: 0;
+  color: #eef0f2;
+  font-size: .91rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.workspace-root .admin-users-page .admin-users-identity > div > span {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  color: #89919c;
+  font-size: .80rem;
+  line-height: 1.25;
+}
+
+.workspace-root .admin-users-page .admin-users-identity small {
+  color: #66707b;
+  font-size: .72rem;
+  line-height: 1.2;
+}
+
+.workspace-root .admin-users-page .admin-users-role,
+.workspace-root .admin-users-page .admin-users-status {
+  min-height: 29px;
+  padding-inline: 9px;
+  font-size: .79rem;
+  font-weight: 600;
+}
+
+.workspace-root .admin-users-page .admin-users-status {
+  padding-left: 0;
+}
+
+.workspace-root .admin-users-page .admin-users-status i {
+  width: 7px;
+  height: 7px;
+}
+
+.workspace-root .admin-users-page .admin-users-balance,
+.workspace-root .admin-users-page .admin-users-activity {
+  gap: 5px;
+}
+
+.workspace-root .admin-users-page .admin-users-balance strong,
+.workspace-root .admin-users-page .admin-users-activity strong {
+  color: #d6dae0;
+  font-size: .84rem;
+  font-weight: 610;
+  line-height: 1.25;
+}
+
+.workspace-root .admin-users-page .admin-users-balance small,
+.workspace-root .admin-users-page .admin-users-activity span {
+  color: #747d88;
+  font-size: .73rem;
+  line-height: 1.2;
+}
+
+.workspace-root .admin-users-page .admin-users-concurrency {
+  gap: 5px;
+}
+
+.workspace-root .admin-users-page .admin-users-concurrency strong {
+  color: #e0e3e7;
+  font-size: .91rem;
+}
+
+.workspace-root .admin-users-page .admin-users-concurrency span {
+  color: #747d88;
+  font-size: .76rem;
+}
+
+.workspace-root .admin-users-page .admin-users-action-cell button {
+  min-width: 62px;
+  height: 34px;
+  padding-inline: 11px;
+  font-size: .77rem;
+  font-weight: 600;
+}
+
+.workspace-root .admin-users-page .admin-users-protected {
+  gap: 6px;
+  color: #78818c;
+  font-size: .74rem;
+}
+
+.workspace-root .admin-users-page .admin-users-empty strong {
+  font-size: .88rem;
+}
+
+.workspace-root .admin-users-page .admin-users-empty p {
+  font-size: .78rem;
+}
+
+.workspace-root .admin-users-page .admin-users-pagination {
+  min-height: 60px;
+  padding-inline: 18px 15px;
+}
+
+.workspace-root .admin-users-page .admin-users-pagination > span {
+  color: #7b848f;
+  font-size: .77rem;
+}
+
+.workspace-root .admin-users-page .admin-users-pagination button {
+  height: 34px;
+  padding-inline: 11px;
+  font-size: .76rem;
+}
+
+@media (max-width: 1080px) {
+  .workspace-root .admin-users-page .admin-users-search {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .workspace-root .admin-users-page .admin-users-heading {
+    margin-bottom: 18px;
+  }
+
+  .workspace-root .admin-users-page .admin-users-summary-card {
+    min-height: 110px;
+  }
+}

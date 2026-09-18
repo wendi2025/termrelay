@@ -87,6 +87,25 @@ func (h *PaymentHandler) GetOrderDetail(c *gin.Context) {
 	response.Success(c, gin.H{"order": sanitizeAdminPaymentOrderForResponse(order), "auditLogs": auditLogs})
 }
 
+// GetRefundPreview returns the refund quote and 9.3 audit detail for an order.
+// force=true previews the force-refund path (platform fault / duplicate charge).
+// offline=true previews the offline-refund path (manual refund outside the gateway).
+// GET /api/v1/admin/payment/orders/:id/refund-preview
+func (h *PaymentHandler) GetRefundPreview(c *gin.Context) {
+	orderID, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	force := c.Query("force") == "true" || c.Query("force") == "1"
+	offline := c.Query("offline") == "true" || c.Query("offline") == "1"
+	preview, err := h.paymentService.PreviewRefundWithOptions(c.Request.Context(), orderID, 0, force, offline)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, preview)
+}
+
 // CancelOrder cancels a pending order (admin).
 // POST /api/v1/admin/payment/orders/:id/cancel
 func (h *PaymentHandler) CancelOrder(c *gin.Context) {
@@ -114,6 +133,29 @@ func (h *PaymentHandler) RetryFulfillment(c *gin.Context) {
 		return
 	}
 	response.Success(c, gin.H{"message": "fulfillment retried"})
+}
+
+// SimulatePaid marks a pending order as paid without calling the upstream provider.
+// POST /api/v1/admin/payment/orders/:id/simulate-paid
+//
+// Intended for admin-only use: it lets the full checkout -> payment -> fulfillment
+// chain be exercised (and offline-collected payments be recorded) before real
+// merchant credentials are configured. It reuses the real webhook fulfillment path,
+// so provider/amount/idempotency checks still apply.
+func (h *PaymentHandler) SimulatePaid(c *gin.Context) {
+	orderID, ok := parseIDParam(c, "id")
+	if !ok {
+		return
+	}
+	tradeNo, err := h.paymentService.SimulateOrderPaid(c.Request.Context(), orderID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{
+		"message":  "order marked as paid (simulated)",
+		"trade_no": tradeNo,
+	})
 }
 
 type AdminPaymentOrderResult struct {
@@ -223,6 +265,9 @@ type AdminProcessRefundRequest struct {
 	Reason        string  `json:"reason"`
 	Force         bool    `json:"force"`
 	DeductBalance bool    `json:"deduct_balance"`
+	// Offline 线下退款：不调用渠道退款接口，直接登记退款结果。
+	// 用于渠道没有退款 API（多数聚合支付）或客户已在渠道外收到退款的场景。
+	Offline bool `json:"offline"`
 }
 
 // ProcessRefund processes a refund for an order (admin).
@@ -239,7 +284,11 @@ func (h *PaymentHandler) ProcessRefund(c *gin.Context) {
 		return
 	}
 
-	plan, earlyResult, err := h.paymentService.PrepareRefund(c.Request.Context(), orderID, req.Amount, req.Reason, req.Force, req.DeductBalance)
+	plan, earlyResult, err := h.paymentService.PrepareRefund(c.Request.Context(), orderID, req.Amount, req.Reason, service.RefundOptions{
+		Force:   req.Force,
+		Deduct:  req.DeductBalance,
+		Offline: req.Offline,
+	})
 	if err != nil {
 		response.ErrorFrom(c, err)
 		return
@@ -288,28 +337,35 @@ func (h *PaymentHandler) ListPlans(c *gin.Context) {
 }
 
 type AdminSubscriptionPlanResult struct {
-	ID              int64     `json:"id"`
-	GroupID         int64     `json:"group_id"`
-	GroupPlatform   string    `json:"group_platform,omitempty"`
-	GroupName       string    `json:"group_name,omitempty"`
-	RateMultiplier  float64   `json:"rate_multiplier,omitempty"`
-	DailyLimitUSD   *float64  `json:"daily_limit_usd,omitempty"`
-	WeeklyLimitUSD  *float64  `json:"weekly_limit_usd,omitempty"`
-	MonthlyLimitUSD *float64  `json:"monthly_limit_usd,omitempty"`
-	ModelScopes     []string  `json:"supported_model_scopes,omitempty"`
-	Name            string    `json:"name"`
-	Description     string    `json:"description"`
-	Price           float64   `json:"price"`
-	OriginalPrice   *float64  `json:"original_price,omitempty"`
-	Currency        string    `json:"currency,omitempty"`
-	ValidityDays    int       `json:"validity_days"`
-	ValidityUnit    string    `json:"validity_unit"`
-	Features        string    `json:"features"`
-	ProductName     string    `json:"product_name"`
-	ForSale         bool      `json:"for_sale"`
-	SortOrder       int       `json:"sort_order"`
-	CreatedAt       time.Time `json:"created_at,omitempty"`
-	UpdatedAt       time.Time `json:"updated_at,omitempty"`
+	ID               int64     `json:"id"`
+	GroupID          int64     `json:"group_id"`
+	GroupPlatform    string    `json:"group_platform,omitempty"`
+	GroupName        string    `json:"group_name,omitempty"`
+	RateMultiplier   float64   `json:"rate_multiplier,omitempty"`
+	DailyLimitUSD    *float64  `json:"daily_limit_usd,omitempty"`
+	WeeklyLimitUSD   *float64  `json:"weekly_limit_usd,omitempty"`
+	MonthlyLimitUSD  *float64  `json:"monthly_limit_usd,omitempty"`
+	ModelScopes      []string  `json:"supported_model_scopes,omitempty"`
+	Name             string    `json:"name"`
+	Description      string    `json:"description"`
+	Price            float64   `json:"price"`
+	OriginalPrice    *float64  `json:"original_price,omitempty"`
+	Currency         string    `json:"currency,omitempty"`
+	ValidityDays     int       `json:"validity_days"`
+	ValidityUnit     string    `json:"validity_unit"`
+	Features         string    `json:"features"`
+	ProductName      string    `json:"product_name"`
+	CardTier         string    `json:"card_tier,omitempty"`
+	CardBadge        string    `json:"card_badge,omitempty"`
+	CardFeatured     bool      `json:"card_featured,omitempty"`
+	CardFootnote     string    `json:"card_footnote,omitempty"`
+	SeatLimit        int       `json:"seat_limit,omitempty"`
+	ConcurrencyLimit int       `json:"concurrency_limit,omitempty"`
+	PurchasePolicy   string    `json:"purchase_policy,omitempty"`
+	ForSale          bool      `json:"for_sale"`
+	SortOrder        int       `json:"sort_order"`
+	CreatedAt        time.Time `json:"created_at,omitempty"`
+	UpdatedAt        time.Time `json:"updated_at,omitempty"`
 }
 
 func adminSubscriptionPlansForResponse(plans []*dbent.SubscriptionPlan, groupInfo map[int64]service.PlanGroupInfo) []AdminSubscriptionPlanResult {
@@ -319,29 +375,37 @@ func adminSubscriptionPlansForResponse(plans []*dbent.SubscriptionPlan, groupInf
 			continue
 		}
 		gi := groupInfo[p.GroupID]
+		decoded := service.DecodePlanFeatures(p.Features)
 		result = append(result, AdminSubscriptionPlanResult{
-			ID:              int64(p.ID),
-			GroupID:         p.GroupID,
-			GroupPlatform:   gi.Platform,
-			GroupName:       gi.Name,
-			RateMultiplier:  gi.RateMultiplier,
-			DailyLimitUSD:   gi.DailyLimitUSD,
-			WeeklyLimitUSD:  gi.WeeklyLimitUSD,
-			MonthlyLimitUSD: gi.MonthlyLimitUSD,
-			ModelScopes:     gi.ModelScopes,
-			Name:            p.Name,
-			Description:     p.Description,
-			Price:           p.Price,
-			OriginalPrice:   p.OriginalPrice,
-			Currency:        p.Currency,
-			ValidityDays:    p.ValidityDays,
-			ValidityUnit:    p.ValidityUnit,
-			Features:        p.Features,
-			ProductName:     p.ProductName,
-			ForSale:         p.ForSale,
-			SortOrder:       p.SortOrder,
-			CreatedAt:       p.CreatedAt,
-			UpdatedAt:       p.UpdatedAt,
+			ID:               int64(p.ID),
+			GroupID:          p.GroupID,
+			GroupPlatform:    gi.Platform,
+			GroupName:        gi.Name,
+			RateMultiplier:   gi.RateMultiplier,
+			DailyLimitUSD:    gi.DailyLimitUSD,
+			WeeklyLimitUSD:   gi.WeeklyLimitUSD,
+			MonthlyLimitUSD:  gi.MonthlyLimitUSD,
+			ModelScopes:      gi.ModelScopes,
+			Name:             p.Name,
+			Description:      p.Description,
+			Price:            p.Price,
+			OriginalPrice:    p.OriginalPrice,
+			Currency:         p.Currency,
+			ValidityDays:     p.ValidityDays,
+			ValidityUnit:     p.ValidityUnit,
+			Features:         decoded.Features,
+			ProductName:      p.ProductName,
+			CardTier:         decoded.Card.Tier,
+			CardBadge:        decoded.Card.Badge,
+			CardFeatured:     decoded.Card.Featured,
+			CardFootnote:     decoded.Card.Footnote,
+			SeatLimit:        decoded.Card.SeatLimit,
+			ConcurrencyLimit: decoded.Card.ConcurrencyLimit,
+			PurchasePolicy:   decoded.Card.PurchasePolicy,
+			ForSale:          p.ForSale,
+			SortOrder:        p.SortOrder,
+			CreatedAt:        p.CreatedAt,
+			UpdatedAt:        p.UpdatedAt,
 		})
 	}
 	return result
@@ -360,7 +424,13 @@ func (h *PaymentHandler) CreatePlan(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
-	response.Created(c, plan)
+	groupInfo := h.configService.GetGroupInfoMap(c.Request.Context(), []*dbent.SubscriptionPlan{plan})
+	items := adminSubscriptionPlansForResponse([]*dbent.SubscriptionPlan{plan}, groupInfo)
+	if len(items) == 0 {
+		response.Created(c, plan)
+		return
+	}
+	response.Created(c, items[0])
 }
 
 // UpdatePlan updates an existing subscription plan.
@@ -380,7 +450,13 @@ func (h *PaymentHandler) UpdatePlan(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
-	response.Success(c, plan)
+	groupInfo := h.configService.GetGroupInfoMap(c.Request.Context(), []*dbent.SubscriptionPlan{plan})
+	items := adminSubscriptionPlansForResponse([]*dbent.SubscriptionPlan{plan}, groupInfo)
+	if len(items) == 0 {
+		response.Success(c, plan)
+		return
+	}
+	response.Success(c, items[0])
 }
 
 // DeletePlan deletes a subscription plan.
@@ -423,8 +499,13 @@ func (h *PaymentHandler) CreateProvider(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	view, err := h.configService.MaskedProviderInstance(inst)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
 	h.paymentService.RefreshProviders(c.Request.Context())
-	response.Created(c, inst)
+	response.Created(c, view)
 }
 
 // UpdateProvider updates an existing payment provider instance.
@@ -444,8 +525,13 @@ func (h *PaymentHandler) UpdateProvider(c *gin.Context) {
 		response.ErrorFrom(c, err)
 		return
 	}
+	view, err := h.configService.MaskedProviderInstance(inst)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
 	h.paymentService.RefreshProviders(c.Request.Context())
-	response.Success(c, inst)
+	response.Success(c, view)
 }
 
 // DeleteProvider deletes a payment provider instance.

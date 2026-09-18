@@ -43,6 +43,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/userallowedgroup"
 	"github.com/Wei-Shaw/sub2api/ent/userattributedefinition"
 	"github.com/Wei-Shaw/sub2api/ent/userattributevalue"
+	"github.com/Wei-Shaw/sub2api/ent/userbalanceledger"
 	"github.com/Wei-Shaw/sub2api/ent/userplatformquota"
 	"github.com/Wei-Shaw/sub2api/ent/usersubscription"
 	"github.com/Wei-Shaw/sub2api/internal/domain"
@@ -1181,6 +1182,44 @@ func init() {
 	groupDescReasoningEffortMappings := groupFields[48].Descriptor()
 	// group.DefaultReasoningEffortMappings holds the default value on creation for the reasoning_effort_mappings field.
 	group.DefaultReasoningEffortMappings = groupDescReasoningEffortMappings.Default.([]domain.ReasoningEffortMapping)
+	// groupDescProductLine is the schema descriptor for product_line field.
+	groupDescProductLine := groupFields[49].Descriptor()
+	// group.DefaultProductLine holds the default value on creation for the product_line field.
+	group.DefaultProductLine = groupDescProductLine.Default.(string)
+	// group.ProductLineValidator is a validator for the "product_line" field. It is called by the builders before save.
+	group.ProductLineValidator = groupDescProductLine.Validators[0].(func(string) error)
+	// groupDescCostMultiplier is the schema descriptor for cost_multiplier field.
+	groupDescCostMultiplier := groupFields[50].Descriptor()
+	// group.DefaultCostMultiplier holds the default value on creation for the cost_multiplier field.
+	group.DefaultCostMultiplier = groupDescCostMultiplier.Default.(float64)
+	// groupDescPayAsYouGoPricePerUsd is the schema descriptor for pay_as_you_go_price_per_usd field.
+	groupDescPayAsYouGoPricePerUsd := groupFields[51].Descriptor()
+	// group.DefaultPayAsYouGoPricePerUsd holds the default value on creation for the pay_as_you_go_price_per_usd field.
+	group.DefaultPayAsYouGoPricePerUsd = groupDescPayAsYouGoPricePerUsd.Default.(float64)
+	// groupDescLossCoefficient is the schema descriptor for loss_coefficient field.
+	groupDescLossCoefficient := groupFields[52].Descriptor()
+	// group.DefaultLossCoefficient holds the default value on creation for the loss_coefficient field.
+	group.DefaultLossCoefficient = groupDescLossCoefficient.Default.(float64)
+	// groupDescMaxDiscountPct is the schema descriptor for max_discount_pct field.
+	groupDescMaxDiscountPct := groupFields[53].Descriptor()
+	// group.DefaultMaxDiscountPct holds the default value on creation for the max_discount_pct field.
+	group.DefaultMaxDiscountPct = groupDescMaxDiscountPct.Default.(float64)
+	// groupDescConcurrencyLimit is the schema descriptor for concurrency_limit field.
+	groupDescConcurrencyLimit := groupFields[54].Descriptor()
+	// group.DefaultConcurrencyLimit holds the default value on creation for the concurrency_limit field.
+	group.DefaultConcurrencyLimit = groupDescConcurrencyLimit.Default.(int)
+	// groupDescCircuitBreakerEnabled is the schema descriptor for circuit_breaker_enabled field.
+	groupDescCircuitBreakerEnabled := groupFields[55].Descriptor()
+	// group.DefaultCircuitBreakerEnabled holds the default value on creation for the circuit_breaker_enabled field.
+	group.DefaultCircuitBreakerEnabled = groupDescCircuitBreakerEnabled.Default.(bool)
+	// groupDescExclusiveQuota is the schema descriptor for exclusive_quota field.
+	groupDescExclusiveQuota := groupFields[56].Descriptor()
+	// group.DefaultExclusiveQuota holds the default value on creation for the exclusive_quota field.
+	group.DefaultExclusiveQuota = groupDescExclusiveQuota.Default.(bool)
+	// groupDescWhitelistOnly is the schema descriptor for whitelist_only field.
+	groupDescWhitelistOnly := groupFields[57].Descriptor()
+	// group.DefaultWhitelistOnly holds the default value on creation for the whitelist_only field.
+	group.DefaultWhitelistOnly = groupDescWhitelistOnly.Default.(bool)
 	idempotencyrecordMixin := schema.IdempotencyRecord{}.Mixin()
 	idempotencyrecordMixinFields0 := idempotencyrecordMixin[0].Fields()
 	_ = idempotencyrecordMixinFields0
@@ -2337,6 +2376,49 @@ func init() {
 	userattributevalueDescValue := userattributevalueFields[2].Descriptor()
 	// userattributevalue.DefaultValue holds the default value on creation for the value field.
 	userattributevalue.DefaultValue = userattributevalueDescValue.Default.(string)
+	userbalanceledgerMixin := schema.UserBalanceLedger{}.Mixin()
+	userbalanceledgerMixinFields0 := userbalanceledgerMixin[0].Fields()
+	_ = userbalanceledgerMixinFields0
+	userbalanceledgerFields := schema.UserBalanceLedger{}.Fields()
+	_ = userbalanceledgerFields
+	// userbalanceledgerDescCreatedAt is the schema descriptor for created_at field.
+	userbalanceledgerDescCreatedAt := userbalanceledgerMixinFields0[0].Descriptor()
+	// userbalanceledger.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userbalanceledger.DefaultCreatedAt = userbalanceledgerDescCreatedAt.Default.(func() time.Time)
+	// userbalanceledgerDescUpdatedAt is the schema descriptor for updated_at field.
+	userbalanceledgerDescUpdatedAt := userbalanceledgerMixinFields0[1].Descriptor()
+	// userbalanceledger.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userbalanceledger.DefaultUpdatedAt = userbalanceledgerDescUpdatedAt.Default.(func() time.Time)
+	// userbalanceledger.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userbalanceledger.UpdateDefaultUpdatedAt = userbalanceledgerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userbalanceledgerDescEntryType is the schema descriptor for entry_type field.
+	userbalanceledgerDescEntryType := userbalanceledgerFields[2].Descriptor()
+	// userbalanceledger.DefaultEntryType holds the default value on creation for the entry_type field.
+	userbalanceledger.DefaultEntryType = userbalanceledgerDescEntryType.Default.(string)
+	// userbalanceledger.EntryTypeValidator is a validator for the "entry_type" field. It is called by the builders before save.
+	userbalanceledger.EntryTypeValidator = userbalanceledgerDescEntryType.Validators[0].(func(string) error)
+	// userbalanceledgerDescDirection is the schema descriptor for direction field.
+	userbalanceledgerDescDirection := userbalanceledgerFields[3].Descriptor()
+	// userbalanceledger.DefaultDirection holds the default value on creation for the direction field.
+	userbalanceledger.DefaultDirection = userbalanceledgerDescDirection.Default.(string)
+	// userbalanceledger.DirectionValidator is a validator for the "direction" field. It is called by the builders before save.
+	userbalanceledger.DirectionValidator = userbalanceledgerDescDirection.Validators[0].(func(string) error)
+	// userbalanceledgerDescAmount is the schema descriptor for amount field.
+	userbalanceledgerDescAmount := userbalanceledgerFields[4].Descriptor()
+	// userbalanceledger.DefaultAmount holds the default value on creation for the amount field.
+	userbalanceledger.DefaultAmount = userbalanceledgerDescAmount.Default.(float64)
+	// userbalanceledgerDescBalanceAfter is the schema descriptor for balance_after field.
+	userbalanceledgerDescBalanceAfter := userbalanceledgerFields[5].Descriptor()
+	// userbalanceledger.DefaultBalanceAfter holds the default value on creation for the balance_after field.
+	userbalanceledger.DefaultBalanceAfter = userbalanceledgerDescBalanceAfter.Default.(float64)
+	// userbalanceledgerDescFrozen is the schema descriptor for frozen field.
+	userbalanceledgerDescFrozen := userbalanceledgerFields[7].Descriptor()
+	// userbalanceledger.DefaultFrozen holds the default value on creation for the frozen field.
+	userbalanceledger.DefaultFrozen = userbalanceledgerDescFrozen.Default.(bool)
+	// userbalanceledgerDescRefundBatchID is the schema descriptor for refund_batch_id field.
+	userbalanceledgerDescRefundBatchID := userbalanceledgerFields[8].Descriptor()
+	// userbalanceledger.RefundBatchIDValidator is a validator for the "refund_batch_id" field. It is called by the builders before save.
+	userbalanceledger.RefundBatchIDValidator = userbalanceledgerDescRefundBatchID.Validators[0].(func(string) error)
 	userplatformquotaMixin := schema.UserPlatformQuota{}.Mixin()
 	userplatformquotaMixinHooks1 := userplatformquotaMixin[1].Hooks()
 	userplatformquota.Hooks[0] = userplatformquotaMixinHooks1[0]

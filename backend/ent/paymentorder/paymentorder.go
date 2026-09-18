@@ -94,6 +94,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeBalanceLedger holds the string denoting the balance_ledger edge name in mutations.
+	EdgeBalanceLedger = "balance_ledger"
 	// Table holds the table name of the paymentorder in the database.
 	Table = "payment_orders"
 	// UserTable is the table that holds the user relation/edge.
@@ -103,6 +105,13 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "user_id"
+	// BalanceLedgerTable is the table that holds the balance_ledger relation/edge.
+	BalanceLedgerTable = "user_balance_ledger"
+	// BalanceLedgerInverseTable is the table name for the UserBalanceLedger entity.
+	// It exists in this package in order to avoid circular dependency with the "userbalanceledger" package.
+	BalanceLedgerInverseTable = "user_balance_ledger"
+	// BalanceLedgerColumn is the table column denoting the balance_ledger relation/edge.
+	BalanceLedgerColumn = "order_id"
 )
 
 // Columns holds all SQL columns for paymentorder fields.
@@ -410,10 +419,31 @@ func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByBalanceLedgerCount orders the results by balance_ledger count.
+func ByBalanceLedgerCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBalanceLedgerStep(), opts...)
+	}
+}
+
+// ByBalanceLedger orders the results by balance_ledger terms.
+func ByBalanceLedger(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBalanceLedgerStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newBalanceLedgerStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BalanceLedgerInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, BalanceLedgerTable, BalanceLedgerColumn),
 	)
 }

@@ -400,7 +400,7 @@ func (s *OpenAIGatewayService) fetchCachedAPIKeyCodexModelsManifest(ctx context.
 		return codexModelsManifestForClient(manifest, ifNoneMatch), nil
 	}
 	CodexMetricsInstance().RecordCacheMiss()
-		resultCh := s.refreshCachedAPIKeyCodexModelsManifest(cacheKey, request)
+	resultCh := s.refreshCachedAPIKeyCodexModelsManifest(cacheKey, request)
 	if state == codexModelsManifestCacheStale {
 		CodexMetricsInstance().RecordCacheHit(false)
 		return codexModelsManifestForClient(manifest, ifNoneMatch), nil

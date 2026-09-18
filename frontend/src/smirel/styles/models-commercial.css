@@ -1,0 +1,488 @@
+/* Smirel commercial dark model catalog.
+ *
+ * Root cause: PublicPage.vue introduced a second visual system for /models with
+ * blue-green backgrounds (#071019 / #09141e), blue-tinted active states and
+ * 8-10px-equivalent type across navigation, metadata and pricing rows. The
+ * console already defines the intended commercial-dark language: neutral black
+ * surfaces, restrained borders and a readable 15px base. This layer brings the
+ * public model catalog back onto that same system without changing its content
+ * or routing structure.
+ */
+
+#app .models-public-page {
+  --mc-bg: #090a0d;
+  --mc-surface: #101116;
+  --mc-surface-soft: #0d0f13;
+  --mc-surface-raised: #13151a;
+  --mc-border: #23262d;
+  --mc-border-strong: #30343d;
+  --mc-text: #f3f5f7;
+  --mc-text-soft: #c7ccd3;
+  --mc-muted: #8a919b;
+  --mc-subtle: #626a75;
+  --mc-success: #42ce99;
+  min-height: 100vh;
+  padding: 18px 24px 32px;
+  color: var(--mc-text);
+  background: var(--mc-bg);
+  font-size: 15px;
+}
+
+#app .models-public-page .site-environment {
+  background: var(--mc-bg);
+}
+
+#app .models-public-page .site-environment::after {
+  display: none;
+}
+
+#app .models-public-page .public-topbar {
+  width: min(1280px, calc(100vw - 48px));
+  height: 64px;
+  padding: 0 20px;
+  border: 1px solid var(--mc-border);
+  border-radius: 10px;
+  background: var(--mc-surface-soft);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+#app .models-public-page .brand-link {
+  gap: 11px;
+}
+
+#app .models-public-page .brand-link img {
+  width: 34px;
+  height: 34px;
+}
+
+#app .models-public-page .brand-link strong {
+  color: var(--mc-text);
+  font-size: .92rem;
+  line-height: 1.05;
+  font-weight: 680;
+}
+
+#app .models-public-page .brand-link small {
+  margin-top: 2px;
+  color: var(--mc-subtle);
+  font-size: .60rem;
+  font-weight: 650;
+  letter-spacing: .11em;
+}
+
+#app .models-public-page .public-topbar > div {
+  gap: 24px;
+  font-size: .78rem;
+  font-weight: 560;
+  color: var(--mc-muted);
+}
+
+#app .models-public-page .public-topbar a {
+  transition: color .15s ease;
+}
+
+#app .models-public-page .public-topbar a:hover,
+#app .models-public-page .public-topbar a.router-link-active {
+  color: var(--mc-text);
+}
+
+#app .models-public-page .eyebrow {
+  color: var(--mc-subtle);
+  font-size: .72rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+
+#app .models-shell {
+  width: min(1280px, calc(100vw - 48px));
+  margin: 24px auto 0;
+  display: grid;
+  gap: 12px;
+}
+
+#app .models-hero {
+  min-height: 212px;
+  grid-template-columns: minmax(0, 1.22fr) minmax(420px, .78fr);
+  gap: 44px;
+  padding: 26px 4px 28px;
+}
+
+#app .models-intro h1 {
+  margin: 10px 0 0;
+  color: var(--mc-text);
+  font-size: clamp(2.8rem, 4.2vw, 3.65rem);
+  line-height: .98;
+  letter-spacing: -.052em;
+  font-weight: 650;
+}
+
+#app .models-intro > p {
+  max-width: 680px;
+  margin: 16px 0 0;
+  color: var(--mc-muted);
+  font-size: .92rem;
+  line-height: 1.65;
+}
+
+#app .models-hero-actions {
+  gap: 10px;
+  margin-top: 22px;
+  font-size: .82rem;
+}
+
+#app .models-public-page .models-hero-actions .primary-button,
+#app .models-public-page .models-hero-actions .secondary-button {
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 620;
+}
+
+#app .models-public-page .models-hero-actions .primary-button {
+  min-width: 116px;
+  border-color: #eef1f4;
+  background: #eef1f4;
+  color: #0a0b0d;
+}
+
+#app .models-public-page .models-hero-actions .primary-button:hover {
+  border-color: #fff;
+  background: #fff;
+  transform: none;
+}
+
+#app .models-public-page .models-hero-actions .secondary-button {
+  border-color: var(--mc-border-strong);
+  background: var(--mc-surface-raised);
+  color: var(--mc-text-soft);
+}
+
+#app .models-public-page .models-hero-actions .secondary-button:hover {
+  border-color: #444952;
+  background: #181a20;
+  color: #fff;
+}
+
+#app .models-overview {
+  min-height: 148px;
+  border: 1px solid var(--mc-border);
+  border-radius: 10px;
+  background: var(--mc-surface);
+}
+
+#app .models-overview > div {
+  padding: 22px 19px;
+}
+
+#app .models-overview > div + div {
+  border-left: 1px solid var(--mc-border);
+}
+
+#app .models-overview span {
+  color: var(--mc-subtle);
+  font-size: .72rem;
+  font-weight: 600;
+}
+
+#app .models-overview strong {
+  margin-top: 8px;
+  color: var(--mc-text);
+  font-size: .94rem;
+  line-height: 1.25;
+  font-weight: 650;
+}
+
+#app .models-overview small {
+  margin-top: 7px;
+  color: var(--mc-muted);
+  font-size: .74rem;
+  line-height: 1.5;
+}
+
+#app .provider-switch {
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid var(--mc-border);
+  border-radius: 10px;
+  background: var(--mc-surface-soft);
+}
+
+#app .models-public-page .provider-switch button {
+  min-height: 66px;
+  padding: 0 17px;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--mc-muted);
+}
+
+#app .models-public-page .provider-switch button:hover {
+  border-color: #272b32;
+  background: #13151a;
+  color: var(--mc-text-soft);
+}
+
+#app .models-public-page .provider-switch button.active {
+  border-color: #3a4049;
+  background: #15181d;
+  color: var(--mc-text);
+}
+
+#app .models-public-page .provider-index {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #2b2f36;
+  border-radius: 7px;
+  color: var(--mc-subtle);
+  font: .64rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+#app .models-public-page .provider-switch button.active .provider-index {
+  border-color: #4a5059;
+  color: #d7dce2;
+}
+
+#app .provider-copy strong {
+  color: inherit;
+  font-size: .88rem;
+  line-height: 1.2;
+  font-weight: 650;
+}
+
+#app .provider-copy small {
+  margin-top: 5px;
+  color: var(--mc-subtle);
+  font-size: .68rem;
+}
+
+#app .catalog-panel {
+  border: 1px solid var(--mc-border);
+  border-radius: 10px;
+  background: var(--mc-surface);
+}
+
+#app .catalog-heading {
+  min-height: 112px;
+  padding: 21px 24px;
+  gap: 26px;
+  border-bottom: 1px solid var(--mc-border);
+}
+
+#app .catalog-heading h2 {
+  margin: 7px 0 0;
+  color: var(--mc-text);
+  font-size: 1.36rem;
+  letter-spacing: -.032em;
+  font-weight: 650;
+}
+
+#app .catalog-heading p {
+  margin: 7px 0 0;
+  color: var(--mc-muted);
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+#app .catalog-status {
+  min-width: 150px;
+  grid-template-columns: 8px auto;
+  column-gap: 9px;
+}
+
+#app .catalog-status i {
+  width: 7px;
+  height: 7px;
+  background: var(--mc-success);
+  box-shadow: 0 0 0 3px rgba(66, 206, 153, .07);
+}
+
+#app .catalog-status span {
+  color: var(--mc-subtle);
+  font-size: .66rem;
+  font-weight: 600;
+}
+
+#app .catalog-status strong {
+  margin-top: 3px;
+  color: var(--mc-text-soft);
+  font-size: .80rem;
+  font-weight: 650;
+}
+
+#app .catalog-table {
+  min-width: 820px;
+}
+
+#app .catalog-table th,
+#app .catalog-table td {
+  padding: 0 22px;
+}
+
+#app .catalog-table th {
+  height: 42px;
+  border-bottom: 1px solid #1e2127;
+  color: var(--mc-subtle);
+  font-size: .68rem;
+  letter-spacing: .035em;
+  font-weight: 650;
+}
+
+#app .catalog-table td {
+  height: 60px;
+  border-bottom: 1px solid #1e2127;
+  color: var(--mc-muted);
+  font-size: .78rem;
+}
+
+#app .catalog-table tbody tr:hover td {
+  background: #121419;
+}
+
+#app .catalog-table td strong {
+  color: var(--mc-text);
+  font-size: .84rem;
+  font-weight: 640;
+}
+
+#app .catalog-table code {
+  color: #aeb4bd;
+  font: .70rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+#app .rate-label {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid #2a2e35;
+  border-radius: 6px;
+  background: #15181d;
+  color: #c5cad1;
+  font-size: .72rem;
+  font-weight: 560;
+}
+
+#app .model-note {
+  color: var(--mc-muted);
+  font-size: .74rem;
+}
+
+#app .pricing-note {
+  min-height: 96px;
+  padding: 17px 21px;
+  gap: 34px;
+  border: 1px solid var(--mc-border);
+  border-radius: 10px;
+  background: var(--mc-surface-soft);
+}
+
+#app .pricing-note > div:first-child > strong {
+  margin-top: 6px;
+  color: var(--mc-text-soft);
+  font-size: .84rem;
+  line-height: 1.35;
+  font-weight: 640;
+}
+
+#app .pricing-note p {
+  margin: 6px 0 0;
+  color: var(--mc-subtle);
+  font-size: .72rem;
+  line-height: 1.45;
+}
+
+#app .pricing-note-meta {
+  gap: 20px;
+  color: var(--mc-muted);
+  font-size: .68rem;
+}
+
+#app .pricing-note-meta b {
+  color: var(--mc-subtle);
+  font: .60rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (max-width: 1080px) {
+  #app .models-hero {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  #app .models-overview {
+    min-height: 124px;
+  }
+}
+
+@media (max-width: 680px) {
+  #app .models-public-page {
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  #app .models-public-page .public-topbar,
+  #app .models-shell {
+    width: 100%;
+  }
+
+  #app .models-public-page .public-topbar {
+    height: 58px;
+    padding: 0 14px;
+  }
+
+  #app .models-public-page .public-topbar > div {
+    gap: 14px;
+    font-size: .74rem;
+  }
+
+  #app .models-shell {
+    margin-top: 12px;
+    gap: 9px;
+  }
+
+  #app .models-hero {
+    padding: 26px 2px 18px;
+  }
+
+  #app .models-intro h1 {
+    font-size: 2.55rem;
+  }
+
+  #app .models-intro > p {
+    font-size: .86rem;
+  }
+
+  #app .models-overview > div {
+    min-height: 78px;
+    padding: 15px 16px;
+  }
+
+  #app .models-overview > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--mc-border);
+  }
+
+  #app .models-public-page .provider-switch button {
+    min-height: 58px;
+  }
+
+  #app .catalog-heading {
+    min-height: 104px;
+    padding: 18px;
+  }
+
+  #app .catalog-table th,
+  #app .catalog-table td {
+    padding: 0 18px;
+  }
+
+  #app .pricing-note {
+    padding: 16px 18px;
+  }
+
+  #app .pricing-note-meta {
+    gap: 12px;
+  }
+}

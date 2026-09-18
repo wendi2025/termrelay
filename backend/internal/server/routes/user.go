@@ -31,6 +31,7 @@ func RegisterUserRoutes(
 			user.GET("/profile", h.User.GetProfile)
 			user.PUT("/password", h.User.ChangePassword)
 			user.PUT("", h.User.UpdateProfile)
+			user.DELETE("/account", h.User.DeleteOwnAccount)
 			user.GET("/aff", h.User.GetAffiliate)
 			user.POST("/aff/transfer", h.User.TransferAffiliateQuota)
 			user.POST("/account-bindings/email/send-code", h.User.SendEmailBindingCode)
@@ -134,6 +135,20 @@ func RegisterUserRoutes(
 			subscriptions.GET("/progress", h.Subscription.GetProgress)
 			subscriptions.GET("/summary", h.Subscription.GetSummary)
 		}
+		access := authenticated.Group("/subscription-access-requests")
+		{
+			access.GET("", h.Subscription.ListPlanAccessRequests)
+			access.POST("", h.Subscription.SubmitPlanAccessRequest)
+			access.POST("/:id/revoke", h.Subscription.RevokePlanAccessRequest)
+		}
+		teams := authenticated.Group("/subscription-teams")
+		{
+			teams.GET("", h.Subscription.ListTeams)
+			teams.POST("/:id/invitations", h.Subscription.InviteTeamMember)
+			teams.DELETE("/:id/members/:user_id", h.Subscription.RemoveTeamMember)
+		}
+		invitations := authenticated.Group("/subscription-team-invitations")
+		invitations.POST("/:id/accept", h.Subscription.AcceptTeamInvitation)
 
 		// 渠道监控（用户只读）
 		monitors := authenticated.Group("/channel-monitors")

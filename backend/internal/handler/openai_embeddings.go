@@ -170,6 +170,15 @@ func (h *OpenAIGatewayHandler) Embeddings(c *gin.Context) {
 			return
 		}
 
+		if !h.beginAccountPoolAttempt(account) {
+			if accountReleaseFunc != nil {
+				accountReleaseFunc()
+			}
+			failedAccountIDs[account.ID] = struct{}{}
+			reqLog.Debug("openai_embeddings.account_pool_circuit_skipped", zap.Int64("account_id", account.ID))
+			continue
+		}
+
 		service.SetOpsLatencyMs(c, service.OpsRoutingLatencyMsKey, time.Since(routingStart).Milliseconds())
 		forwardStart := time.Now()
 
@@ -186,6 +195,7 @@ func (h *OpenAIGatewayHandler) Embeddings(c *gin.Context) {
 			}()
 			return h.gatewayService.ForwardEmbeddings(c.Request.Context(), c, account, forwardBody, "")
 		}()
+		h.reportAccountPoolAttempt(account, result, err)
 
 		forwardDurationMs := time.Since(forwardStart).Milliseconds()
 		upstreamLatencyMs, _ := getContextInt64(c, service.OpsUpstreamLatencyMsKey)

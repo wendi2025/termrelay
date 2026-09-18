@@ -70,23 +70,37 @@ func SetupRouter(
 	}))
 	r.Use(middleware2.ServerTiming(cfg.Server.EnableServerTiming))
 
+	// Runtime frontend override. When data/public/index.html exists this
+	// middleware serves the full external bundle; otherwise it falls through to
+	// the embedded frontend below. It is intentionally registered after the
+	// security middleware so the same CSP nonce/settings injection still apply.
+	externalFrontend := web.NewExternalFrontendServer(settingService)
+	r.Use(externalFrontend.Middleware())
+
 	// Serve embedded frontend with settings injection if available
 	if web.HasEmbeddedFrontend() {
 		frontendServer, err := web.NewFrontendServer(settingService) //nolint:staticcheck // SA4023: the !embed stub always errors; embed builds can return nil
 		if err != nil {                                              //nolint:staticcheck // SA4023: see above
 			log.Printf("Warning: Failed to create frontend server with settings injection: %v, using legacy mode", err)
 			r.Use(web.ServeEmbeddedFrontend())
-			settingService.SetOnUpdateCallback(refreshFrameOrigins)
-		} else {
-			// Register combined callback: invalidate HTML cache + refresh frame origins
 			settingService.SetOnUpdateCallback(func() {
+				externalFrontend.InvalidateCache()
+				refreshFrameOrigins()
+			})
+		} else {
+			// Register combined callback: invalidate both frontend caches + refresh frame origins
+			settingService.SetOnUpdateCallback(func() {
+				externalFrontend.InvalidateCache()
 				frontendServer.InvalidateCache()
 				refreshFrameOrigins()
 			})
 			r.Use(frontendServer.Middleware())
 		}
 	} else {
-		settingService.SetOnUpdateCallback(refreshFrameOrigins)
+		settingService.SetOnUpdateCallback(func() {
+			externalFrontend.InvalidateCache()
+			refreshFrameOrigins()
+		})
 	}
 
 	// 注册路由

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
 
 	dbent "github.com/Wei-Shaw/sub2api/ent"
 	"github.com/Wei-Shaw/sub2api/ent/paymentauditlog"
@@ -334,7 +335,7 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 
 	switch action {
 	case redeemActionSkipCompleted:
-		if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
+		if err := s.applyPostPaymentAccounting(ctx, o); err != nil {
 			return err
 		}
 		// Code already created and redeemed — just mark completed
@@ -350,7 +351,7 @@ func (s *PaymentService) doBalance(ctx context.Context, o *dbent.PaymentOrder, l
 	if _, err := s.redeemService.Redeem(ContextSkipRedeemAffiliate(ctx), o.UserID, o.RechargeCode); err != nil {
 		return fmt.Errorf("redeem balance: %w", err)
 	}
-	if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
+	if err := s.applyPostPaymentAccounting(ctx, o); err != nil {
 		return err
 	}
 	return s.markCompleted(ctx, o, lease, "RECHARGE_SUCCESS")
@@ -376,6 +377,10 @@ func (s *PaymentService) markCompleted(ctx context.Context, o *dbent.PaymentOrde
 		}
 		return infraerrors.Conflict("CONFLICT", "fulfillment lease was lost before completion")
 	}
+	// 充值成功：登记余额账本本金入账（方案 9.2），幂等
+	if auditAction == "RECHARGE_SUCCESS" {
+		s.recordRechargeLedger(ctx, o)
+	}
 	if !s.hasAuditLog(ctx, o.ID, auditAction) {
 		s.writeAuditLog(ctx, o.ID, auditAction, "system", map[string]any{
 			"rechargeCode":   o.RechargeCode,
@@ -385,6 +390,17 @@ func (s *PaymentService) markCompleted(ctx context.Context, o *dbent.PaymentOrde
 		s.dispatchPaymentFulfillmentNotification(o, auditAction)
 	}
 	return nil
+}
+
+// recordRechargeLedger 登记充值本金入账（幂等：同一订单只登记一次）。
+// 账本写入失败不阻断履约 —— 履约重试会再次调用本方法补登记。
+func (s *PaymentService) recordRechargeLedger(ctx context.Context, o *dbent.PaymentOrder) {
+	if s == nil || s.balanceLedger == nil || o == nil {
+		return
+	}
+	if err := s.balanceLedger.RecordRechargeCredit(ctx, o); err != nil {
+		slog.Warn("payment: record balance ledger credit failed", "orderID", o.ID, "error", err)
+	}
 }
 
 func (s *PaymentService) dispatchPaymentFulfillmentNotification(o *dbent.PaymentOrder, auditAction string) {
@@ -464,6 +480,37 @@ func (s *PaymentService) sendSubscriptionPurchaseSuccessNotification(ctx context
 	})
 }
 
+func ensureSubscriptionTeamSnapshot(ctx context.Context, client *dbent.Client, userID, groupID, planID int64, days int) error {
+	var rows entsql.Rows
+	if err := client.Driver().Query(ctx, `SELECT features FROM subscription_plans WHERE id=$1`, []any{planID}, &rows); err != nil {
+		return err
+	}
+	defer rows.Close()
+	seat, concurrency := 1, 1
+	var features string
+	if rows.Next() {
+		if err := rows.Scan(&features); err != nil {
+			return err
+		}
+		card := DecodePlanFeatures(features).Card
+		seat, concurrency = card.SeatLimit, card.ConcurrencyLimit
+	}
+	if seat < 1 {
+		seat = 1
+	}
+	if concurrency < 1 {
+		concurrency = 1
+	}
+	var result entsql.Result
+	if err := client.Driver().Exec(ctx, `INSERT INTO subscription_teams (owner_user_id,group_id,plan_id,status,seat_limit,concurrency_limit,expires_at) VALUES ($1,$2,$3,'active',$4,$5,NOW() + ($6 || ' days')::interval) ON CONFLICT (owner_user_id,group_id) DO UPDATE SET plan_id=EXCLUDED.plan_id,status='active',seat_limit=EXCLUDED.seat_limit,concurrency_limit=EXCLUDED.concurrency_limit,expires_at=GREATEST(subscription_teams.expires_at, EXCLUDED.expires_at),updated_at=NOW()`, []any{userID, groupID, planID, seat, concurrency, days}, &result); err != nil {
+		return err
+	}
+	if err := client.Driver().Exec(ctx, `INSERT INTO subscription_team_members (team_id,user_id,role) SELECT id,$1,'owner' FROM subscription_teams WHERE owner_user_id=$1 AND group_id=$2 ON CONFLICT DO NOTHING`, []any{userID, groupID}, &result); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *PaymentService) ExecuteSubscriptionFulfillment(ctx context.Context, oid int64) error {
 	o, err := s.entClient.PaymentOrder.Get(ctx, oid)
 	if err != nil {
@@ -505,7 +552,7 @@ func (s *PaymentService) doSub(ctx context.Context, o *dbent.PaymentOrder, lease
 	if err := s.ensurePaymentSubscriptionAssigned(ctx, o, gid, days); err != nil {
 		return err
 	}
-	if err := s.applyAffiliateRebateForOrder(ctx, o); err != nil {
+	if err := s.applyPostPaymentAccounting(ctx, o); err != nil {
 		return err
 	}
 	return s.markCompleted(ctx, o, lease, "SUBSCRIPTION_SUCCESS")
@@ -547,6 +594,11 @@ func (s *PaymentService) ensurePaymentSubscriptionAssigned(ctx context.Context, 
 				Notes:        orderNote,
 			}, true); err != nil {
 				return fmt.Errorf("assign subscription: %w", err)
+			}
+		}
+		if o.PlanID != nil {
+			if err := ensureSubscriptionTeamSnapshot(txCtx, txClient, o.UserID, groupID, *o.PlanID, days); err != nil {
+				return fmt.Errorf("create subscription team: %w", err)
 			}
 		}
 

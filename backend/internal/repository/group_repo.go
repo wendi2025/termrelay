@@ -798,6 +798,18 @@ func (r *groupRepository) DeleteCascade(ctx context.Context, id int64) ([]int64,
 		return nil, service.ErrGroupNotFound
 	}
 
+	// Subscription plans are durable products, while groups are durable logical
+	// routing targets whose upstream accounts may change over time. Never allow a
+	// group deletion to orphan fixed plan definitions; callers must explicitly
+	// reassign or remove the plans first.
+	var planCount int64
+	if err := scanSingleRow(ctx, exec, "SELECT COUNT(*) FROM subscription_plans WHERE group_id = $1", []any{id}, &planCount); err != nil {
+		return nil, err
+	}
+	if planCount > 0 {
+		return nil, service.ErrGroupHasSubscriptionPlans
+	}
+
 	var affectedUserIDs []int64
 	if groupSvc.IsSubscriptionType() {
 		// 只查询未软删除的订阅，避免通知已取消订阅的用户

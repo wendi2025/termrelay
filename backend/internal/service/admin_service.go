@@ -339,6 +339,8 @@ type CreateAccountInput struct {
 	ProxyID            *int64
 	Concurrency        int
 	Priority           int
+	ProviderID         *string  // 逻辑上游 Provider ID；nil=按 platform+origin 自动派生
+	SchedulingWeight   *float64 // 账号池流量权重（>0 且 <=1000；nil=默认 1）
 	RateMultiplier     *float64 // 账号计费倍率（>=0，允许 0）
 	LoadFactor         *int
 	GroupIDs           []int64
@@ -370,6 +372,8 @@ type UpdateAccountInput struct {
 	ProxyID               *int64
 	Concurrency           *int     // 使用指针区分"未提供"和"设置为0"
 	Priority              *int     // 使用指针区分"未提供"和"设置为0"
+	ProviderID            *string  // 逻辑上游 Provider ID；空字符串表示恢复自动派生
+	SchedulingWeight      *float64 // 账号池流量权重；nil 表示不修改
 	RateMultiplier        *float64 // 账号计费倍率（>=0，允许 0）
 	LoadFactor            *int
 	Status                string
@@ -381,20 +385,22 @@ type UpdateAccountInput struct {
 
 // BulkUpdateAccountsInput describes the payload for bulk updating accounts.
 type BulkUpdateAccountsInput struct {
-	AccountIDs     []int64
-	Filters        *BulkUpdateAccountFilters
-	Name           string
-	ProxyID        *int64
-	Concurrency    *int
-	Priority       *int
-	RateMultiplier *float64 // 账号计费倍率（>=0，允许 0）
-	LoadFactor     *int
-	Status         string
-	Schedulable    *bool
-	GroupIDs       *[]int64
-	Credentials    map[string]any
-	Extra          map[string]any
-	ProbeEnabled   *bool
+	AccountIDs       []int64
+	Filters          *BulkUpdateAccountFilters
+	Name             string
+	ProxyID          *int64
+	Concurrency      *int
+	Priority         *int
+	ProviderID       *string  // 逻辑上游 Provider ID；空字符串表示恢复自动派生
+	SchedulingWeight *float64 // 账号池流量权重；nil 表示不修改
+	RateMultiplier   *float64 // 账号计费倍率（>=0，允许 0）
+	LoadFactor       *int
+	Status           string
+	Schedulable      *bool
+	GroupIDs         *[]int64
+	Credentials      map[string]any
+	Extra            map[string]any
+	ProbeEnabled     *bool
 	// SkipMixedChannelCheck skips the mixed channel risk check when binding groups.
 	// This should only be set when the caller has explicitly confirmed the risk.
 	SkipMixedChannelCheck bool

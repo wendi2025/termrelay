@@ -1,0 +1,163 @@
+/* Model-card readability pass for the commercial dark marketplace.
+ *
+ * Root cause: the card's secondary information was set between .58rem and
+ * .69rem, which renders around 9–11px at the workspace base size. Combined
+ * with low-contrast gray text, pricing labels, specs, protocol badges and
+ * health metadata became difficult to scan on high-density displays.
+ *
+ * This layer intentionally keeps the existing card structure and visual
+ * language. It only raises the typography floor, contrast and the minimum row
+ * heights needed by the larger type so the cards remain compact but readable.
+ */
+
+.workspace-root .model-market-card .model-tags span {
+  min-height: 23px;
+  padding: 0 8px;
+  color: #959da7;
+  font-size: .68rem;
+  line-height: 1;
+}
+
+.workspace-root .model-market-card .model-tags span:first-child {
+  color: #c0c6cd;
+}
+
+.workspace-root .model-market-card .model-rank {
+  color: #676f79;
+  font-size: .70rem;
+}
+
+.workspace-root .model-market-card .model-price-grid > div {
+  min-height: 74px;
+  padding: 13px 15px;
+}
+
+.workspace-root .model-market-card .model-price-grid span {
+  color: #89929d;
+  font-size: .73rem;
+  line-height: 1.35;
+}
+
+.workspace-root .model-market-card .model-price-grid strong {
+  margin-top: 7px;
+  color: #f0f2f5;
+  font-size: .96rem;
+  line-height: 1.2;
+}
+
+.workspace-root .model-market-card .model-price-grid small {
+  margin-left: 5px;
+  color: #89929d;
+  font-size: .68rem;
+  line-height: 1.2;
+}
+
+.workspace-root .model-market-card .model-specs {
+  padding: 10px 14px;
+}
+
+.workspace-root .model-market-card .model-specs > div {
+  min-height: 37px;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 14px;
+}
+
+.workspace-root .model-market-card .model-specs span {
+  color: #828b96;
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.workspace-root .model-market-card .model-specs strong {
+  color: #c4cad1;
+  font-size: .80rem;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.workspace-root .model-market-card .model-id-row {
+  min-height: 52px;
+  padding: 0 13px;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  gap: 11px;
+}
+
+.workspace-root .model-market-card .model-id-row > span,
+.workspace-root .model-market-card .protocol-list > span {
+  color: #808994;
+  font-size: .71rem;
+  line-height: 1.35;
+}
+
+.workspace-root .model-market-card .model-id-row code {
+  color: #afd0f5;
+  font-size: .77rem;
+  line-height: 1.4;
+}
+
+.workspace-root .model-market-card .model-id-row button {
+  height: 30px;
+  padding: 0 10px;
+  color: #9ba4ae;
+  font-size: .68rem;
+}
+
+.workspace-root .model-market-card .protocol-list {
+  min-height: 54px;
+  padding: 9px 13px;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 11px;
+}
+
+.workspace-root .model-market-card .protocol-list > div {
+  gap: 6px;
+}
+
+.workspace-root .model-market-card .protocol-list b {
+  min-height: 26px;
+  padding: 0 9px;
+  color: #a7afb9;
+  background: #171a1f;
+  font-size: .68rem;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.workspace-root .model-market-card .model-health {
+  padding: 15px 16px 16px;
+}
+
+.workspace-root .model-market-card .health-label span,
+.workspace-root .model-market-card .health-latency span {
+  color: #858e99;
+  font-size: .72rem;
+  line-height: 1.35;
+}
+
+.workspace-root .model-market-card .health-label strong {
+  font-size: .76rem;
+}
+
+.workspace-root .model-market-card .health-track {
+  height: 15px;
+  margin: 9px 0 8px;
+}
+
+.workspace-root .model-market-card .health-latency strong {
+  font-size: .75rem;
+}
+
+@media (max-width: 640px) {
+  .workspace-root .model-market-card .model-specs > div {
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+
+  .workspace-root .model-market-card .model-id-row,
+  .workspace-root .model-market-card .protocol-list {
+    grid-template-columns: 66px minmax(0, 1fr) auto;
+  }
+
+  .workspace-root .model-market-card .protocol-list {
+    grid-template-columns: 66px minmax(0, 1fr);
+  }
+}

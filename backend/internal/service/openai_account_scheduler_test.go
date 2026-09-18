@@ -3261,6 +3261,41 @@ func TestBuildOpenAIWeightedSelectionOrder_DeterministicBySessionSeed(t *testing
 	}
 }
 
+func TestBuildOpenAIWeightedSelectionOrder_HonorsAccountTrafficWeight(t *testing.T) {
+	candidates := []openAIAccountCandidateScore{
+		{
+			account: &Account{
+				ID:    201,
+				Extra: map[string]any{accountPoolWeightExtraKey: 1000.0},
+			},
+			loadInfo: &AccountLoadInfo{},
+			score:    5,
+		},
+		{
+			account: &Account{
+				ID:    202,
+				Extra: map[string]any{accountPoolWeightExtraKey: 1.0},
+			},
+			loadInfo: &AccountLoadInfo{},
+			score:    5,
+		},
+	}
+
+	heavyFirst := 0
+	for i := 0; i < 64; i++ {
+		order := buildOpenAIWeightedSelectionOrder(candidates, OpenAIAccountScheduleRequest{
+			SessionHash: fmt.Sprintf("weighted-account-%d", i),
+		})
+		require.Len(t, order, 2)
+		if order[0].account.ID == 201 {
+			heavyFirst++
+		}
+	}
+	// 1000:1 should dominate across deterministic session seeds without
+	// requiring a brittle assertion on one exact RNG draw.
+	require.GreaterOrEqual(t, heavyFirst, 60)
+}
+
 func TestOpenAIGatewayService_SelectAccountWithScheduler_LoadBalanceDistributesAcrossSessions(t *testing.T) {
 	ctx := context.Background()
 	groupID := int64(15)

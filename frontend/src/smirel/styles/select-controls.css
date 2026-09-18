@@ -1,0 +1,184 @@
+/* Shared select treatment for the commercial-dark Smirel UI.
+ *
+ * Chromium's default select popup is OS-rendered, so styling only the closed
+ * control leaves a bright native menu. Modern browsers expose the picker via
+ * appearance: base-select / ::picker(select); older engines retain a dark
+ * color-scheme fallback instead of regressing to a white popup.
+ */
+
+.smirel-app select {
+  color-scheme: dark;
+  font: inherit;
+}
+
+.smirel-app select option {
+  background: #0d0f13;
+  color: #cfd5dc;
+}
+
+@supports (appearance: base-select) {
+  .smirel-app select,
+  .smirel-app select::picker(select) {
+    appearance: base-select !important;
+  }
+
+  .smirel-app select {
+    transition: border-color .14s ease, background-color .14s ease, color .14s ease, box-shadow .14s ease;
+  }
+
+  .smirel-app select:hover:not(:disabled) {
+    color: #eef2f5;
+  }
+
+  .smirel-app select:focus-visible,
+  .smirel-app select:open {
+    outline: none;
+  }
+
+  .smirel-app select::picker(select) {
+    margin-block: 6px;
+    max-height: 284px;
+    padding: 5px;
+    overflow: auto;
+    border: 1px solid #2b3038;
+    border-radius: 10px;
+    background: #0d0f13;
+    color: #cfd5dc;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, .42), inset 0 1px rgba(255, 255, 255, .02);
+    scrollbar-width: thin;
+    scrollbar-color: #353c46 transparent;
+  }
+
+  .smirel-app select option {
+    min-height: 40px;
+    margin: 1px 0;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    color: #b9c1c9;
+    font-size: .76rem;
+    font-weight: 560;
+    cursor: pointer;
+    transition: background-color .1s ease, color .1s ease;
+  }
+
+  .smirel-app select option:first-child {
+    margin-top: 0;
+  }
+
+  .smirel-app select option:last-child {
+    margin-bottom: 0;
+  }
+
+  .smirel-app select option:hover,
+  .smirel-app select option:focus {
+    background: #15191f;
+    color: #f2f4f6;
+  }
+
+  .smirel-app select option:checked {
+    background: #13202c;
+    color: #edf6fb;
+    font-weight: 620;
+  }
+
+  .smirel-app select option:checked:hover,
+  .smirel-app select option:checked:focus {
+    background: #162735;
+  }
+
+  .smirel-app select option:disabled {
+    color: #59616b;
+    cursor: default;
+  }
+
+  .smirel-app select option::checkmark {
+    order: 2;
+    margin-inline-start: auto;
+    color: #67bff2;
+  }
+
+  /* Keep native picker indicators in a stable trailing lane. Their own box,
+   * rather than the glyph's baseline, is the rotation reference. */
+  .smirel-app select::picker-icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    margin-inline-start: auto;
+    color: #77818c;
+    transform-box: border-box;
+    transform-origin: 50% 50%;
+    transition: transform .15s ease, color .15s ease;
+  }
+
+  .smirel-app select:hover::picker-icon,
+  .smirel-app select:open::picker-icon {
+    color: #a2acb7;
+  }
+
+  .smirel-app select:open::picker-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Composite filter fields (label + select + chevron) already own a fixed
+   * arrow lane. Do not inject Chromium's picker icon into the value column:
+   * that creates the duplicate arrow and pulls the selected value off-center.
+   * The outer SVG is positioned independently; only its path rotates, so
+   * opening the menu cannot change the arrow's geometric center. */
+  .smirel-app .select-control select {
+    width: 100%;
+    min-width: 0;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    padding-inline-end: 0;
+    line-height: 1;
+  }
+
+  .smirel-app .select-control select::picker-icon {
+    display: none;
+  }
+
+  .smirel-app .select-control > svg {
+    display: block;
+    pointer-events: none;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .smirel-app .select-control > svg path {
+    transform-box: view-box;
+    transform-origin: 8px 8px;
+    transition: transform .15s ease;
+  }
+
+  .smirel-app .select-control select:open ~ svg path {
+    transform: rotate(180deg);
+  }
+
+  .smirel-app select::picker(select)::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .smirel-app select::picker(select)::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .smirel-app select::picker(select)::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #353c46;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smirel-app select,
+  .smirel-app select::picker-icon,
+  .smirel-app select option,
+  .smirel-app .select-control > svg path {
+    transition: none;
+  }
+}

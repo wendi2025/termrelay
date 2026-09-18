@@ -55,6 +55,79 @@ type RecordUsageInput struct {
 	ChannelUsageFields // 渠道映射信息（由 handler 在 Forward 前解析）
 }
 
+// TerminalUsageInput records a request that reached a terminal state without a
+// billable upstream result. It deliberately bypasses applyUsageBilling: failed
+// and canceled requests are audit records, never balance deductions.
+type TerminalUsageInput struct {
+	APIKey             *APIKey
+	User               *User
+	Account            *Account
+	RequestID          string
+	Model              string
+	RequestedModel     string
+	UpstreamModel      string
+	InboundEndpoint    string
+	UpstreamEndpoint   string
+	RequestPayloadHash string
+	DurationMs         int
+	RetryCount         int
+	Stream             bool
+	Status             string
+	ErrorType          string
+	ChannelUsageFields
+}
+
+// RecordTerminalUsage persists a failed or canceled terminal outcome. The
+// detached writer makes cancellation of the client context unable to lose the
+// audit record, while the normal unique request key prevents double-finalizing.
+func (s *GatewayService) RecordTerminalUsage(ctx context.Context, input *TerminalUsageInput) {
+	if s == nil || s.usageLogRepo == nil || input == nil || input.APIKey == nil || input.User == nil || input.Account == nil {
+		return
+	}
+	status := strings.ToLower(strings.TrimSpace(input.Status))
+	if status != "failed" && status != "canceled" {
+		return
+	}
+	now := time.Now()
+	requestID := strings.TrimSpace(input.RequestID)
+	if requestID == "" {
+		requestID = resolveUsageBillingRequestID(ctx, "")
+	}
+	requestedModel := strings.TrimSpace(input.RequestedModel)
+	if requestedModel == "" {
+		requestedModel = input.Model
+	}
+	duration := input.DurationMs
+	log := &UsageLog{
+		UserID:            input.User.ID,
+		APIKeyID:          input.APIKey.ID,
+		AccountID:         input.Account.ID,
+		RequestID:         requestID,
+		Model:             input.Model,
+		RequestedModel:    requestedModel,
+		UpstreamModel:     optionalTrimmedStringPtr(input.UpstreamModel),
+		InboundEndpoint:   optionalTrimmedStringPtr(input.InboundEndpoint),
+		UpstreamEndpoint:  optionalTrimmedStringPtr(input.UpstreamEndpoint),
+		ChannelID:         optionalInt64Ptr(input.ChannelID),
+		ModelMappingChain: optionalTrimmedStringPtr(input.ModelMappingChain),
+		Stream:            input.Stream,
+		RequestType:       RequestTypeFromLegacy(input.Stream, false),
+		DurationMs:        &duration,
+		Status:            status,
+		ErrorType:         optionalTrimmedStringPtr(input.ErrorType),
+		EndedAt:           &now,
+		CreatedAt:         now,
+	}
+	if input.APIKey.GroupID != nil {
+		log.GroupID = input.APIKey.GroupID
+	}
+	terminalCtx, cancel := detachedBillingContext(ctx)
+	defer cancel()
+	if _, err := s.usageLogRepo.Create(terminalCtx, log); err != nil {
+		logger.LegacyPrintf("service.gateway", "Create terminal usage log failed: %v", err)
+	}
+}
+
 // APIKeyQuotaUpdater defines the interface for updating API Key quota and rate limit usage
 type APIKeyQuotaUpdater interface {
 	UpdateQuotaUsed(ctx context.Context, apiKeyID int64, cost float64) error
@@ -727,6 +800,7 @@ func (s *GatewayService) recordUsageCore(ctx context.Context, input *recordUsage
 	accountRateMultiplier := account.BillingRateMultiplier()
 	usageLog := s.buildRecordUsageLog(ctx, input, result, apiKey, user, account, subscription,
 		requestedModel, multiplier, imageMultiplier, accountRateMultiplier, billingType, cacheTTLOverridden, cost, opts)
+	usageLog.Status = "success"
 
 	// 计算账号统计定价费用（使用最终上游模型匹配自定义规则）
 	if apiKey.GroupID != nil {

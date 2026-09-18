@@ -1,0 +1,261 @@
+/* OAuth callback polish: compact, trustworthy account handoff surface. */
+
+html.smirel-app .oauth-page {
+  min-height: 100vh;
+  padding: 104px 24px 56px;
+  background:
+    radial-gradient(circle at 50% 43%, rgba(52, 118, 171, .075), transparent 28%),
+    linear-gradient(180deg, #080a0e 0%, #07090c 54%, #06080b 100%);
+}
+
+html.smirel-app .oauth-page::before {
+  opacity: .9;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(255, 255, 255, .018), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, .012), transparent 24%);
+}
+
+/* The source logo is a 366x120 horizontal lockup. Do not force it into a square. */
+html.smirel-app .oauth-page .oauth-brand {
+  top: 32px;
+  left: 38px;
+  gap: 0;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  opacity: .96;
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+html.smirel-app .oauth-page .oauth-brand:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+html.smirel-app .oauth-page .oauth-brand img {
+  width: 122px !important;
+  height: auto !important;
+  max-height: 40px;
+  display: block;
+  object-fit: contain;
+  object-position: left center;
+}
+
+html.smirel-app .oauth-page .oauth-brand > span {
+  display: none;
+}
+
+html.smirel-app .oauth-page .oauth-card {
+  width: min(472px, 100%);
+  padding: 30px 34px 34px;
+  border: 1px solid #222831;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #0f1217 0%, #0d1014 100%);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, .34),
+    0 8px 24px rgba(0, 0, 0, .16),
+    inset 0 1px 0 rgba(255, 255, 255, .022);
+}
+
+html.smirel-app .oauth-page .oauth-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: 15px 15px 0 0;
+  background: linear-gradient(90deg, transparent, rgba(116, 174, 216, .14), transparent);
+  pointer-events: none;
+}
+
+html.smirel-app .oauth-page .oauth-card-meta {
+  min-height: 26px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid #20252c;
+  color: #707a86;
+  font-size: .63rem;
+  font-weight: 720;
+  letter-spacing: .14em;
+}
+
+html.smirel-app .oauth-page .oauth-card-meta i {
+  gap: 7px;
+  color: #71867b;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+}
+
+html.smirel-app .oauth-page .oauth-card-meta i b {
+  width: 6px;
+  height: 6px;
+  background: #55c895;
+  box-shadow: 0 0 0 3px rgba(85, 200, 149, .055), 0 0 11px rgba(85, 200, 149, .18);
+}
+
+html.smirel-app .oauth-page .oauth-state,
+html.smirel-app .oauth-page .oauth-registration {
+  margin-top: 20px;
+}
+
+html.smirel-app .oauth-page .oauth-state {
+  min-height: 244px;
+  padding: 16px 0 2px;
+}
+
+html.smirel-app .oauth-page .oauth-error-mark {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(222, 103, 103, .26);
+  border-radius: 11px;
+  color: #dc8d8d;
+  background: rgba(132, 46, 46, .075);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .018);
+  font-size: .92rem;
+  font-weight: 760;
+}
+
+html.smirel-app .oauth-page .oauth-state h1,
+html.smirel-app .oauth-page .oauth-registration h1 {
+  margin-top: 18px;
+  color: #f1f3f5;
+  font-size: 1.58rem;
+  line-height: 1.16;
+  font-weight: 670;
+  letter-spacing: -.035em;
+}
+
+html.smirel-app .oauth-page .oauth-state p,
+html.smirel-app .oauth-page .oauth-registration header p {
+  max-width: 348px;
+  margin: 10px auto 0;
+  color: #7f8995;
+  font-size: .79rem;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+html.smirel-app .oauth-page .oauth-state-error p {
+  color: #8d96a1;
+}
+
+html.smirel-app .oauth-page .oauth-spinner {
+  width: 30px;
+  height: 30px;
+  border-color: #26313b;
+  border-top-color: #7eb8df;
+}
+
+html.smirel-app .oauth-page .oauth-error-actions {
+  width: 100%;
+  margin-top: 26px;
+  gap: 9px;
+}
+
+html.smirel-app .oauth-page .oauth-submit,
+html.smirel-app .oauth-page .oauth-error-actions button {
+  height: 43px;
+  border-radius: 9px;
+  font-size: .78rem;
+  font-weight: 650;
+  transition:
+    border-color .15s ease,
+    background-color .15s ease,
+    color .15s ease,
+    transform .15s ease,
+    box-shadow .15s ease;
+}
+
+html.smirel-app .oauth-page .oauth-error-actions button:not(.secondary),
+html.smirel-app .oauth-page .oauth-submit {
+  border-color: #328fd0;
+  background: #2b88ca;
+  color: #f8fbfd;
+  box-shadow: 0 6px 18px rgba(26, 98, 151, .14);
+}
+
+html.smirel-app .oauth-page .oauth-error-actions button:not(.secondary):hover,
+html.smirel-app .oauth-page .oauth-submit:hover:not(:disabled) {
+  border-color: #49a0dc;
+  background: #3293d5;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(26, 98, 151, .20);
+}
+
+html.smirel-app .oauth-page .oauth-error-actions .secondary {
+  border-color: #29313a;
+  background: #0b0e12;
+  color: #aab3bc;
+  box-shadow: none;
+}
+
+html.smirel-app .oauth-page .oauth-error-actions .secondary:hover {
+  border-color: #3a434e;
+  background: #12161b;
+  color: #e4e8eb;
+  transform: translateY(-1px);
+}
+
+html.smirel-app .oauth-page .oauth-error-actions button:active,
+html.smirel-app .oauth-page .oauth-submit:active:not(:disabled) {
+  transform: translateY(0) scale(.992);
+}
+
+html.smirel-app .oauth-page .oauth-error-actions button:focus-visible,
+html.smirel-app .oauth-page .oauth-submit:focus-visible {
+  outline: none;
+  border-color: #549fd3;
+  box-shadow: 0 0 0 3px rgba(52, 143, 207, .11);
+}
+
+html.smirel-app .oauth-page .verified-email,
+html.smirel-app .oauth-page .oauth-registration input {
+  border-color: #252d35;
+  background: #0a0d11;
+}
+
+@media (max-width: 560px) {
+  html.smirel-app .oauth-page {
+    padding: 92px 14px 28px;
+  }
+
+  html.smirel-app .oauth-page .oauth-brand {
+    top: 22px;
+    left: 20px;
+  }
+
+  html.smirel-app .oauth-page .oauth-brand img {
+    width: 108px !important;
+    max-height: 36px;
+  }
+
+  html.smirel-app .oauth-page .oauth-card {
+    padding: 25px 21px 26px;
+    border-radius: 13px;
+  }
+
+  html.smirel-app .oauth-page .oauth-card-meta {
+    padding-bottom: 14px;
+  }
+
+  html.smirel-app .oauth-page .oauth-state {
+    min-height: 230px;
+  }
+
+  html.smirel-app .oauth-page .oauth-error-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.smirel-app .oauth-page .oauth-brand,
+  html.smirel-app .oauth-page .oauth-error-actions button,
+  html.smirel-app .oauth-page .oauth-submit {
+    transition: none;
+  }
+
+  html.smirel-app .oauth-page .oauth-brand:hover,
+  html.smirel-app .oauth-page .oauth-error-actions button:hover,
+  html.smirel-app .oauth-page .oauth-submit:hover {
+    transform: none;
+  }
+}

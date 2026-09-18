@@ -1,0 +1,511 @@
+/* Dedicated operations page: one snapshot strip, two data surfaces and direct links.
+ * Keep the page operational rather than decorative; every emphasized value maps
+ * to the admin dashboard snapshot endpoint.
+ */
+
+.admin-ops-workspace {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-ops-workspace .ops-snapshot-bar {
+  min-height: 54px;
+  padding: 7px 8px 7px 10px;
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: #0d0f13;
+}
+
+.admin-ops-workspace .ops-snapshot-state {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-ops-workspace .ops-state-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid #2b3038;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #73808c;
+  background: #12151a;
+}
+
+.admin-ops-workspace .ops-snapshot-state.ready .ops-state-icon {
+  border-color: #234236;
+  color: #53c998;
+  background: #0e1814;
+}
+
+.admin-ops-workspace .ops-state-icon .workspace-nav-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-ops-workspace .ops-snapshot-state > span:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-ops-workspace .ops-snapshot-state strong {
+  color: #cdd2d8;
+  font-size: .77rem;
+  font-weight: 630;
+}
+
+.admin-ops-workspace .ops-snapshot-state small {
+  color: #69727d;
+  font-size: .66rem;
+}
+
+.admin-ops-workspace .ops-refresh {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #969ea8;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: .72rem;
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+}
+
+.admin-ops-workspace .ops-refresh:hover:not(:disabled) {
+  border-color: #292e35;
+  color: #eef1f4;
+  background: #15181d;
+}
+
+.admin-ops-workspace .ops-refresh:disabled {
+  color: #616a75;
+  cursor: wait;
+}
+
+.admin-ops-workspace .ops-refresh svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-ops-workspace .ops-refresh:disabled svg {
+  animation: ops-refresh-spin .9s linear infinite;
+}
+
+@keyframes ops-refresh-spin { to { transform: rotate(360deg); } }
+
+.admin-ops-workspace .ops-error {
+  margin: 0;
+}
+
+.admin-ops-workspace .ops-metric-strip {
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  background: #0f1115;
+}
+
+.admin-ops-workspace .ops-metric-strip article {
+  position: relative;
+  min-width: 0;
+  min-height: 142px;
+  padding: 22px 24px 20px;
+  border-right: 1px solid #242830;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.admin-ops-workspace .ops-metric-strip article:last-child {
+  border-right: 0;
+}
+
+.admin-ops-workspace .ops-metric-strip article:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 56px;
+  height: 2px;
+  background: #43c997;
+}
+
+.admin-ops-workspace .ops-metric-label {
+  min-height: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #68717d;
+  font: 700 .63rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .09em;
+}
+
+.admin-ops-workspace .ops-metric-label i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #43c997;
+}
+
+.admin-ops-workspace .ops-metric-strip article > div {
+  margin-top: 13px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.admin-ops-workspace .ops-metric-strip strong {
+  color: #f1f3f5;
+  font-size: clamp(1.65rem, 2vw, 2.05rem);
+  font-weight: 690;
+  line-height: 1;
+  letter-spacing: -.035em;
+}
+
+.admin-ops-workspace .ops-metric-strip article > div small {
+  color: #6b7480;
+  font: 700 .62rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .08em;
+}
+
+.admin-ops-workspace .ops-metric-strip p {
+  margin: 9px 0 0;
+  color: #777f8a;
+  font-size: .72rem;
+}
+
+.admin-ops-workspace .ops-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(310px, .75fr);
+  gap: 14px;
+}
+
+.admin-ops-workspace .ops-resource-panel,
+.admin-ops-workspace .ops-volume-panel {
+  min-width: 0;
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0f1115;
+}
+
+.admin-ops-workspace .ops-panel-head {
+  min-height: 65px;
+  padding: 0 20px;
+  border-bottom: 1px solid #242830;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-ops-workspace .ops-panel-head > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.admin-ops-workspace .ops-panel-head span {
+  color: #5d6672;
+  font: 700 .61rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .09em;
+}
+
+.admin-ops-workspace .ops-panel-head strong {
+  color: #dce0e5;
+  font-size: .84rem;
+  font-weight: 630;
+}
+
+.admin-ops-workspace .ops-panel-head a {
+  flex: 0 0 auto;
+  color: #748ca0;
+  font-size: .7rem;
+  transition: color .15s ease;
+}
+
+.admin-ops-workspace .ops-panel-head a:hover {
+  color: #8dc7ec;
+}
+
+.admin-ops-workspace .ops-resource-list {
+  padding: 0 20px;
+}
+
+.admin-ops-workspace .ops-resource-row {
+  position: relative;
+  min-height: 91px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 13px;
+  border-bottom: 1px solid #22262d;
+}
+
+.admin-ops-workspace .ops-resource-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-ops-workspace .ops-resource-icon,
+.admin-ops-workspace .ops-shortcut-icon {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #293039;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #74808c;
+  background: #12151a;
+}
+
+.admin-ops-workspace .ops-resource-icon .workspace-nav-icon,
+.admin-ops-workspace .ops-shortcut-icon .workspace-nav-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.admin-ops-workspace .ops-resource-copy,
+.admin-ops-workspace .ops-resource-value {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.admin-ops-workspace .ops-resource-copy strong {
+  color: #d8dce1;
+  font-size: .78rem;
+  font-weight: 620;
+}
+
+.admin-ops-workspace .ops-resource-copy small {
+  color: #65707b;
+  font-size: .67rem;
+}
+
+.admin-ops-workspace .ops-resource-value {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.admin-ops-workspace .ops-resource-value strong {
+  color: #dfe3e7;
+  font-size: .82rem;
+  font-weight: 650;
+}
+
+.admin-ops-workspace .ops-resource-value small {
+  color: #6d7681;
+  font-size: .65rem;
+}
+
+.admin-ops-workspace .ops-resource-progress {
+  position: absolute;
+  left: 51px;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  overflow: hidden;
+  background: #171b20;
+}
+
+.admin-ops-workspace .ops-resource-progress i {
+  display: block;
+  height: 100%;
+  background: #43c997;
+}
+
+.admin-ops-workspace .ops-volume-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-ops-workspace .ops-volume-primary {
+  min-height: 145px;
+  padding: 24px 22px;
+  border-bottom: 1px solid #242830;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.admin-ops-workspace .ops-volume-primary > span,
+.admin-ops-workspace .ops-volume-secondary span {
+  color: #747d88;
+  font-size: .7rem;
+}
+
+.admin-ops-workspace .ops-volume-primary strong {
+  margin-top: 11px;
+  color: #f0f2f4;
+  font-size: 2.15rem;
+  font-weight: 690;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.admin-ops-workspace .ops-volume-primary small,
+.admin-ops-workspace .ops-volume-secondary small {
+  margin-top: 8px;
+  color: #59636e;
+  font: 700 .59rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .09em;
+}
+
+.admin-ops-workspace .ops-volume-secondary {
+  min-height: 116px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-ops-workspace .ops-volume-secondary > div {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.admin-ops-workspace .ops-volume-secondary > div + div {
+  border-left: 1px solid #242830;
+}
+
+.admin-ops-workspace .ops-volume-secondary strong {
+  margin-top: 8px;
+  color: #dfe3e7;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.admin-ops-workspace .ops-shortcuts {
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  background: #0d0f13;
+}
+
+.admin-ops-workspace .ops-shortcuts > a {
+  min-width: 0;
+  min-height: 74px;
+  padding: 12px 17px;
+  border-right: 1px solid #242830;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  color: inherit;
+  transition: background-color .15s ease;
+}
+
+.admin-ops-workspace .ops-shortcuts > a:last-child {
+  border-right: 0;
+}
+
+.admin-ops-workspace .ops-shortcuts > a:hover {
+  background: #12151a;
+}
+
+.admin-ops-workspace .ops-shortcuts > a > span:nth-child(2) {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-ops-workspace .ops-shortcuts small {
+  color: #59636f;
+  font: 700 .58rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .08em;
+}
+
+.admin-ops-workspace .ops-shortcuts strong {
+  overflow: hidden;
+  color: #cbd0d6;
+  font-size: .73rem;
+  font-weight: 610;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-ops-workspace .ops-shortcuts b {
+  color: #5f7181;
+  font-size: .76rem;
+  font-weight: 500;
+  transition: color .15s ease, transform .15s ease;
+}
+
+.admin-ops-workspace .ops-shortcuts > a:hover b {
+  color: #8dc7ec;
+  transform: translateX(2px);
+}
+
+@media (max-width: 1080px) {
+  .admin-ops-workspace .ops-metric-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-ops-workspace .ops-metric-strip article:nth-child(2) {
+    border-right: 0;
+  }
+
+  .admin-ops-workspace .ops-metric-strip article:nth-child(-n + 2) {
+    border-bottom: 1px solid #242830;
+  }
+
+  .admin-ops-workspace .ops-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-ops-workspace .ops-metric-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-ops-workspace .ops-metric-strip article,
+  .admin-ops-workspace .ops-metric-strip article:nth-child(2) {
+    min-height: 116px;
+    border-right: 0;
+    border-bottom: 1px solid #242830;
+  }
+
+  .admin-ops-workspace .ops-metric-strip article:last-child {
+    border-bottom: 0;
+  }
+
+  .admin-ops-workspace .ops-shortcuts {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-ops-workspace .ops-shortcuts > a {
+    border-right: 0;
+    border-bottom: 1px solid #242830;
+  }
+
+  .admin-ops-workspace .ops-shortcuts > a:last-child {
+    border-bottom: 0;
+  }
+}

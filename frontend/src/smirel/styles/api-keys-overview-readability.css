@@ -1,0 +1,68 @@
+/* API key overview readability pass.
+ *
+ * Root cause: the three-column summary already has enough physical space, but its
+ * 11px-ish labels, 21px values and detached helper text compress the information
+ * hierarchy. Keep the existing data and structure; only give the summary a more
+ * deliberate SaaS metric scale and tighter value/helper relationship.
+ */
+
+.workspace-root .api-keys-page .keys-overview {
+  margin-bottom: 22px;
+  border-color: #2a3038;
+  border-radius: 12px;
+  background: #0f1115;
+}
+
+.workspace-root .api-keys-page .keys-overview article {
+  min-height: 112px;
+  padding: 21px 26px 22px;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  column-gap: 13px;
+  row-gap: 12px;
+  align-items: end;
+}
+
+.workspace-root .api-keys-page .keys-overview article + article {
+  border-color: #292f36;
+}
+
+.workspace-root .api-keys-page .keys-overview span {
+  grid-column: 1 / -1;
+  color: #89939f;
+  font-size: .82rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: .01em;
+}
+
+.workspace-root .api-keys-page .keys-overview strong {
+  align-self: end;
+  color: #f4f6f8;
+  font-size: 2.02rem;
+  font-weight: 700;
+  line-height: .96;
+  letter-spacing: -.045em;
+}
+
+.workspace-root .api-keys-page .keys-overview small {
+  align-self: end;
+  justify-self: start;
+  margin: 0 0 2px;
+  color: #74808d;
+  font-size: .78rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: .045em;
+}
+
+@media (max-width: 640px) {
+  .workspace-root .api-keys-page .keys-overview article {
+    min-height: 102px;
+    padding: 19px 21px 20px;
+  }
+
+  .workspace-root .api-keys-page .keys-overview strong {
+    font-size: 1.9rem;
+  }
+}

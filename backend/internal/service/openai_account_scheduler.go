@@ -753,6 +753,12 @@ func buildOpenAIWeightedSelectionOrder(
 	for i := range pool {
 		// 将 top-K 分值平移到正区间，避免“单一最高分账号”长期垄断。
 		weight := (pool[i].score - minScore) + 1.0
+		// Keep the existing dynamic score, but let the provider-neutral account
+		// pool traffic weight control the long-run share between otherwise
+		// eligible candidates. SchedulingWeight validates/caps operator input.
+		if pool[i].account != nil {
+			weight *= pool[i].account.SchedulingWeight()
+		}
 		if math.IsNaN(weight) || math.IsInf(weight, 0) || weight <= 0 {
 			weight = 1.0
 		}

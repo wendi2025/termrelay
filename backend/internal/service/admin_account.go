@@ -514,7 +514,15 @@ func buildAccountForCreate(input *CreateAccountInput, accountExtra map[string]an
 }
 
 func (s *adminServiceImpl) CreateAccount(ctx context.Context, input *CreateAccountInput) (*Account, error) {
-	accountExtra, err := normalizeOpenAILongContextBillingExtra(input.Platform, input.Extra)
+	accountExtra, err := NormalizeAccountPoolProviderID(input.Extra, input.ProviderID)
+	if err != nil {
+		return nil, err
+	}
+	accountExtra, err = NormalizeAccountPoolSchedulingWeight(accountExtra, input.SchedulingWeight)
+	if err != nil {
+		return nil, err
+	}
+	accountExtra, err = normalizeOpenAILongContextBillingExtra(input.Platform, accountExtra)
 	if err != nil {
 		return nil, err
 	}
@@ -603,6 +611,28 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 	if err != nil {
 		return nil, err
 	}
+
+	var accountPoolExtraPatch map[string]any
+	if input.Extra != nil {
+		input.Extra, err = NormalizeAccountPoolProviderID(input.Extra, input.ProviderID)
+		if err != nil {
+			return nil, err
+		}
+		input.Extra, err = NormalizeAccountPoolSchedulingWeight(input.Extra, input.SchedulingWeight)
+		if err != nil {
+			return nil, err
+		}
+	} else if input.ProviderID != nil || input.SchedulingWeight != nil {
+		accountPoolExtraPatch, err = NormalizeAccountPoolProviderID(nil, input.ProviderID)
+		if err != nil {
+			return nil, err
+		}
+		accountPoolExtraPatch, err = NormalizeAccountPoolSchedulingWeight(accountPoolExtraPatch, input.SchedulingWeight)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var normalizedExtra map[string]any
 	if input.Extra != nil {
 		normalizedExtra, err = normalizeOpenAILongContextBillingUpdateExtra(account, input)
@@ -827,6 +857,11 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 			}
 		}
 	}
+	if len(accountPoolExtraPatch) > 0 {
+		if err := s.accountRepo.UpdateExtra(ctx, account.ID, accountPoolExtraPatch); err != nil {
+			return nil, err
+		}
+	}
 
 	// 将 proxy 变更传播到 spark 影子账号（同步；Update 内部已触发调度快照）。
 	// 影子自身 proxy 不可独立编辑(见上),故对影子的更新不触发传播。
@@ -854,6 +889,16 @@ func (s *adminServiceImpl) UpdateAccount(ctx context.Context, id int64, input *U
 // UpdateAccountExtra 仅对 Extra JSONB 做 key 级合并，避免覆盖其它运行态键
 // （如 model_rate_limits / passive_usage_* 等）。
 func (s *adminServiceImpl) UpdateAccountExtra(ctx context.Context, id int64, updates map[string]any) error {
+	normalizedUpdates, err := NormalizeAccountPoolProviderID(updates, nil)
+	if err != nil {
+		return err
+	}
+	normalizedUpdates, err = NormalizeAccountPoolSchedulingWeight(normalizedUpdates, nil)
+	if err != nil {
+		return err
+	}
+	updates = normalizedUpdates
+
 	delete(updates, OllamaCloudUsageSessionExtraKey)
 	delete(updates, OllamaCloudUsageAutoRefreshExtraKey)
 	delete(updates, OllamaCloudUsageSnapshotExtraKey)
@@ -875,6 +920,16 @@ func (s *adminServiceImpl) UpdateAccountExtra(ctx context.Context, id int64, upd
 // BulkUpdateAccounts updates multiple accounts in one request.
 // It merges credentials/extra keys instead of overwriting the whole object.
 func (s *adminServiceImpl) BulkUpdateAccounts(ctx context.Context, input *BulkUpdateAccountsInput) (*BulkUpdateAccountsResult, error) {
+	normalizedAccountPoolExtra, err := NormalizeAccountPoolProviderID(input.Extra, input.ProviderID)
+	if err != nil {
+		return nil, err
+	}
+	normalizedAccountPoolExtra, err = NormalizeAccountPoolSchedulingWeight(normalizedAccountPoolExtra, input.SchedulingWeight)
+	if err != nil {
+		return nil, err
+	}
+	input.Extra = normalizedAccountPoolExtra
+
 	// Managed probe/session state may only enter through dedicated typed endpoints.
 	delete(input.Extra, UpstreamBillingProbeEnabledExtraKey)
 	delete(input.Extra, UpstreamBillingProbeExtraKey)

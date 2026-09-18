@@ -676,6 +676,29 @@ func (s *GatewayService) SelectAccountWithLoadAwareness(ctx context.Context, gro
 	}
 
 	loadMap, err := s.concurrencyService.GetAccountsLoadBatch(ctx, accountLoads)
+	if s.AccountPoolSchedulerEnabled() {
+		poolCandidates := make([]accountWithLoad, 0, len(candidates))
+		for _, acc := range candidates {
+			var loadInfo *AccountLoadInfo
+			if err == nil {
+				loadInfo = loadMap[acc.ID]
+			}
+			poolCandidates = append(poolCandidates, accountWithLoad{
+				account:  acc,
+				loadInfo: loadInfo,
+			})
+		}
+		selection, ok, poolErr := s.tryAcquireByAccountPoolScheduler(ctx, groupID, sessionHash, poolCandidates)
+		if poolErr != nil {
+			return nil, poolErr
+		}
+		if ok {
+			return selection, nil
+		}
+		// When the provider-neutral scheduler is enabled, never fall through
+		// to legacy ordering: that would bypass circuit-breaker cooldown.
+		return nil, ErrNoAvailableAccounts
+	}
 	if err != nil {
 		if result, ok, legacyErr := s.tryAcquireByLegacyOrder(ctx, candidates, groupID, sessionHash, preferOAuth); legacyErr != nil {
 			return nil, legacyErr

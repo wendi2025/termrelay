@@ -17,8 +17,37 @@ import (
 	"github.com/tidwall/gjson"
 )
 
+func stopOpenAIResponsesFailoverAfterDownstreamCommit(c *gin.Context, err error) {
+	if err == nil || c == nil || c.Writer == nil {
+		return
+	}
+	if !IsResponseCommitted(c) && !c.Writer.Written() {
+		return
+	}
+	var failoverErr *UpstreamFailoverError
+	if !errors.As(err, &failoverErr) || failoverErr == nil {
+		return
+	}
+
+	// Once anything client-visible has committed, the same downstream response
+	// must never be replayed against another upstream account. Keep the original
+	// failover error so the handler can finish the already-started stream, but
+	// force the retry policy to stop before selecting another account.
+	failoverErr.NextAccountAction = NextAccountStop
+	if c.Writer.Written() {
+		// The existing handler uses this bit to promote an already-written
+		// Responses request to streaming error finalization. It no longer grants
+		// permission to switch accounts because NextAccountAction is Stop.
+		failoverErr.SafeToFailoverAfterWrite = true
+	}
+}
+
 // Forward forwards request to OpenAI API
-func (s *OpenAIGatewayService) Forward(ctx context.Context, c *gin.Context, account *Account, body []byte) (*OpenAIForwardResult, error) {
+func (s *OpenAIGatewayService) Forward(ctx context.Context, c *gin.Context, account *Account, body []byte) (result *OpenAIForwardResult, err error) {
+	defer func() {
+		stopOpenAIResponsesFailoverAfterDownstreamCommit(c, err)
+	}()
+
 	clearGrokResponsesClientToolMapping(c)
 	clearOpenAIResponsesNamespaceNames(c)
 	startTime := time.Now()

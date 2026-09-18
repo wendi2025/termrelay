@@ -1,0 +1,41 @@
+/* Keep the workspace account trigger in the same flex row as the utility controls.
+ * HomeAccountMenu is teleported into .workspace-topbar-actions; these rules remove
+ * the legacy placeholder and neutralize the old viewport-fixed positioning. */
+
+.workspace-root .workspace-profile-link {
+  display: none !important;
+}
+
+.workspace-root .workspace-topbar-actions .home-account-menu--workspace {
+  position: relative !important;
+  inset: auto !important;
+  top: auto !important;
+  right: auto !important;
+  z-index: 92;
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  align-items: center;
+}
+
+.workspace-root .workspace-topbar-actions .home-account-menu--workspace .home-account-trigger.is-workspace {
+  height: 36px !important;
+  min-height: 36px;
+  padding: 0 9px 0 5px !important;
+  box-sizing: border-box;
+  align-self: center;
+}
+
+.workspace-root .workspace-topbar-actions .home-account-menu--workspace .home-account-trigger-avatar {
+  width: 28px !important;
+  height: 28px !important;
+  flex: 0 0 28px !important;
+}
+
+@media (max-width: 1120px) {
+  .workspace-root .workspace-topbar-actions .home-account-menu--workspace .home-account-trigger {
+    width: 36px !important;
+    min-width: 36px !important;
+    padding: 0 3px !important;
+  }
+}

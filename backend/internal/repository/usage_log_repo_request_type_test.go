@@ -846,6 +846,9 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},
 			sql.NullFloat64{},
 			sql.NullString{},
+			"success",
+			sql.NullString{},
+			sql.NullTime{},
 			now,
 		}})
 		require.NoError(t, err)
@@ -921,6 +924,9 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
 			sql.NullString{},  // session_id
+			"success",         // status
+			sql.NullString{},  // error_type
+			sql.NullTime{},    // ended_at
 			now,
 		}})
 		require.NoError(t, err)
@@ -979,6 +985,9 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
 			sql.NullString{},  // session_id
+			"success",         // status
+			sql.NullString{},  // error_type
+			sql.NullTime{},    // ended_at
 			now,
 		}})
 		require.NoError(t, err)
@@ -1037,6 +1046,9 @@ func TestScanUsageLogRequestTypeAndLegacyFallback(t *testing.T) {
 			sql.NullString{},  // billing_mode
 			sql.NullFloat64{}, // account_stats_cost
 			sql.NullString{},  // session_id
+			"success",         // status
+			sql.NullString{},  // error_type
+			sql.NullTime{},    // ended_at
 			now,
 		}})
 		require.NoError(t, err)

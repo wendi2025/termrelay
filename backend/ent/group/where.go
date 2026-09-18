@@ -290,6 +290,51 @@ func MaxReasoningEffort(v string) predicate.Group {
 	return predicate.Group(sql.FieldEQ(FieldMaxReasoningEffort, v))
 }
 
+// ProductLine applies equality check predicate on the "product_line" field. It's identical to ProductLineEQ.
+func ProductLine(v string) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldProductLine, v))
+}
+
+// CostMultiplier applies equality check predicate on the "cost_multiplier" field. It's identical to CostMultiplierEQ.
+func CostMultiplier(v float64) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldCostMultiplier, v))
+}
+
+// PayAsYouGoPricePerUsd applies equality check predicate on the "pay_as_you_go_price_per_usd" field. It's identical to PayAsYouGoPricePerUsdEQ.
+func PayAsYouGoPricePerUsd(v float64) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldPayAsYouGoPricePerUsd, v))
+}
+
+// LossCoefficient applies equality check predicate on the "loss_coefficient" field. It's identical to LossCoefficientEQ.
+func LossCoefficient(v float64) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldLossCoefficient, v))
+}
+
+// MaxDiscountPct applies equality check predicate on the "max_discount_pct" field. It's identical to MaxDiscountPctEQ.
+func MaxDiscountPct(v float64) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldMaxDiscountPct, v))
+}
+
+// ConcurrencyLimit applies equality check predicate on the "concurrency_limit" field. It's identical to ConcurrencyLimitEQ.
+func ConcurrencyLimit(v int) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldConcurrencyLimit, v))
+}
+
+// CircuitBreakerEnabled applies equality check predicate on the "circuit_breaker_enabled" field. It's identical to CircuitBreakerEnabledEQ.
+func CircuitBreakerEnabled(v bool) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldCircuitBreakerEnabled, v))
+}
+
+// ExclusiveQuota applies equality check predicate on the "exclusive_quota" field. It's identical to ExclusiveQuotaEQ.
+func ExclusiveQuota(v bool) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldExclusiveQuota, v))
+}
+
+// WhitelistOnly applies equality check predicate on the "whitelist_only" field. It's identical to WhitelistOnlyEQ.
+func WhitelistOnly(v bool) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldWhitelistOnly, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Group {
 	return predicate.Group(sql.FieldEQ(FieldCreatedAt, v))
@@ -2188,6 +2233,301 @@ func MaxReasoningEffortEqualFold(v string) predicate.Group {
 // MaxReasoningEffortContainsFold applies the ContainsFold predicate on the "max_reasoning_effort" field.
 func MaxReasoningEffortContainsFold(v string) predicate.Group {
 	return predicate.Group(sql.FieldContainsFold(FieldMaxReasoningEffort, v))
+}
+
+// ProductLineEQ applies the EQ predicate on the "product_line" field.
+func ProductLineEQ(v string) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldProductLine, v))
+}
+
+// ProductLineNEQ applies the NEQ predicate on the "product_line" field.
+func ProductLineNEQ(v string) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldProductLine, v))
+}
+
+// ProductLineIn applies the In predicate on the "product_line" field.
+func ProductLineIn(vs ...string) predicate.Group {
+	return predicate.Group(sql.FieldIn(FieldProductLine, vs...))
+}
+
+// ProductLineNotIn applies the NotIn predicate on the "product_line" field.
+func ProductLineNotIn(vs ...string) predicate.Group {
+	return predicate.Group(sql.FieldNotIn(FieldProductLine, vs...))
+}
+
+// ProductLineGT applies the GT predicate on the "product_line" field.
+func ProductLineGT(v string) predicate.Group {
+	return predicate.Group(sql.FieldGT(FieldProductLine, v))
+}
+
+// ProductLineGTE applies the GTE predicate on the "product_line" field.
+func ProductLineGTE(v string) predicate.Group {
+	return predicate.Group(sql.FieldGTE(FieldProductLine, v))
+}
+
+// ProductLineLT applies the LT predicate on the "product_line" field.
+func ProductLineLT(v string) predicate.Group {
+	return predicate.Group(sql.FieldLT(FieldProductLine, v))
+}
+
+// ProductLineLTE applies the LTE predicate on the "product_line" field.
+func ProductLineLTE(v string) predicate.Group {
+	return predicate.Group(sql.FieldLTE(FieldProductLine, v))
+}
+
+// ProductLineContains applies the Contains predicate on the "product_line" field.
+func ProductLineContains(v string) predicate.Group {
+	return predicate.Group(sql.FieldContains(FieldProductLine, v))
+}
+
+// ProductLineHasPrefix applies the HasPrefix predicate on the "product_line" field.
+func ProductLineHasPrefix(v string) predicate.Group {
+	return predicate.Group(sql.FieldHasPrefix(FieldProductLine, v))
+}
+
+// ProductLineHasSuffix applies the HasSuffix predicate on the "product_line" field.
+func ProductLineHasSuffix(v string) predicate.Group {
+	return predicate.Group(sql.FieldHasSuffix(FieldProductLine, v))
+}
+
+// ProductLineEqualFold applies the EqualFold predicate on the "product_line" field.
+func ProductLineEqualFold(v string) predicate.Group {
+	return predicate.Group(sql.FieldEqualFold(FieldProductLine, v))
+}
+
+// ProductLineContainsFold applies the ContainsFold predicate on the "product_line" field.
+func ProductLineContainsFold(v string) predicate.Group {
+	return predicate.Group(sql.FieldContainsFold(FieldProductLine, v))
+}
+
+// CostMultiplierEQ applies the EQ predicate on the "cost_multiplier" field.
+func CostMultiplierEQ(v float64) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldCostMultiplier, v))
+}
+
+// CostMultiplierNEQ applies the NEQ predicate on the "cost_multiplier" field.
+func CostMultiplierNEQ(v float64) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldCostMultiplier, v))
+}
+
+// CostMultiplierIn applies the In predicate on the "cost_multiplier" field.
+func CostMultiplierIn(vs ...float64) predicate.Group {
+	return predicate.Group(sql.FieldIn(FieldCostMultiplier, vs...))
+}
+
+// CostMultiplierNotIn applies the NotIn predicate on the "cost_multiplier" field.
+func CostMultiplierNotIn(vs ...float64) predicate.Group {
+	return predicate.Group(sql.FieldNotIn(FieldCostMultiplier, vs...))
+}
+
+// CostMultiplierGT applies the GT predicate on the "cost_multiplier" field.
+func CostMultiplierGT(v float64) predicate.Group {
+	return predicate.Group(sql.FieldGT(FieldCostMultiplier, v))
+}
+
+// CostMultiplierGTE applies the GTE predicate on the "cost_multiplier" field.
+func CostMultiplierGTE(v float64) predicate.Group {
+	return predicate.Group(sql.FieldGTE(FieldCostMultiplier, v))
+}
+
+// CostMultiplierLT applies the LT predicate on the "cost_multiplier" field.
+func CostMultiplierLT(v float64) predicate.Group {
+	return predicate.Group(sql.FieldLT(FieldCostMultiplier, v))
+}
+
+// CostMultiplierLTE applies the LTE predicate on the "cost_multiplier" field.
+func CostMultiplierLTE(v float64) predicate.Group {
+	return predicate.Group(sql.FieldLTE(FieldCostMultiplier, v))
+}
+
+// PayAsYouGoPricePerUsdEQ applies the EQ predicate on the "pay_as_you_go_price_per_usd" field.
+func PayAsYouGoPricePerUsdEQ(v float64) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldPayAsYouGoPricePerUsd, v))
+}
+
+// PayAsYouGoPricePerUsdNEQ applies the NEQ predicate on the "pay_as_you_go_price_per_usd" field.
+func PayAsYouGoPricePerUsdNEQ(v float64) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldPayAsYouGoPricePerUsd, v))
+}
+
+// PayAsYouGoPricePerUsdIn applies the In predicate on the "pay_as_you_go_price_per_usd" field.
+func PayAsYouGoPricePerUsdIn(vs ...float64) predicate.Group {
+	return predicate.Group(sql.FieldIn(FieldPayAsYouGoPricePerUsd, vs...))
+}
+
+// PayAsYouGoPricePerUsdNotIn applies the NotIn predicate on the "pay_as_you_go_price_per_usd" field.
+func PayAsYouGoPricePerUsdNotIn(vs ...float64) predicate.Group {
+	return predicate.Group(sql.FieldNotIn(FieldPayAsYouGoPricePerUsd, vs...))
+}
+
+// PayAsYouGoPricePerUsdGT applies the GT predicate on the "pay_as_you_go_price_per_usd" field.
+func PayAsYouGoPricePerUsdGT(v float64) predicate.Group {
+	return predicate.Group(sql.FieldGT(FieldPayAsYouGoPricePerUsd, v))
+}
+
+// PayAsYouGoPricePerUsdGTE applies the GTE predicate on the "pay_as_you_go_price_per_usd" field.
+func PayAsYouGoPricePerUsdGTE(v float64) predicate.Group {
+	return predicate.Group(sql.FieldGTE(FieldPayAsYouGoPricePerUsd, v))
+}
+
+// PayAsYouGoPricePerUsdLT applies the LT predicate on the "pay_as_you_go_price_per_usd" field.
+func PayAsYouGoPricePerUsdLT(v float64) predicate.Group {
+	return predicate.Group(sql.FieldLT(FieldPayAsYouGoPricePerUsd, v))
+}
+
+// PayAsYouGoPricePerUsdLTE applies the LTE predicate on the "pay_as_you_go_price_per_usd" field.
+func PayAsYouGoPricePerUsdLTE(v float64) predicate.Group {
+	return predicate.Group(sql.FieldLTE(FieldPayAsYouGoPricePerUsd, v))
+}
+
+// LossCoefficientEQ applies the EQ predicate on the "loss_coefficient" field.
+func LossCoefficientEQ(v float64) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldLossCoefficient, v))
+}
+
+// LossCoefficientNEQ applies the NEQ predicate on the "loss_coefficient" field.
+func LossCoefficientNEQ(v float64) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldLossCoefficient, v))
+}
+
+// LossCoefficientIn applies the In predicate on the "loss_coefficient" field.
+func LossCoefficientIn(vs ...float64) predicate.Group {
+	return predicate.Group(sql.FieldIn(FieldLossCoefficient, vs...))
+}
+
+// LossCoefficientNotIn applies the NotIn predicate on the "loss_coefficient" field.
+func LossCoefficientNotIn(vs ...float64) predicate.Group {
+	return predicate.Group(sql.FieldNotIn(FieldLossCoefficient, vs...))
+}
+
+// LossCoefficientGT applies the GT predicate on the "loss_coefficient" field.
+func LossCoefficientGT(v float64) predicate.Group {
+	return predicate.Group(sql.FieldGT(FieldLossCoefficient, v))
+}
+
+// LossCoefficientGTE applies the GTE predicate on the "loss_coefficient" field.
+func LossCoefficientGTE(v float64) predicate.Group {
+	return predicate.Group(sql.FieldGTE(FieldLossCoefficient, v))
+}
+
+// LossCoefficientLT applies the LT predicate on the "loss_coefficient" field.
+func LossCoefficientLT(v float64) predicate.Group {
+	return predicate.Group(sql.FieldLT(FieldLossCoefficient, v))
+}
+
+// LossCoefficientLTE applies the LTE predicate on the "loss_coefficient" field.
+func LossCoefficientLTE(v float64) predicate.Group {
+	return predicate.Group(sql.FieldLTE(FieldLossCoefficient, v))
+}
+
+// MaxDiscountPctEQ applies the EQ predicate on the "max_discount_pct" field.
+func MaxDiscountPctEQ(v float64) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldMaxDiscountPct, v))
+}
+
+// MaxDiscountPctNEQ applies the NEQ predicate on the "max_discount_pct" field.
+func MaxDiscountPctNEQ(v float64) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldMaxDiscountPct, v))
+}
+
+// MaxDiscountPctIn applies the In predicate on the "max_discount_pct" field.
+func MaxDiscountPctIn(vs ...float64) predicate.Group {
+	return predicate.Group(sql.FieldIn(FieldMaxDiscountPct, vs...))
+}
+
+// MaxDiscountPctNotIn applies the NotIn predicate on the "max_discount_pct" field.
+func MaxDiscountPctNotIn(vs ...float64) predicate.Group {
+	return predicate.Group(sql.FieldNotIn(FieldMaxDiscountPct, vs...))
+}
+
+// MaxDiscountPctGT applies the GT predicate on the "max_discount_pct" field.
+func MaxDiscountPctGT(v float64) predicate.Group {
+	return predicate.Group(sql.FieldGT(FieldMaxDiscountPct, v))
+}
+
+// MaxDiscountPctGTE applies the GTE predicate on the "max_discount_pct" field.
+func MaxDiscountPctGTE(v float64) predicate.Group {
+	return predicate.Group(sql.FieldGTE(FieldMaxDiscountPct, v))
+}
+
+// MaxDiscountPctLT applies the LT predicate on the "max_discount_pct" field.
+func MaxDiscountPctLT(v float64) predicate.Group {
+	return predicate.Group(sql.FieldLT(FieldMaxDiscountPct, v))
+}
+
+// MaxDiscountPctLTE applies the LTE predicate on the "max_discount_pct" field.
+func MaxDiscountPctLTE(v float64) predicate.Group {
+	return predicate.Group(sql.FieldLTE(FieldMaxDiscountPct, v))
+}
+
+// ConcurrencyLimitEQ applies the EQ predicate on the "concurrency_limit" field.
+func ConcurrencyLimitEQ(v int) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldConcurrencyLimit, v))
+}
+
+// ConcurrencyLimitNEQ applies the NEQ predicate on the "concurrency_limit" field.
+func ConcurrencyLimitNEQ(v int) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldConcurrencyLimit, v))
+}
+
+// ConcurrencyLimitIn applies the In predicate on the "concurrency_limit" field.
+func ConcurrencyLimitIn(vs ...int) predicate.Group {
+	return predicate.Group(sql.FieldIn(FieldConcurrencyLimit, vs...))
+}
+
+// ConcurrencyLimitNotIn applies the NotIn predicate on the "concurrency_limit" field.
+func ConcurrencyLimitNotIn(vs ...int) predicate.Group {
+	return predicate.Group(sql.FieldNotIn(FieldConcurrencyLimit, vs...))
+}
+
+// ConcurrencyLimitGT applies the GT predicate on the "concurrency_limit" field.
+func ConcurrencyLimitGT(v int) predicate.Group {
+	return predicate.Group(sql.FieldGT(FieldConcurrencyLimit, v))
+}
+
+// ConcurrencyLimitGTE applies the GTE predicate on the "concurrency_limit" field.
+func ConcurrencyLimitGTE(v int) predicate.Group {
+	return predicate.Group(sql.FieldGTE(FieldConcurrencyLimit, v))
+}
+
+// ConcurrencyLimitLT applies the LT predicate on the "concurrency_limit" field.
+func ConcurrencyLimitLT(v int) predicate.Group {
+	return predicate.Group(sql.FieldLT(FieldConcurrencyLimit, v))
+}
+
+// ConcurrencyLimitLTE applies the LTE predicate on the "concurrency_limit" field.
+func ConcurrencyLimitLTE(v int) predicate.Group {
+	return predicate.Group(sql.FieldLTE(FieldConcurrencyLimit, v))
+}
+
+// CircuitBreakerEnabledEQ applies the EQ predicate on the "circuit_breaker_enabled" field.
+func CircuitBreakerEnabledEQ(v bool) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldCircuitBreakerEnabled, v))
+}
+
+// CircuitBreakerEnabledNEQ applies the NEQ predicate on the "circuit_breaker_enabled" field.
+func CircuitBreakerEnabledNEQ(v bool) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldCircuitBreakerEnabled, v))
+}
+
+// ExclusiveQuotaEQ applies the EQ predicate on the "exclusive_quota" field.
+func ExclusiveQuotaEQ(v bool) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldExclusiveQuota, v))
+}
+
+// ExclusiveQuotaNEQ applies the NEQ predicate on the "exclusive_quota" field.
+func ExclusiveQuotaNEQ(v bool) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldExclusiveQuota, v))
+}
+
+// WhitelistOnlyEQ applies the EQ predicate on the "whitelist_only" field.
+func WhitelistOnlyEQ(v bool) predicate.Group {
+	return predicate.Group(sql.FieldEQ(FieldWhitelistOnly, v))
+}
+
+// WhitelistOnlyNEQ applies the NEQ predicate on the "whitelist_only" field.
+func WhitelistOnlyNEQ(v bool) predicate.Group {
+	return predicate.Group(sql.FieldNEQ(FieldWhitelistOnly, v))
 }
 
 // HasAPIKeys applies the HasEdge predicate on the "api_keys" edge.

@@ -7,24 +7,24 @@ import (
 
 // CodexMetrics holds atomic counters for Codex proxy observability.
 type CodexMetrics struct {
-	RequestsTotal        atomic.Int64
-	RequestsSuccess      atomic.Int64
-	RequestsClientError  atomic.Int64
-	RequestsServerError  atomic.Int64
-	RequestsNotModified  atomic.Int64
-	CacheHits            atomic.Int64
-	CacheStales          atomic.Int64
-	CacheMisses          atomic.Int64
-	AccountSwitchesTotal atomic.Int64
-	AccountSwitchesOK    atomic.Int64
-	AccountSwitchesFail  atomic.Int64
-	LatencyMsTotal       atomic.Int64
-	UpstreamErrors401    atomic.Int64
-	UpstreamErrors429    atomic.Int64
-	UpstreamErrors5xx    atomic.Int64
-	UpstreamErrorsNet    atomic.Int64
+	RequestsTotal           atomic.Int64
+	RequestsSuccess         atomic.Int64
+	RequestsClientError     atomic.Int64
+	RequestsServerError     atomic.Int64
+	RequestsNotModified     atomic.Int64
+	CacheHits               atomic.Int64
+	CacheStales             atomic.Int64
+	CacheMisses             atomic.Int64
+	AccountSwitchesTotal    atomic.Int64
+	AccountSwitchesOK       atomic.Int64
+	AccountSwitchesFail     atomic.Int64
+	LatencyMsTotal          atomic.Int64
+	UpstreamErrors401       atomic.Int64
+	UpstreamErrors429       atomic.Int64
+	UpstreamErrors5xx       atomic.Int64
+	UpstreamErrorsNet       atomic.Int64
 	AgentIdentityRecoveries atomic.Int64
-	AgentIdentityFailed    atomic.Int64
+	AgentIdentityFailed     atomic.Int64
 }
 
 var codexMetrics CodexMetrics

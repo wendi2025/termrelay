@@ -120,6 +120,24 @@ const (
 	FieldMaxReasoningEffort = "max_reasoning_effort"
 	// FieldReasoningEffortMappings holds the string denoting the reasoning_effort_mappings field in the database.
 	FieldReasoningEffortMappings = "reasoning_effort_mappings"
+	// FieldProductLine holds the string denoting the product_line field in the database.
+	FieldProductLine = "product_line"
+	// FieldCostMultiplier holds the string denoting the cost_multiplier field in the database.
+	FieldCostMultiplier = "cost_multiplier"
+	// FieldPayAsYouGoPricePerUsd holds the string denoting the pay_as_you_go_price_per_usd field in the database.
+	FieldPayAsYouGoPricePerUsd = "pay_as_you_go_price_per_usd"
+	// FieldLossCoefficient holds the string denoting the loss_coefficient field in the database.
+	FieldLossCoefficient = "loss_coefficient"
+	// FieldMaxDiscountPct holds the string denoting the max_discount_pct field in the database.
+	FieldMaxDiscountPct = "max_discount_pct"
+	// FieldConcurrencyLimit holds the string denoting the concurrency_limit field in the database.
+	FieldConcurrencyLimit = "concurrency_limit"
+	// FieldCircuitBreakerEnabled holds the string denoting the circuit_breaker_enabled field in the database.
+	FieldCircuitBreakerEnabled = "circuit_breaker_enabled"
+	// FieldExclusiveQuota holds the string denoting the exclusive_quota field in the database.
+	FieldExclusiveQuota = "exclusive_quota"
+	// FieldWhitelistOnly holds the string denoting the whitelist_only field in the database.
+	FieldWhitelistOnly = "whitelist_only"
 	// EdgeAPIKeys holds the string denoting the api_keys edge name in mutations.
 	EdgeAPIKeys = "api_keys"
 	// EdgeRedeemCodes holds the string denoting the redeem_codes edge name in mutations.
@@ -247,6 +265,15 @@ var Columns = []string{
 	FieldRpmLimit,
 	FieldMaxReasoningEffort,
 	FieldReasoningEffortMappings,
+	FieldProductLine,
+	FieldCostMultiplier,
+	FieldPayAsYouGoPricePerUsd,
+	FieldLossCoefficient,
+	FieldMaxDiscountPct,
+	FieldConcurrencyLimit,
+	FieldCircuitBreakerEnabled,
+	FieldExclusiveQuota,
+	FieldWhitelistOnly,
 }
 
 var (
@@ -366,6 +393,26 @@ var (
 	MaxReasoningEffortValidator func(string) error
 	// DefaultReasoningEffortMappings holds the default value on creation for the "reasoning_effort_mappings" field.
 	DefaultReasoningEffortMappings []domain.ReasoningEffortMapping
+	// DefaultProductLine holds the default value on creation for the "product_line" field.
+	DefaultProductLine string
+	// ProductLineValidator is a validator for the "product_line" field. It is called by the builders before save.
+	ProductLineValidator func(string) error
+	// DefaultCostMultiplier holds the default value on creation for the "cost_multiplier" field.
+	DefaultCostMultiplier float64
+	// DefaultPayAsYouGoPricePerUsd holds the default value on creation for the "pay_as_you_go_price_per_usd" field.
+	DefaultPayAsYouGoPricePerUsd float64
+	// DefaultLossCoefficient holds the default value on creation for the "loss_coefficient" field.
+	DefaultLossCoefficient float64
+	// DefaultMaxDiscountPct holds the default value on creation for the "max_discount_pct" field.
+	DefaultMaxDiscountPct float64
+	// DefaultConcurrencyLimit holds the default value on creation for the "concurrency_limit" field.
+	DefaultConcurrencyLimit int
+	// DefaultCircuitBreakerEnabled holds the default value on creation for the "circuit_breaker_enabled" field.
+	DefaultCircuitBreakerEnabled bool
+	// DefaultExclusiveQuota holds the default value on creation for the "exclusive_quota" field.
+	DefaultExclusiveQuota bool
+	// DefaultWhitelistOnly holds the default value on creation for the "whitelist_only" field.
+	DefaultWhitelistOnly bool
 )
 
 // OrderOption defines the ordering options for the Group queries.
@@ -609,6 +656,51 @@ func ByRpmLimit(opts ...sql.OrderTermOption) OrderOption {
 // ByMaxReasoningEffort orders the results by the max_reasoning_effort field.
 func ByMaxReasoningEffort(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMaxReasoningEffort, opts...).ToFunc()
+}
+
+// ByProductLine orders the results by the product_line field.
+func ByProductLine(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProductLine, opts...).ToFunc()
+}
+
+// ByCostMultiplier orders the results by the cost_multiplier field.
+func ByCostMultiplier(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCostMultiplier, opts...).ToFunc()
+}
+
+// ByPayAsYouGoPricePerUsd orders the results by the pay_as_you_go_price_per_usd field.
+func ByPayAsYouGoPricePerUsd(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPayAsYouGoPricePerUsd, opts...).ToFunc()
+}
+
+// ByLossCoefficient orders the results by the loss_coefficient field.
+func ByLossCoefficient(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLossCoefficient, opts...).ToFunc()
+}
+
+// ByMaxDiscountPct orders the results by the max_discount_pct field.
+func ByMaxDiscountPct(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxDiscountPct, opts...).ToFunc()
+}
+
+// ByConcurrencyLimit orders the results by the concurrency_limit field.
+func ByConcurrencyLimit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConcurrencyLimit, opts...).ToFunc()
+}
+
+// ByCircuitBreakerEnabled orders the results by the circuit_breaker_enabled field.
+func ByCircuitBreakerEnabled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCircuitBreakerEnabled, opts...).ToFunc()
+}
+
+// ByExclusiveQuota orders the results by the exclusive_quota field.
+func ByExclusiveQuota(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExclusiveQuota, opts...).ToFunc()
+}
+
+// ByWhitelistOnly orders the results by the whitelist_only field.
+func ByWhitelistOnly(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWhitelistOnly, opts...).ToFunc()
 }
 
 // ByAPIKeysCount orders the results by api_keys count.

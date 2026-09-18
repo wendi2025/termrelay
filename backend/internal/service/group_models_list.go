@@ -30,3 +30,34 @@ func normalizeGroupModelsListConfig(cfg GroupModelsListConfig) GroupModelsListCo
 func (g *Group) CustomModelsListEnabled() bool {
 	return g != nil && g.ModelsListConfig.Enabled && len(g.ModelsListConfig.Models) > 0
 }
+
+// AllowsModel reports whether a client authenticated into this group may use
+// the requested public model. The same models_list_config that shapes
+// /v1/models is treated as an allowlist on real inference requests so a client
+// cannot bypass the UI by manually constructing a request for a hidden model.
+//
+// Existing groups remain backwards-compatible: when the custom list is not
+// enabled (or contains no usable entries), model access is unrestricted and
+// the normal account/model routing rules decide availability.
+func (g *Group) AllowsModel(model string) bool {
+	if !g.CustomModelsListEnabled() {
+		return true
+	}
+	model = strings.TrimSpace(model)
+	if model == "" {
+		return false
+	}
+	for _, pattern := range g.ModelsListConfig.Models {
+		pattern = strings.TrimSpace(pattern)
+		if pattern == "" {
+			continue
+		}
+		if pattern == model {
+			return true
+		}
+		if strings.HasSuffix(pattern, "*") && strings.HasPrefix(model, strings.TrimSuffix(pattern, "*")) {
+			return true
+		}
+	}
+	return false
+}

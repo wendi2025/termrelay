@@ -132,22 +132,23 @@ func (s *AccountTestService) FetchUpstreamSupportedModels(ctx context.Context, a
 }
 
 func (s *AccountTestService) buildUpstreamModelsRequest(ctx context.Context, account *Account) (*http.Request, error) {
-	switch {
-	case account.Platform == PlatformAntigravity:
-		return s.buildAntigravityAPIKeyModelsRequest(ctx, account)
-	case account.IsGrok():
-		return s.buildGrokUpstreamModelsRequest(ctx, account)
-	case account.IsOpenAI():
-		return s.buildOpenAIUpstreamModelsRequest(ctx, account)
-	case account.IsGemini():
-		return s.buildGeminiUpstreamModelsRequest(ctx, account)
-	case account.IsAnthropic():
-		return s.buildAnthropicUpstreamModelsRequest(ctx, account)
-	default:
+	if account == nil {
+		return nil, newUpstreamModelSyncConfigError("Account is required", nil)
+	}
+
+	adapter, err := newAccountTestProviderAdapterRegistry(s).Resolve(account)
+	if err != nil {
 		return nil, newUpstreamModelSyncUnsupportedError(
-			fmt.Sprintf("Unsupported platform for upstream model sync: %s", account.Platform), nil,
+			fmt.Sprintf("Unsupported platform for upstream model sync: %s", account.Platform), err,
 		)
 	}
+	builder, ok := adapter.(ProviderModelsRequestBuilder)
+	if !ok {
+		return nil, newUpstreamModelSyncUnsupportedError(
+			fmt.Sprintf("Provider %s does not support upstream model sync", adapter.Name()), nil,
+		)
+	}
+	return builder.BuildModelsRequest(ctx, account)
 }
 
 func (s *AccountTestService) buildGrokUpstreamModelsRequest(ctx context.Context, account *Account) (*http.Request, error) {

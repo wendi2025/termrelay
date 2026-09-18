@@ -21,9 +21,10 @@ interface AuthResult {
 }
 
 export interface OAuthTokenResult {
-  access_token: string
+  access_token?: string
   refresh_token?: string
   expires_in?: number
+  token_type?: string
 }
 
 const state = reactive({
@@ -105,30 +106,15 @@ export async function register(email: string, password: string) {
   persist(data)
 }
 
-export async function loginWithOAuthTokens(result: OAuthTokenResult) {
-  if (previewMode) {
-    state.token = 'smirel-preview-token'
-    state.user = previewUser()
-    return
-  }
-  if (!result.access_token) throw new Error('第三方登录未返回访问令牌')
+export async function completeOAuthTokenLogin(result: OAuthTokenResult) {
+  if (previewMode) return
+  if (!result.access_token) throw new Error('OAuth 登录响应缺少访问令牌')
 
-  // /auth/me uses the request interceptor, so make the short-lived handoff token
-  // available before resolving the canonical local user record.
-  localStorage.setItem('auth_token', result.access_token)
-  if (result.refresh_token) localStorage.setItem('refresh_token', result.refresh_token)
-  if (result.expires_in) {
-    localStorage.setItem('token_expires_at', String(Date.now() + result.expires_in * 1000))
-  }
-
-  try {
-    const response = await api.get<SmirelUser | { user: SmirelUser }>('/auth/me')
-    const user = 'user' in response.data ? response.data.user : response.data
-    persist({ ...result, user })
-  } catch (error) {
-    clear()
-    throw error
-  }
+  const { data } = await api.get<SmirelUser | { user: SmirelUser }>('/auth/me', {
+    headers: { Authorization: `Bearer ${result.access_token}` },
+  })
+  const user = 'user' in data ? data.user : data
+  persist({ ...result, user })
 }
 
 export async function logout() {
@@ -158,7 +144,6 @@ export function useSession() {
     previewMode,
     login,
     register,
-    loginWithOAuthTokens,
     logout,
   }
 }

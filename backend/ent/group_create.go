@@ -725,6 +725,132 @@ func (_c *GroupCreate) SetReasoningEffortMappings(v []domain.ReasoningEffortMapp
 	return _c
 }
 
+// SetProductLine sets the "product_line" field.
+func (_c *GroupCreate) SetProductLine(v string) *GroupCreate {
+	_c.mutation.SetProductLine(v)
+	return _c
+}
+
+// SetNillableProductLine sets the "product_line" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableProductLine(v *string) *GroupCreate {
+	if v != nil {
+		_c.SetProductLine(*v)
+	}
+	return _c
+}
+
+// SetCostMultiplier sets the "cost_multiplier" field.
+func (_c *GroupCreate) SetCostMultiplier(v float64) *GroupCreate {
+	_c.mutation.SetCostMultiplier(v)
+	return _c
+}
+
+// SetNillableCostMultiplier sets the "cost_multiplier" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableCostMultiplier(v *float64) *GroupCreate {
+	if v != nil {
+		_c.SetCostMultiplier(*v)
+	}
+	return _c
+}
+
+// SetPayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field.
+func (_c *GroupCreate) SetPayAsYouGoPricePerUsd(v float64) *GroupCreate {
+	_c.mutation.SetPayAsYouGoPricePerUsd(v)
+	return _c
+}
+
+// SetNillablePayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field if the given value is not nil.
+func (_c *GroupCreate) SetNillablePayAsYouGoPricePerUsd(v *float64) *GroupCreate {
+	if v != nil {
+		_c.SetPayAsYouGoPricePerUsd(*v)
+	}
+	return _c
+}
+
+// SetLossCoefficient sets the "loss_coefficient" field.
+func (_c *GroupCreate) SetLossCoefficient(v float64) *GroupCreate {
+	_c.mutation.SetLossCoefficient(v)
+	return _c
+}
+
+// SetNillableLossCoefficient sets the "loss_coefficient" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableLossCoefficient(v *float64) *GroupCreate {
+	if v != nil {
+		_c.SetLossCoefficient(*v)
+	}
+	return _c
+}
+
+// SetMaxDiscountPct sets the "max_discount_pct" field.
+func (_c *GroupCreate) SetMaxDiscountPct(v float64) *GroupCreate {
+	_c.mutation.SetMaxDiscountPct(v)
+	return _c
+}
+
+// SetNillableMaxDiscountPct sets the "max_discount_pct" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableMaxDiscountPct(v *float64) *GroupCreate {
+	if v != nil {
+		_c.SetMaxDiscountPct(*v)
+	}
+	return _c
+}
+
+// SetConcurrencyLimit sets the "concurrency_limit" field.
+func (_c *GroupCreate) SetConcurrencyLimit(v int) *GroupCreate {
+	_c.mutation.SetConcurrencyLimit(v)
+	return _c
+}
+
+// SetNillableConcurrencyLimit sets the "concurrency_limit" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableConcurrencyLimit(v *int) *GroupCreate {
+	if v != nil {
+		_c.SetConcurrencyLimit(*v)
+	}
+	return _c
+}
+
+// SetCircuitBreakerEnabled sets the "circuit_breaker_enabled" field.
+func (_c *GroupCreate) SetCircuitBreakerEnabled(v bool) *GroupCreate {
+	_c.mutation.SetCircuitBreakerEnabled(v)
+	return _c
+}
+
+// SetNillableCircuitBreakerEnabled sets the "circuit_breaker_enabled" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableCircuitBreakerEnabled(v *bool) *GroupCreate {
+	if v != nil {
+		_c.SetCircuitBreakerEnabled(*v)
+	}
+	return _c
+}
+
+// SetExclusiveQuota sets the "exclusive_quota" field.
+func (_c *GroupCreate) SetExclusiveQuota(v bool) *GroupCreate {
+	_c.mutation.SetExclusiveQuota(v)
+	return _c
+}
+
+// SetNillableExclusiveQuota sets the "exclusive_quota" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableExclusiveQuota(v *bool) *GroupCreate {
+	if v != nil {
+		_c.SetExclusiveQuota(*v)
+	}
+	return _c
+}
+
+// SetWhitelistOnly sets the "whitelist_only" field.
+func (_c *GroupCreate) SetWhitelistOnly(v bool) *GroupCreate {
+	_c.mutation.SetWhitelistOnly(v)
+	return _c
+}
+
+// SetNillableWhitelistOnly sets the "whitelist_only" field if the given value is not nil.
+func (_c *GroupCreate) SetNillableWhitelistOnly(v *bool) *GroupCreate {
+	if v != nil {
+		_c.SetWhitelistOnly(*v)
+	}
+	return _c
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_c *GroupCreate) AddAPIKeyIDs(ids ...int64) *GroupCreate {
 	_c.mutation.AddAPIKeyIDs(ids...)
@@ -998,6 +1124,42 @@ func (_c *GroupCreate) defaults() error {
 		v := group.DefaultReasoningEffortMappings
 		_c.mutation.SetReasoningEffortMappings(v)
 	}
+	if _, ok := _c.mutation.ProductLine(); !ok {
+		v := group.DefaultProductLine
+		_c.mutation.SetProductLine(v)
+	}
+	if _, ok := _c.mutation.CostMultiplier(); !ok {
+		v := group.DefaultCostMultiplier
+		_c.mutation.SetCostMultiplier(v)
+	}
+	if _, ok := _c.mutation.PayAsYouGoPricePerUsd(); !ok {
+		v := group.DefaultPayAsYouGoPricePerUsd
+		_c.mutation.SetPayAsYouGoPricePerUsd(v)
+	}
+	if _, ok := _c.mutation.LossCoefficient(); !ok {
+		v := group.DefaultLossCoefficient
+		_c.mutation.SetLossCoefficient(v)
+	}
+	if _, ok := _c.mutation.MaxDiscountPct(); !ok {
+		v := group.DefaultMaxDiscountPct
+		_c.mutation.SetMaxDiscountPct(v)
+	}
+	if _, ok := _c.mutation.ConcurrencyLimit(); !ok {
+		v := group.DefaultConcurrencyLimit
+		_c.mutation.SetConcurrencyLimit(v)
+	}
+	if _, ok := _c.mutation.CircuitBreakerEnabled(); !ok {
+		v := group.DefaultCircuitBreakerEnabled
+		_c.mutation.SetCircuitBreakerEnabled(v)
+	}
+	if _, ok := _c.mutation.ExclusiveQuota(); !ok {
+		v := group.DefaultExclusiveQuota
+		_c.mutation.SetExclusiveQuota(v)
+	}
+	if _, ok := _c.mutation.WhitelistOnly(); !ok {
+		v := group.DefaultWhitelistOnly
+		_c.mutation.SetWhitelistOnly(v)
+	}
 	return nil
 }
 
@@ -1155,6 +1317,38 @@ func (_c *GroupCreate) check() error {
 	}
 	if _, ok := _c.mutation.ReasoningEffortMappings(); !ok {
 		return &ValidationError{Name: "reasoning_effort_mappings", err: errors.New(`ent: missing required field "Group.reasoning_effort_mappings"`)}
+	}
+	if _, ok := _c.mutation.ProductLine(); !ok {
+		return &ValidationError{Name: "product_line", err: errors.New(`ent: missing required field "Group.product_line"`)}
+	}
+	if v, ok := _c.mutation.ProductLine(); ok {
+		if err := group.ProductLineValidator(v); err != nil {
+			return &ValidationError{Name: "product_line", err: fmt.Errorf(`ent: validator failed for field "Group.product_line": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.CostMultiplier(); !ok {
+		return &ValidationError{Name: "cost_multiplier", err: errors.New(`ent: missing required field "Group.cost_multiplier"`)}
+	}
+	if _, ok := _c.mutation.PayAsYouGoPricePerUsd(); !ok {
+		return &ValidationError{Name: "pay_as_you_go_price_per_usd", err: errors.New(`ent: missing required field "Group.pay_as_you_go_price_per_usd"`)}
+	}
+	if _, ok := _c.mutation.LossCoefficient(); !ok {
+		return &ValidationError{Name: "loss_coefficient", err: errors.New(`ent: missing required field "Group.loss_coefficient"`)}
+	}
+	if _, ok := _c.mutation.MaxDiscountPct(); !ok {
+		return &ValidationError{Name: "max_discount_pct", err: errors.New(`ent: missing required field "Group.max_discount_pct"`)}
+	}
+	if _, ok := _c.mutation.ConcurrencyLimit(); !ok {
+		return &ValidationError{Name: "concurrency_limit", err: errors.New(`ent: missing required field "Group.concurrency_limit"`)}
+	}
+	if _, ok := _c.mutation.CircuitBreakerEnabled(); !ok {
+		return &ValidationError{Name: "circuit_breaker_enabled", err: errors.New(`ent: missing required field "Group.circuit_breaker_enabled"`)}
+	}
+	if _, ok := _c.mutation.ExclusiveQuota(); !ok {
+		return &ValidationError{Name: "exclusive_quota", err: errors.New(`ent: missing required field "Group.exclusive_quota"`)}
+	}
+	if _, ok := _c.mutation.WhitelistOnly(); !ok {
+		return &ValidationError{Name: "whitelist_only", err: errors.New(`ent: missing required field "Group.whitelist_only"`)}
 	}
 	return nil
 }
@@ -1390,6 +1584,42 @@ func (_c *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ReasoningEffortMappings(); ok {
 		_spec.SetField(group.FieldReasoningEffortMappings, field.TypeJSON, value)
 		_node.ReasoningEffortMappings = value
+	}
+	if value, ok := _c.mutation.ProductLine(); ok {
+		_spec.SetField(group.FieldProductLine, field.TypeString, value)
+		_node.ProductLine = value
+	}
+	if value, ok := _c.mutation.CostMultiplier(); ok {
+		_spec.SetField(group.FieldCostMultiplier, field.TypeFloat64, value)
+		_node.CostMultiplier = value
+	}
+	if value, ok := _c.mutation.PayAsYouGoPricePerUsd(); ok {
+		_spec.SetField(group.FieldPayAsYouGoPricePerUsd, field.TypeFloat64, value)
+		_node.PayAsYouGoPricePerUsd = value
+	}
+	if value, ok := _c.mutation.LossCoefficient(); ok {
+		_spec.SetField(group.FieldLossCoefficient, field.TypeFloat64, value)
+		_node.LossCoefficient = value
+	}
+	if value, ok := _c.mutation.MaxDiscountPct(); ok {
+		_spec.SetField(group.FieldMaxDiscountPct, field.TypeFloat64, value)
+		_node.MaxDiscountPct = value
+	}
+	if value, ok := _c.mutation.ConcurrencyLimit(); ok {
+		_spec.SetField(group.FieldConcurrencyLimit, field.TypeInt, value)
+		_node.ConcurrencyLimit = value
+	}
+	if value, ok := _c.mutation.CircuitBreakerEnabled(); ok {
+		_spec.SetField(group.FieldCircuitBreakerEnabled, field.TypeBool, value)
+		_node.CircuitBreakerEnabled = value
+	}
+	if value, ok := _c.mutation.ExclusiveQuota(); ok {
+		_spec.SetField(group.FieldExclusiveQuota, field.TypeBool, value)
+		_node.ExclusiveQuota = value
+	}
+	if value, ok := _c.mutation.WhitelistOnly(); ok {
+		_spec.SetField(group.FieldWhitelistOnly, field.TypeBool, value)
+		_node.WhitelistOnly = value
 	}
 	if nodes := _c.mutation.APIKeysIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -2360,6 +2590,144 @@ func (u *GroupUpsert) SetReasoningEffortMappings(v []domain.ReasoningEffortMappi
 // UpdateReasoningEffortMappings sets the "reasoning_effort_mappings" field to the value that was provided on create.
 func (u *GroupUpsert) UpdateReasoningEffortMappings() *GroupUpsert {
 	u.SetExcluded(group.FieldReasoningEffortMappings)
+	return u
+}
+
+// SetProductLine sets the "product_line" field.
+func (u *GroupUpsert) SetProductLine(v string) *GroupUpsert {
+	u.Set(group.FieldProductLine, v)
+	return u
+}
+
+// UpdateProductLine sets the "product_line" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateProductLine() *GroupUpsert {
+	u.SetExcluded(group.FieldProductLine)
+	return u
+}
+
+// SetCostMultiplier sets the "cost_multiplier" field.
+func (u *GroupUpsert) SetCostMultiplier(v float64) *GroupUpsert {
+	u.Set(group.FieldCostMultiplier, v)
+	return u
+}
+
+// UpdateCostMultiplier sets the "cost_multiplier" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateCostMultiplier() *GroupUpsert {
+	u.SetExcluded(group.FieldCostMultiplier)
+	return u
+}
+
+// AddCostMultiplier adds v to the "cost_multiplier" field.
+func (u *GroupUpsert) AddCostMultiplier(v float64) *GroupUpsert {
+	u.Add(group.FieldCostMultiplier, v)
+	return u
+}
+
+// SetPayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field.
+func (u *GroupUpsert) SetPayAsYouGoPricePerUsd(v float64) *GroupUpsert {
+	u.Set(group.FieldPayAsYouGoPricePerUsd, v)
+	return u
+}
+
+// UpdatePayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field to the value that was provided on create.
+func (u *GroupUpsert) UpdatePayAsYouGoPricePerUsd() *GroupUpsert {
+	u.SetExcluded(group.FieldPayAsYouGoPricePerUsd)
+	return u
+}
+
+// AddPayAsYouGoPricePerUsd adds v to the "pay_as_you_go_price_per_usd" field.
+func (u *GroupUpsert) AddPayAsYouGoPricePerUsd(v float64) *GroupUpsert {
+	u.Add(group.FieldPayAsYouGoPricePerUsd, v)
+	return u
+}
+
+// SetLossCoefficient sets the "loss_coefficient" field.
+func (u *GroupUpsert) SetLossCoefficient(v float64) *GroupUpsert {
+	u.Set(group.FieldLossCoefficient, v)
+	return u
+}
+
+// UpdateLossCoefficient sets the "loss_coefficient" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateLossCoefficient() *GroupUpsert {
+	u.SetExcluded(group.FieldLossCoefficient)
+	return u
+}
+
+// AddLossCoefficient adds v to the "loss_coefficient" field.
+func (u *GroupUpsert) AddLossCoefficient(v float64) *GroupUpsert {
+	u.Add(group.FieldLossCoefficient, v)
+	return u
+}
+
+// SetMaxDiscountPct sets the "max_discount_pct" field.
+func (u *GroupUpsert) SetMaxDiscountPct(v float64) *GroupUpsert {
+	u.Set(group.FieldMaxDiscountPct, v)
+	return u
+}
+
+// UpdateMaxDiscountPct sets the "max_discount_pct" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateMaxDiscountPct() *GroupUpsert {
+	u.SetExcluded(group.FieldMaxDiscountPct)
+	return u
+}
+
+// AddMaxDiscountPct adds v to the "max_discount_pct" field.
+func (u *GroupUpsert) AddMaxDiscountPct(v float64) *GroupUpsert {
+	u.Add(group.FieldMaxDiscountPct, v)
+	return u
+}
+
+// SetConcurrencyLimit sets the "concurrency_limit" field.
+func (u *GroupUpsert) SetConcurrencyLimit(v int) *GroupUpsert {
+	u.Set(group.FieldConcurrencyLimit, v)
+	return u
+}
+
+// UpdateConcurrencyLimit sets the "concurrency_limit" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateConcurrencyLimit() *GroupUpsert {
+	u.SetExcluded(group.FieldConcurrencyLimit)
+	return u
+}
+
+// AddConcurrencyLimit adds v to the "concurrency_limit" field.
+func (u *GroupUpsert) AddConcurrencyLimit(v int) *GroupUpsert {
+	u.Add(group.FieldConcurrencyLimit, v)
+	return u
+}
+
+// SetCircuitBreakerEnabled sets the "circuit_breaker_enabled" field.
+func (u *GroupUpsert) SetCircuitBreakerEnabled(v bool) *GroupUpsert {
+	u.Set(group.FieldCircuitBreakerEnabled, v)
+	return u
+}
+
+// UpdateCircuitBreakerEnabled sets the "circuit_breaker_enabled" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateCircuitBreakerEnabled() *GroupUpsert {
+	u.SetExcluded(group.FieldCircuitBreakerEnabled)
+	return u
+}
+
+// SetExclusiveQuota sets the "exclusive_quota" field.
+func (u *GroupUpsert) SetExclusiveQuota(v bool) *GroupUpsert {
+	u.Set(group.FieldExclusiveQuota, v)
+	return u
+}
+
+// UpdateExclusiveQuota sets the "exclusive_quota" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateExclusiveQuota() *GroupUpsert {
+	u.SetExcluded(group.FieldExclusiveQuota)
+	return u
+}
+
+// SetWhitelistOnly sets the "whitelist_only" field.
+func (u *GroupUpsert) SetWhitelistOnly(v bool) *GroupUpsert {
+	u.Set(group.FieldWhitelistOnly, v)
+	return u
+}
+
+// UpdateWhitelistOnly sets the "whitelist_only" field to the value that was provided on create.
+func (u *GroupUpsert) UpdateWhitelistOnly() *GroupUpsert {
+	u.SetExcluded(group.FieldWhitelistOnly)
 	return u
 }
 
@@ -3360,6 +3728,167 @@ func (u *GroupUpsertOne) SetReasoningEffortMappings(v []domain.ReasoningEffortMa
 func (u *GroupUpsertOne) UpdateReasoningEffortMappings() *GroupUpsertOne {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateReasoningEffortMappings()
+	})
+}
+
+// SetProductLine sets the "product_line" field.
+func (u *GroupUpsertOne) SetProductLine(v string) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetProductLine(v)
+	})
+}
+
+// UpdateProductLine sets the "product_line" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateProductLine() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateProductLine()
+	})
+}
+
+// SetCostMultiplier sets the "cost_multiplier" field.
+func (u *GroupUpsertOne) SetCostMultiplier(v float64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetCostMultiplier(v)
+	})
+}
+
+// AddCostMultiplier adds v to the "cost_multiplier" field.
+func (u *GroupUpsertOne) AddCostMultiplier(v float64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddCostMultiplier(v)
+	})
+}
+
+// UpdateCostMultiplier sets the "cost_multiplier" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateCostMultiplier() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateCostMultiplier()
+	})
+}
+
+// SetPayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field.
+func (u *GroupUpsertOne) SetPayAsYouGoPricePerUsd(v float64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetPayAsYouGoPricePerUsd(v)
+	})
+}
+
+// AddPayAsYouGoPricePerUsd adds v to the "pay_as_you_go_price_per_usd" field.
+func (u *GroupUpsertOne) AddPayAsYouGoPricePerUsd(v float64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddPayAsYouGoPricePerUsd(v)
+	})
+}
+
+// UpdatePayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdatePayAsYouGoPricePerUsd() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdatePayAsYouGoPricePerUsd()
+	})
+}
+
+// SetLossCoefficient sets the "loss_coefficient" field.
+func (u *GroupUpsertOne) SetLossCoefficient(v float64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetLossCoefficient(v)
+	})
+}
+
+// AddLossCoefficient adds v to the "loss_coefficient" field.
+func (u *GroupUpsertOne) AddLossCoefficient(v float64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddLossCoefficient(v)
+	})
+}
+
+// UpdateLossCoefficient sets the "loss_coefficient" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateLossCoefficient() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateLossCoefficient()
+	})
+}
+
+// SetMaxDiscountPct sets the "max_discount_pct" field.
+func (u *GroupUpsertOne) SetMaxDiscountPct(v float64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetMaxDiscountPct(v)
+	})
+}
+
+// AddMaxDiscountPct adds v to the "max_discount_pct" field.
+func (u *GroupUpsertOne) AddMaxDiscountPct(v float64) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddMaxDiscountPct(v)
+	})
+}
+
+// UpdateMaxDiscountPct sets the "max_discount_pct" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateMaxDiscountPct() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateMaxDiscountPct()
+	})
+}
+
+// SetConcurrencyLimit sets the "concurrency_limit" field.
+func (u *GroupUpsertOne) SetConcurrencyLimit(v int) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetConcurrencyLimit(v)
+	})
+}
+
+// AddConcurrencyLimit adds v to the "concurrency_limit" field.
+func (u *GroupUpsertOne) AddConcurrencyLimit(v int) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddConcurrencyLimit(v)
+	})
+}
+
+// UpdateConcurrencyLimit sets the "concurrency_limit" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateConcurrencyLimit() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateConcurrencyLimit()
+	})
+}
+
+// SetCircuitBreakerEnabled sets the "circuit_breaker_enabled" field.
+func (u *GroupUpsertOne) SetCircuitBreakerEnabled(v bool) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetCircuitBreakerEnabled(v)
+	})
+}
+
+// UpdateCircuitBreakerEnabled sets the "circuit_breaker_enabled" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateCircuitBreakerEnabled() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateCircuitBreakerEnabled()
+	})
+}
+
+// SetExclusiveQuota sets the "exclusive_quota" field.
+func (u *GroupUpsertOne) SetExclusiveQuota(v bool) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetExclusiveQuota(v)
+	})
+}
+
+// UpdateExclusiveQuota sets the "exclusive_quota" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateExclusiveQuota() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateExclusiveQuota()
+	})
+}
+
+// SetWhitelistOnly sets the "whitelist_only" field.
+func (u *GroupUpsertOne) SetWhitelistOnly(v bool) *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetWhitelistOnly(v)
+	})
+}
+
+// UpdateWhitelistOnly sets the "whitelist_only" field to the value that was provided on create.
+func (u *GroupUpsertOne) UpdateWhitelistOnly() *GroupUpsertOne {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateWhitelistOnly()
 	})
 }
 
@@ -4526,6 +5055,167 @@ func (u *GroupUpsertBulk) SetReasoningEffortMappings(v []domain.ReasoningEffortM
 func (u *GroupUpsertBulk) UpdateReasoningEffortMappings() *GroupUpsertBulk {
 	return u.Update(func(s *GroupUpsert) {
 		s.UpdateReasoningEffortMappings()
+	})
+}
+
+// SetProductLine sets the "product_line" field.
+func (u *GroupUpsertBulk) SetProductLine(v string) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetProductLine(v)
+	})
+}
+
+// UpdateProductLine sets the "product_line" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateProductLine() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateProductLine()
+	})
+}
+
+// SetCostMultiplier sets the "cost_multiplier" field.
+func (u *GroupUpsertBulk) SetCostMultiplier(v float64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetCostMultiplier(v)
+	})
+}
+
+// AddCostMultiplier adds v to the "cost_multiplier" field.
+func (u *GroupUpsertBulk) AddCostMultiplier(v float64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddCostMultiplier(v)
+	})
+}
+
+// UpdateCostMultiplier sets the "cost_multiplier" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateCostMultiplier() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateCostMultiplier()
+	})
+}
+
+// SetPayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field.
+func (u *GroupUpsertBulk) SetPayAsYouGoPricePerUsd(v float64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetPayAsYouGoPricePerUsd(v)
+	})
+}
+
+// AddPayAsYouGoPricePerUsd adds v to the "pay_as_you_go_price_per_usd" field.
+func (u *GroupUpsertBulk) AddPayAsYouGoPricePerUsd(v float64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddPayAsYouGoPricePerUsd(v)
+	})
+}
+
+// UpdatePayAsYouGoPricePerUsd sets the "pay_as_you_go_price_per_usd" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdatePayAsYouGoPricePerUsd() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdatePayAsYouGoPricePerUsd()
+	})
+}
+
+// SetLossCoefficient sets the "loss_coefficient" field.
+func (u *GroupUpsertBulk) SetLossCoefficient(v float64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetLossCoefficient(v)
+	})
+}
+
+// AddLossCoefficient adds v to the "loss_coefficient" field.
+func (u *GroupUpsertBulk) AddLossCoefficient(v float64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddLossCoefficient(v)
+	})
+}
+
+// UpdateLossCoefficient sets the "loss_coefficient" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateLossCoefficient() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateLossCoefficient()
+	})
+}
+
+// SetMaxDiscountPct sets the "max_discount_pct" field.
+func (u *GroupUpsertBulk) SetMaxDiscountPct(v float64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetMaxDiscountPct(v)
+	})
+}
+
+// AddMaxDiscountPct adds v to the "max_discount_pct" field.
+func (u *GroupUpsertBulk) AddMaxDiscountPct(v float64) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddMaxDiscountPct(v)
+	})
+}
+
+// UpdateMaxDiscountPct sets the "max_discount_pct" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateMaxDiscountPct() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateMaxDiscountPct()
+	})
+}
+
+// SetConcurrencyLimit sets the "concurrency_limit" field.
+func (u *GroupUpsertBulk) SetConcurrencyLimit(v int) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetConcurrencyLimit(v)
+	})
+}
+
+// AddConcurrencyLimit adds v to the "concurrency_limit" field.
+func (u *GroupUpsertBulk) AddConcurrencyLimit(v int) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.AddConcurrencyLimit(v)
+	})
+}
+
+// UpdateConcurrencyLimit sets the "concurrency_limit" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateConcurrencyLimit() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateConcurrencyLimit()
+	})
+}
+
+// SetCircuitBreakerEnabled sets the "circuit_breaker_enabled" field.
+func (u *GroupUpsertBulk) SetCircuitBreakerEnabled(v bool) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetCircuitBreakerEnabled(v)
+	})
+}
+
+// UpdateCircuitBreakerEnabled sets the "circuit_breaker_enabled" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateCircuitBreakerEnabled() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateCircuitBreakerEnabled()
+	})
+}
+
+// SetExclusiveQuota sets the "exclusive_quota" field.
+func (u *GroupUpsertBulk) SetExclusiveQuota(v bool) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetExclusiveQuota(v)
+	})
+}
+
+// UpdateExclusiveQuota sets the "exclusive_quota" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateExclusiveQuota() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateExclusiveQuota()
+	})
+}
+
+// SetWhitelistOnly sets the "whitelist_only" field.
+func (u *GroupUpsertBulk) SetWhitelistOnly(v bool) *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.SetWhitelistOnly(v)
+	})
+}
+
+// UpdateWhitelistOnly sets the "whitelist_only" field to the value that was provided on create.
+func (u *GroupUpsertBulk) UpdateWhitelistOnly() *GroupUpsertBulk {
+	return u.Update(func(s *GroupUpsert) {
+		s.UpdateWhitelistOnly()
 	})
 }
 

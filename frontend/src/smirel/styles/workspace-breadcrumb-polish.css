@@ -1,0 +1,65 @@
+/* Refine the workspace location breadcrumb into a quieter, more compact control. */
+.workspace-root .workspace-main .workspace-breadcrumb {
+  min-height: 32px;
+  gap: 8px;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-root,
+.workspace-root .workspace-main .workspace-breadcrumb-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #707985;
+  font-size: .72rem;
+  line-height: 1;
+  font-weight: 620;
+  letter-spacing: .006em;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-root::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 2px;
+  background: #4e5b68;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .025);
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-group {
+  color: #8a929d;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-separator {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  display: inline-grid;
+  place-items: center;
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+}
+
+.workspace-root .workspace-main .workspace-breadcrumb-separator::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid #424a54;
+  border-right: 1px solid #424a54;
+  transform: rotate(45deg);
+}
+
+.workspace-root .workspace-main .workspace-topbar--contextual .workspace-topbar-title {
+  color: #e4e8ed;
+  font-size: .86rem;
+  line-height: 1;
+  font-weight: 650;
+  letter-spacing: -.012em;
+}
+
+@media (max-width: 980px) {
+  .workspace-root .workspace-main .workspace-breadcrumb-root::before {
+    display: none;
+  }
+}

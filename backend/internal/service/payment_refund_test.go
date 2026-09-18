@@ -112,11 +112,109 @@ func TestPrepareRefundRejectsLegacyGuessedProviderInstance(t *testing.T) {
 		entClient: client,
 	}
 
-	plan, result, err := svc.PrepareRefund(ctx, order.ID, 0, "", false, false)
+	plan, result, err := svc.PrepareRefund(ctx, order.ID, 0, "", RefundOptions{})
 	require.Nil(t, plan)
 	require.Nil(t, result)
 	require.Error(t, err)
 	require.Equal(t, "REFUND_DISABLED", infraerrors.Reason(err))
+}
+
+// newRefundCapTestOrder 构造一笔已完成的按量充值订单（含可退款的支付渠道实例）
+func newRefundCapTestOrder(t *testing.T, client *dbent.Client, email string, balance, amount float64) (*dbent.PaymentOrder, *User) {
+	t.Helper()
+	ctx := context.Background()
+
+	user, err := client.User.Create().
+		SetEmail(email).
+		SetPasswordHash("hash").
+		SetUsername(email).
+		SetBalance(balance).
+		Save(ctx)
+	require.NoError(t, err)
+
+	inst, err := client.PaymentProviderInstance.Create().
+		SetProviderKey(payment.TypeAlipay).
+		SetName("refund-cap-instance-" + email).
+		SetConfig("{}").
+		SetSupportedTypes("alipay").
+		SetEnabled(true).
+		SetAllowUserRefund(true).
+		SetRefundEnabled(true).
+		Save(ctx)
+	require.NoError(t, err)
+
+	order, err := client.PaymentOrder.Create().
+		SetUserID(user.ID).
+		SetUserEmail(user.Email).
+		SetUserName(user.Username).
+		SetProviderInstanceID(strconv.FormatInt(inst.ID, 10)).
+		SetAmount(amount).
+		SetPayAmount(amount).
+		SetFeeRate(0).
+		SetRechargeCode("REFUND-CAP-" + email).
+		SetOutTradeNo("sub2_refund_cap_" + email).
+		SetPaymentType(payment.TypeAlipay).
+		SetPaymentTradeNo("trade-refund-cap-" + email).
+		SetOrderType(payment.OrderTypeBalance).
+		SetStatus(OrderStatusCompleted).
+		SetExpiresAt(time.Now().Add(time.Hour)).
+		SetPaidAt(time.Now()).
+		SetClientIP("127.0.0.1").
+		SetSrcHost("api.example.com").
+		Save(ctx)
+	require.NoError(t, err)
+	return order, &User{ID: user.ID, Balance: balance}
+}
+
+// 管理员退款同样必须以用户当前余额封顶：否则会退出现金却不扣减余额（平台损失）。
+func TestPrepareRefundCapsAmountByUserBalance(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	order, user := newRefundCapTestOrder(t, client, "refund-cap@example.com", 30, 100)
+
+	svc := &PaymentService{entClient: client, userRepo: &userRepoStub{user: user}}
+
+	// 未注入退款计算器 → amt 回落到订单记账金额 100，必须被余额 30 封顶
+	plan, _, err := svc.PrepareRefund(ctx, order.ID, 0, "", RefundOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, plan)
+	require.InDelta(t, 30, plan.RefundAmount, 0.01)
+	require.InDelta(t, 30, plan.GatewayAmount, 0.01)
+}
+
+// force_refund（平台故障/重复扣款）由管理员显式授权，不受余额封顶限制。
+func TestPrepareRefundForceBypassesBalanceCap(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	order, user := newRefundCapTestOrder(t, client, "refund-cap-force@example.com", 30, 100)
+
+	svc := &PaymentService{entClient: client, userRepo: &userRepoStub{user: user}}
+
+	plan, _, err := svc.PrepareRefund(ctx, order.ID, 0, "", RefundOptions{Force: true})
+	require.NoError(t, err)
+	require.NotNil(t, plan)
+	require.InDelta(t, 100, plan.RefundAmount, 0.01)
+}
+
+func TestBalanceRefundCapForOrder(t *testing.T) {
+	ctx := context.Background()
+
+	// 未注入用户仓储（仅测试构造）：无法判定，调用方跳过封顶
+	if _, known, err := (&PaymentService{}).balanceRefundCapForOrder(ctx, &dbent.PaymentOrder{ID: 1}, 50, "CNY"); err != nil || known {
+		t.Fatalf("want known=false without user repo, got known=%v err=%v", known, err)
+	}
+
+	low := &PaymentService{userRepo: &userRepoStub{user: &User{ID: 1, Balance: 20}}}
+	cap, known, err := low.balanceRefundCapForOrder(ctx, &dbent.PaymentOrder{ID: 1, UserID: 1}, 50, "CNY")
+	require.NoError(t, err)
+	require.True(t, known)
+	require.InDelta(t, 20, cap, 0.01)
+
+	high := &PaymentService{userRepo: &userRepoStub{user: &User{ID: 1, Balance: 100}}}
+	cap, known, err = high.balanceRefundCapForOrder(ctx, &dbent.PaymentOrder{ID: 1, UserID: 1}, 50, "CNY")
+	require.NoError(t, err)
+	require.True(t, known)
+	require.InDelta(t, 50, cap, 0.01)
 }
 
 func TestGwRefundRejectsAlipayMerchantIdentitySnapshotMismatch(t *testing.T) {
@@ -508,4 +606,157 @@ type refundQueryProviderTestDouble struct {
 
 func (p *refundQueryProviderTestDouble) QueryRefund(context.Context, payment.RefundQueryRequest) (*payment.RefundResponse, error) {
 	return p.refundResponse, nil
+}
+
+// --- 线下退款（渠道无退款 API 时的唯一出路） ---------------------------------
+
+// newOfflineRefundTestOrder 构造一笔已完成的按量充值订单。
+// withProvider=true 时挂一个「渠道退款开关是关的」实例，模拟聚合支付没有退款 API。
+func newOfflineRefundTestOrder(t *testing.T, client *dbent.Client, email string, withProvider bool) *dbent.PaymentOrder {
+	t.Helper()
+	ctx := context.Background()
+
+	user, err := client.User.Create().
+		SetEmail(email).
+		SetPasswordHash("hash").
+		SetUsername(email).
+		SetBalance(100).
+		Save(ctx)
+	require.NoError(t, err)
+
+	builder := client.PaymentOrder.Create().
+		SetUserID(user.ID).
+		SetUserEmail(user.Email).
+		SetUserName(user.Username).
+		SetAmount(100).
+		SetPayAmount(100).
+		SetFeeRate(0).
+		SetRechargeCode("REFUND-OFFLINE-" + email).
+		SetOutTradeNo("sub2_refund_offline_" + email).
+		SetPaymentType(payment.TypeAlipay).
+		SetPaymentTradeNo("trade-refund-offline-" + email).
+		SetOrderType(payment.OrderTypeBalance).
+		SetStatus(OrderStatusCompleted).
+		SetExpiresAt(time.Now().Add(time.Hour)).
+		SetPaidAt(time.Now()).
+		SetClientIP("127.0.0.1").
+		SetSrcHost("api.example.com")
+
+	if withProvider {
+		inst, err := client.PaymentProviderInstance.Create().
+			SetProviderKey(payment.TypeAlipay).
+			SetName("offline-refund-" + email).
+			SetConfig("{}").
+			SetSupportedTypes("alipay").
+			SetEnabled(true).
+			SetAllowUserRefund(false).
+			SetRefundEnabled(false).
+			Save(ctx)
+		require.NoError(t, err)
+		builder = builder.SetProviderInstanceID(strconv.FormatInt(inst.ID, 10))
+	}
+
+	order, err := builder.Save(ctx)
+	require.NoError(t, err)
+	return order
+}
+
+// 渠道退款开关关闭（没有退款 API）时，线上原路退款必须继续被拦，
+// 但线下退款要放行——否则退款这条路彻底死了，退款冲回分成也永远不会触发。
+func TestPrepareRefundOfflineBypassesProviderRefundSwitch(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	order := newOfflineRefundTestOrder(t, client, "offline-gate@example.com", true)
+	svc := &PaymentService{entClient: client}
+
+	_, _, err := svc.PrepareRefund(ctx, order.ID, 0, "", RefundOptions{})
+	require.Error(t, err)
+	require.Equal(t, "REFUND_DISABLED", infraerrors.Reason(err))
+
+	plan, _, err := svc.PrepareRefund(ctx, order.ID, 0, "客户已线下收到退款", RefundOptions{Offline: true})
+	require.NoError(t, err)
+	require.NotNil(t, plan)
+	require.True(t, plan.Offline)
+	require.InDelta(t, 100, plan.RefundAmount, 0.01)
+}
+
+// 连渠道实例都没有的历史订单，同样允许线下退款记账。
+func TestPrepareRefundOfflineWorksWithoutProviderInstance(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	order := newOfflineRefundTestOrder(t, client, "offline-legacy@example.com", false)
+	svc := &PaymentService{entClient: client}
+
+	_, _, err := svc.PrepareRefund(ctx, order.ID, 0, "", RefundOptions{})
+	require.Error(t, err)
+	require.Equal(t, "REFUND_DISABLED", infraerrors.Reason(err))
+
+	plan, _, err := svc.PrepareRefund(ctx, order.ID, 0, "", RefundOptions{Offline: true})
+	require.NoError(t, err)
+	require.NotNil(t, plan)
+}
+
+// 线下退款不调用渠道，gwRefund 必须直接返回成功并留下 REFUND_OFFLINE 审计。
+func TestGwRefundOfflineSkipsProviderCall(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	order := newOfflineRefundTestOrder(t, client, "offline-gw@example.com", true)
+	svc := &PaymentService{entClient: client}
+
+	resp, err := svc.gwRefund(ctx, &RefundPlan{
+		OrderID:       order.ID,
+		Order:         order,
+		RefundAmount:  100,
+		GatewayAmount: 100,
+		Reason:        "offline",
+		Offline:       true,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, payment.ProviderStatusSuccess, resp.Status)
+
+	logs, err := client.PaymentAuditLog.Query().
+		Where(paymentauditlog.OrderIDEQ(strconv.FormatInt(order.ID, 10)), paymentauditlog.ActionEQ("REFUND_OFFLINE")).
+		Count(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, logs)
+}
+
+// 线下退款全链路：回扣余额 → 订单转 REFUNDED → 审计里标明 offline。
+func TestExecuteRefundOfflineFinalizesOrder(t *testing.T) {
+	ctx := context.Background()
+	client := newPaymentConfigServiceTestClient(t)
+	order := newOfflineRefundTestOrder(t, client, "offline-exec@example.com", true)
+
+	userRepo := &mockUserRepo{}
+	// 余额封顶读的是「用户当前余额」，必须让桩返回足额余额，否则会被封顶到 0
+	userRepo.getByIDUser = &User{ID: order.UserID, Balance: 100}
+	var deducted float64
+	userRepo.deductBalanceFn = func(_ context.Context, id int64, amount float64) error {
+		require.Equal(t, order.UserID, id)
+		deducted += amount
+		return nil
+	}
+	svc := &PaymentService{entClient: client, userRepo: userRepo}
+
+	plan, _, err := svc.PrepareRefund(ctx, order.ID, 100, "线下退款", RefundOptions{Deduct: true, Offline: true})
+	require.NoError(t, err)
+	require.NotNil(t, plan)
+
+	result, err := svc.ExecuteRefund(ctx, plan)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.True(t, result.Success)
+	require.InDelta(t, 100, deducted, 0.01)
+
+	reloaded, err := client.PaymentOrder.Get(ctx, order.ID)
+	require.NoError(t, err)
+	require.Equal(t, OrderStatusRefunded, reloaded.Status)
+	require.NotNil(t, reloaded.RefundAt)
+
+	successAudits, err := client.PaymentAuditLog.Query().
+		Where(paymentauditlog.OrderIDEQ(strconv.FormatInt(order.ID, 10)), paymentauditlog.ActionEQ("REFUND_SUCCESS")).
+		Count(ctx)
+	require.NoError(t, err)
+	require.Equal(t, 1, successAudits)
 }

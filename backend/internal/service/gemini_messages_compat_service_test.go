@@ -481,8 +481,9 @@ func TestGeminiMessagesCompatServiceForward_PreservesRequestedModelAndMappedUpst
 	}
 	svc := &GeminiMessagesCompatService{httpUpstream: httpStub, cfg: &config.Config{}}
 	account := &Account{
-		ID:   1,
-		Type: AccountTypeAPIKey,
+		ID:       1,
+		Platform: PlatformGemini,
+		Type:     AccountTypeAPIKey,
 		Credentials: map[string]any{
 			"api_key": "test-key",
 			"model_mapping": map[string]any{
@@ -517,8 +518,9 @@ func TestGeminiMessagesCompatServiceForward_NormalizesWebSearchToolForAIStudio(t
 	}
 	svc := &GeminiMessagesCompatService{httpUpstream: httpStub, cfg: &config.Config{}}
 	account := &Account{
-		ID:   1,
-		Type: AccountTypeAPIKey,
+		ID:       1,
+		Platform: PlatformGemini,
+		Type:     AccountTypeAPIKey,
 		Credentials: map[string]any{
 			"api_key": "test-key",
 		},

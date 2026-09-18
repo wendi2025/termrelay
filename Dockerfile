@@ -8,7 +8,7 @@
 # =============================================================================
 
 ARG NODE_IMAGE=node:24-alpine
-ARG GOLANG_IMAGE=golang:1.26.5-alpine
+ARG GOLANG_IMAGE=golang:1.26.6-alpine
 ARG ALPINE_IMAGE=alpine:3.21
 ARG POSTGRES_IMAGE=postgres:18-alpine
 ARG GOPROXY=https://goproxy.cn,direct
@@ -22,11 +22,18 @@ ARG NPM_CONFIG_REGISTRY=
 # it on the native host arch instead of under QEMU emulation for the target.
 FROM --platform=${BUILDPLATFORM} ${NODE_IMAGE} AS frontend-builder
 ARG NPM_CONFIG_REGISTRY
+ENV NODE_OPTIONS=--max-old-space-size=3072
 
 WORKDIR /app/frontend
 
-# Install pnpm (pinned to v9 to match CI and keep builds reproducible)
-RUN corepack enable && corepack prepare pnpm@9 --activate
+# Install pnpm (pinned to v9 to match CI and keep builds reproducible).
+# Corepack downloads pnpm before pnpm's own registry config is available.
+RUN corepack enable && \
+    if [ -n "${NPM_CONFIG_REGISTRY}" ]; then \
+        COREPACK_NPM_REGISTRY="${NPM_CONFIG_REGISTRY}" corepack prepare pnpm@9 --activate; \
+    else \
+        corepack prepare pnpm@9 --activate; \
+    fi
 
 # Install dependencies first (better caching)
 COPY frontend/package.json frontend/pnpm-lock.yaml ./

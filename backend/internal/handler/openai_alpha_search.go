@@ -155,6 +155,15 @@ func (h *OpenAIGatewayHandler) AlphaSearch(c *gin.Context) {
 		if !acquired {
 			return
 		}
+		if !h.beginAccountPoolAttempt(account) {
+			if accountRelease != nil {
+				accountRelease()
+			}
+			failedAccountIDs[account.ID] = struct{}{}
+			reqLog.Debug("openai_alpha_search.account_pool_circuit_skipped", zap.Int64("account_id", account.ID))
+			continue
+		}
+
 		service.SetOpsLatencyMs(c, service.OpsRoutingLatencyMsKey, time.Since(routingStart).Milliseconds())
 		writerSizeBeforeForward := c.Writer.Size()
 		forwardStart := time.Now()
@@ -165,6 +174,7 @@ func (h *OpenAIGatewayHandler) AlphaSearch(c *gin.Context) {
 			}
 			return h.gatewayService.ForwardAlphaSearch(c.Request.Context(), c, account, forwardBody)
 		}()
+		h.reportAccountPoolAttempt(account, result, err)
 		service.SetOpsLatencyMs(c, service.OpsResponseLatencyMsKey, time.Since(forwardStart).Milliseconds())
 
 		if err == nil {

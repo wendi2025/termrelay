@@ -451,6 +451,7 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 			} else {
 				result, err = h.geminiCompatService.Forward(requestCtx, c, account, body)
 			}
+			h.gatewayService.ReportAccountPoolAttempt(account.ID, result, err)
 			if accountReleaseFunc != nil {
 				accountReleaseFunc()
 			}
@@ -813,7 +814,9 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 			writerSizeBeforeForward := c.Writer.Size()
 			if account.Platform == service.PlatformAntigravity && account.Type != service.AccountTypeAPIKey {
 				result, err = h.antigravityGatewayService.Forward(requestCtx, c, account, attemptBody, hasBoundSession)
+				h.gatewayService.ReportAccountPoolAttempt(account.ID, result, err)
 			} else {
+				// GatewayService.Forward owns its Account Pool feedback defer.
 				result, err = h.gatewayService.Forward(requestCtx, c, account, attemptParsedReq)
 			}
 

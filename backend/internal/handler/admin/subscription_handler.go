@@ -31,6 +31,79 @@ type SubscriptionHandler struct {
 	subscriptionService *service.SubscriptionService
 }
 
+func (h *SubscriptionHandler) ListPlanAccessRequests(c *gin.Context) {
+	var userID *int64
+	if raw := c.Query("user_id"); raw != "" {
+		id, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil {
+			response.BadRequest(c, "invalid user_id")
+			return
+		}
+		userID = &id
+	}
+	items, err := h.subscriptionService.ListPlanAccessRequests(c.Request.Context(), userID, c.Query("status"))
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, items)
+}
+
+func (h *SubscriptionHandler) ReviewPlanAccessRequest(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid id")
+		return
+	}
+	action := c.Param("action")
+	subject, ok := middleware2.GetAuthSubjectFromContext(c)
+	if !ok {
+		response.Unauthorized(c, "admin not found in context")
+		return
+	}
+	if err := h.subscriptionService.ReviewPlanAccessRequest(c.Request.Context(), id, subject.UserID, action); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"success": true})
+}
+
+func (h *SubscriptionHandler) ListTeams(c *gin.Context) {
+	var userID *int64
+	if raw := c.Query("user_id"); raw != "" {
+		id, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil {
+			response.BadRequest(c, "invalid user_id")
+			return
+		}
+		userID = &id
+	}
+	items, err := h.subscriptionService.ListSubscriptionTeams(c.Request.Context(), userID)
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, items)
+}
+
+func (h *SubscriptionHandler) RemoveTeamMember(c *gin.Context) {
+	teamID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid team id")
+		return
+	}
+	memberID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if err != nil {
+		response.BadRequest(c, "invalid user id")
+		return
+	}
+	if err := h.subscriptionService.AdminRemoveSubscriptionTeamMember(c.Request.Context(), teamID, memberID); err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	response.Success(c, gin.H{"success": true})
+}
+
 // NewSubscriptionHandler creates a new admin subscription handler
 func NewSubscriptionHandler(subscriptionService *service.SubscriptionService) *SubscriptionHandler {
 	return &SubscriptionHandler{
@@ -334,6 +407,9 @@ func (h *SubscriptionHandler) ListByUser(c *gin.Context) {
 
 // Helper function to get admin ID from context
 func getAdminIDFromContext(c *gin.Context) int64 {
+	if c.GetString("auth_method") == "admin_api_key" {
+		return 0
+	}
 	subject, ok := middleware2.GetAuthSubjectFromContext(c)
 	if !ok {
 		return 0

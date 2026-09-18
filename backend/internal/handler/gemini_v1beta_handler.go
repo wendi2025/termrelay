@@ -365,6 +365,11 @@ func (h *GatewayHandler) GeminiV1BetaModels(c *gin.Context) {
 	}
 
 	for {
+		// Never start a fresh upstream attempt after the caller has disconnected.
+		if c.Request.Context().Err() != nil {
+			return
+		}
+
 		selection, err := h.gatewayService.SelectAccountWithLoadAwareness(c.Request.Context(), apiKey.GroupID, sessionKey, modelName, fs.FailedAccountIDs, "", int64(0)) // Gemini 不使用会话限制
 		if err != nil {
 			if len(fs.FailedAccountIDs) == 0 {
@@ -473,6 +478,15 @@ func (h *GatewayHandler) GeminiV1BetaModels(c *gin.Context) {
 		// 账号槽位/等待计数需要在超时或断开时安全回收
 		accountReleaseFunc = wrapReleaseOnDone(c.Request.Context(), accountReleaseFunc)
 
+		// A disconnect can race with account-slot acquisition. Check again immediately
+		// before Forward so a canceled request never starts a new generation.
+		if c.Request.Context().Err() != nil {
+			if accountReleaseFunc != nil {
+				accountReleaseFunc()
+			}
+			return
+		}
+
 		// 5) forward (根据平台分流)
 		var result *service.ForwardResult
 		requestCtx := c.Request.Context()
@@ -495,12 +509,32 @@ func (h *GatewayHandler) GeminiV1BetaModels(c *gin.Context) {
 		} else {
 			result, err = h.geminiCompatService.ForwardNative(requestCtx, c, account, modelName, action, stream, body)
 		}
+		h.gatewayService.ReportAccountPoolAttempt(account.ID, result, err)
 		if accountReleaseFunc != nil {
 			accountReleaseFunc()
 		}
 		if err != nil {
+			// A disconnect while Forward is blocked must never turn into a replacement
+			// generation on another account.
+			if requestCtx.Err() != nil {
+				reqLog.Info("gemini.failover_aborted_client_disconnected",
+					zap.Int64("account_id", account.ID),
+					zap.Error(requestCtx.Err()),
+				)
+				return
+			}
+
 			var failoverErr *service.UpstreamFailoverError
 			if errors.As(err, &failoverErr) {
+				// Response commitment, not body-size growth, is the retry boundary.
+				// A header-only flush is already client-visible and cannot be replayed.
+				if gatewayResponseCommitted(c) {
+					reqLog.Warn("gemini.failover_blocked_response_committed",
+						zap.Int64("account_id", account.ID),
+						zap.Int("upstream_status", failoverErr.StatusCode),
+					)
+					return
+				}
 				failoverAction := fs.HandleFailoverError(c.Request.Context(), h.gatewayService, account.ID, account.Platform, account.GetPoolModeRetryCount(), failoverErr)
 				switch failoverAction {
 				case FailoverContinue:

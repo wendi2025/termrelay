@@ -108,3 +108,22 @@ func TestSchedulerMetadataAccountDropsInvalidUpstreamBillingProbe(t *testing.T) 
 		require.NotContains(t, metadata.Extra, service.UpstreamBillingProbeExtraKey)
 	}
 }
+
+func TestSchedulerMetadataAccountKeepsAccountPoolRoutingMetadata(t *testing.T) {
+	account := service.Account{
+		ID: 77,
+		Extra: map[string]any{
+			"provider_id":       "llmgw",
+			"scheduling_weight": 6.5,
+			"api_key":           "must-not-leak",
+			"unrelated":         "drop-me",
+		},
+	}
+
+	metadata := buildSchedulerMetadataAccount(account)
+
+	require.Equal(t, "llmgw", metadata.Extra["provider_id"])
+	require.Equal(t, 6.5, metadata.Extra["scheduling_weight"])
+	require.NotContains(t, metadata.Extra, "api_key")
+	require.NotContains(t, metadata.Extra, "unrelated")
+}

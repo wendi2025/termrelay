@@ -100,3 +100,41 @@ func TestAccountFromServiceShallow_NilCredentialsOmitsStatus(t *testing.T) {
 	require.Nil(t, got.Credentials)
 	require.Nil(t, got.CredentialsStatus)
 }
+
+func TestAccountFromServiceShallow_ExposesSchedulingWeight(t *testing.T) {
+	src := &service.Account{
+		ID:       77,
+		Platform: service.PlatformOpenAI,
+		Type:     service.AccountTypeAPIKey,
+		Extra:    map[string]any{"scheduling_weight": 4.5},
+	}
+
+	got := AccountFromServiceShallow(src)
+	require.NotNil(t, got)
+	require.Equal(t, 4.5, got.SchedulingWeight)
+}
+
+func TestAccountFromServiceShallow_ExposesSafeProviderIdentity(t *testing.T) {
+	src := &service.Account{
+		ID:       88,
+		Platform: service.PlatformOpenAI,
+		Type:     service.AccountTypeAPIKey,
+		Credentials: map[string]any{
+			"base_url": "https://user:secret@api.example.com/v1?token=hidden",
+			"api_key":  "sk-secret",
+		},
+		Extra: map[string]any{"provider_id": "llmgw"},
+	}
+
+	got := AccountFromServiceShallow(src)
+	require.NotNil(t, got)
+	require.Equal(t, "llmgw", got.ProviderID)
+	require.Equal(t, "provider:llmgw", got.Provider.Key)
+	require.Equal(t, service.PlatformOpenAI, got.Provider.Platform)
+	require.Empty(t, got.Provider.Origin)
+
+	raw, err := json.Marshal(got)
+	require.NoError(t, err)
+	require.NotContains(t, string(raw), "sk-secret")
+	require.NotContains(t, string(raw), "hidden")
+}

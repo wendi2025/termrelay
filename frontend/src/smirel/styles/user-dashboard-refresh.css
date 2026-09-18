@@ -1,0 +1,103 @@
+/* Dashboard refresh control: compact, quiet and aligned with the Smirel console. */
+.user-console-refresh {
+  min-height: 36px;
+  height: 36px;
+  padding: 0 12px 0 10px;
+  border: 1px solid #262c34;
+  border-radius: 9px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #c8ced6;
+  background: #0f1216;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .018);
+  font-size: .78rem;
+  line-height: 1;
+  font-weight: 610;
+  letter-spacing: -.006em;
+  cursor: pointer;
+  transition:
+    color .16s ease,
+    background-color .16s ease,
+    border-color .16s ease,
+    box-shadow .16s ease,
+    transform .16s cubic-bezier(.2, .75, .25, 1);
+}
+
+.user-console-refresh svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  fill: none;
+  stroke: #7f8995;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke .16s ease, transform .18s ease;
+}
+
+.user-console-refresh:hover:not(:disabled) {
+  border-color: #343d47;
+  color: #f0f3f6;
+  background: #14181d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .026), 0 5px 14px rgba(0, 0, 0, .16);
+  transform: translateY(-1px);
+}
+
+.user-console-refresh:hover:not(:disabled) svg {
+  stroke: #b4bec9;
+  transform: rotate(35deg);
+}
+
+.user-console-refresh:active:not(:disabled) {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .015);
+  transform: translateY(0) scale(.985);
+}
+
+.user-console-refresh:focus-visible {
+  outline: none;
+  border-color: #3c5c75;
+  box-shadow: 0 0 0 3px rgba(65, 151, 218, .10);
+}
+
+.user-console-refresh:disabled {
+  opacity: .68;
+  cursor: wait;
+  transform: none;
+  box-shadow: none;
+}
+
+.user-console-refresh:disabled svg {
+  stroke: #8d98a4;
+  animation: smirel-dashboard-refresh-spin .8s linear infinite;
+}
+
+@keyframes smirel-dashboard-refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 700px) {
+  .user-console-refresh {
+    min-height: 38px;
+    height: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-console-refresh,
+  .user-console-refresh svg {
+    transition: none;
+  }
+
+  .user-console-refresh:hover:not(:disabled),
+  .user-console-refresh:hover:not(:disabled) svg,
+  .user-console-refresh:active:not(:disabled) {
+    transform: none;
+  }
+
+  .user-console-refresh:disabled svg {
+    animation: none;
+  }
+}

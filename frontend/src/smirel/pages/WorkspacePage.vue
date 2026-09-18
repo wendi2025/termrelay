@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import AccountSettingsPage from '../components/AccountSettingsPage.vue'
+import AdminOpsPage from '../components/AdminOpsPage.vue'
+import AdminSettingsPage from '../components/AdminSettingsPage.vue'
+import AdminUsersPage from '../components/AdminUsersPage.vue'
+import ApiKeyCredentialCard from '../components/ApiKeyCredentialCard.vue'
+import UserDashboardPage from '../components/UserDashboardPage.vue'
 import { api, getErrorMessage, previewMode } from '../core/api'
+import { pushNotification } from '../core/notifications'
 import { useSession } from '../core/session'
+import '../styles/api-keys.css'
+import '../styles/admin-users-commercial.css'
 
 interface ApiKeyRow { id: number; name?: string; key?: string; status?: string; created_at?: string; [key: string]: unknown }
 interface UsageRow { id?: number; model?: string; endpoint?: string; total_tokens?: number; actual_cost?: number; created_at?: string; [key: string]: unknown }
 interface DashboardStats { total_api_keys?: number; active_api_keys?: number; total_requests?: number; total_tokens?: number; total_actual_cost?: number; today_requests?: number; today_tokens?: number; today_actual_cost?: number; [key: string]: unknown }
 
 const route = useRoute()
+const { t } = useI18n()
 const { state } = useSession()
 const feature = computed(() => String(route.meta.feature || 'module'))
-const title = computed(() => String(route.meta.title || 'Workspace'))
 const loading = ref(false)
 const error = ref('')
 const stats = ref<DashboardStats | null>(null)
@@ -23,6 +33,58 @@ const isDashboard = computed(() => feature.value === 'dashboard')
 const isKeys = computed(() => feature.value === 'keys')
 const isUsage = computed(() => feature.value === 'usage')
 const isProfile = computed(() => feature.value === 'profile')
+const isAdminUsers = computed(() => feature.value === 'admin-users')
+const isAdminOps = computed(() => feature.value === 'admin-ops')
+const isAdminSettings = computed(() => feature.value === 'admin-settings')
+const accountBalance = computed(() => Number(state.user?.balance || 0))
+const visibleUsageTokens = computed(() => usage.value.reduce((sum, item) => sum + Number(item.total_tokens || 0), 0))
+const visibleUsageCost = computed(() => usage.value.reduce((sum, item) => sum + Number(item.actual_cost || 0), 0))
+
+const featureTitleKeys: Record<string, string> = {
+  dashboard: 'nav.dashboard',
+  keys: 'nav.keys',
+  usage: 'nav.usage',
+  subscriptions: 'nav.subscriptions',
+  purchase: 'nav.purchase',
+  orders: 'nav.orders',
+  profile: 'nav.profile',
+  'admin-dashboard': 'nav.adminDashboard',
+  'admin-users': 'nav.adminUsers',
+  'admin-accounts': 'nav.adminAccounts',
+  'admin-groups': 'nav.adminGroups',
+  'admin-channels': 'nav.adminChannels',
+  'admin-usage': 'nav.adminUsage',
+  'admin-ops': 'nav.adminOps',
+  'admin-payment-dashboard': 'nav.adminPayment',
+  'admin-orders': 'nav.adminOrders',
+  'admin-settings': 'nav.adminSettings',
+}
+
+const featureDescriptionKeys: Record<string, string> = {
+  dashboard: 'workspace.descriptions.dashboard',
+  keys: 'workspace.descriptions.keys',
+  usage: 'workspace.descriptions.usage',
+  profile: 'workspace.descriptions.profile',
+  'admin-users': 'workspace.descriptions.adminUsers',
+  'admin-accounts': 'workspace.descriptions.adminAccounts',
+  'admin-groups': 'workspace.descriptions.adminGroups',
+  'admin-channels': 'workspace.descriptions.adminChannels',
+  'admin-usage': 'workspace.descriptions.adminUsage',
+  'admin-ops': 'workspace.descriptions.adminOps',
+  'admin-payment-dashboard': 'workspace.descriptions.adminPayment',
+  'admin-orders': 'workspace.descriptions.adminOrders',
+  'admin-settings': 'workspace.descriptions.adminSettings',
+}
+
+const title = computed(() => {
+  const key = featureTitleKeys[feature.value]
+  return key ? t(key) : String(route.meta.title || 'Workspace')
+})
+
+const pageDescription = computed(() => {
+  const key = featureDescriptionKeys[feature.value]
+  return key ? t(key) : t('workspace.descriptions.generic')
+})
 
 async function load() {
   error.value = ''
@@ -48,24 +110,42 @@ async function load() {
 }
 
 async function createKey() {
-  if (!newKeyName.value.trim()) return
+  const keyName = newKeyName.value.trim()
+  if (!keyName) return
+
   if (previewMode) {
-    keys.value.unshift({ id: Date.now(), name: newKeyName.value.trim(), key: 'sk-preview-new', status: 'active', created_at: new Date().toISOString().slice(0, 10) })
+    keys.value.unshift({ id: Date.now(), name: keyName, key: 'sk-preview-new', status: 'active', created_at: new Date().toISOString().slice(0, 10) })
     newKeyName.value = ''
+    pushNotification({
+      title: t('workspace.keyCreatedTitle'),
+      message: t('workspace.keyCreatedMessage', { name: keyName }),
+      tone: 'success',
+    })
     return
   }
+
   loading.value = true
   try {
-    const created = (await api.post<ApiKeyRow>('/keys', { name: newKeyName.value.trim() })).data
+    const created = (await api.post<ApiKeyRow>('/keys', { name: keyName })).data
     keys.value.unshift(created)
     newKeyName.value = ''
+    pushNotification({
+      title: t('workspace.keyCreatedTitle'),
+      message: t('workspace.keyCreatedMessage', { name: keyName }),
+      tone: 'success',
+    })
   } catch (caught) { error.value = getErrorMessage(caught) } finally { loading.value = false }
 }
 
 async function removeKey(id: number) {
-  if (!window.confirm('确认删除这把 API Key？')) return
+  if (!window.confirm(t('workspace.confirmDelete'))) return
   if (!previewMode) await api.delete(`/keys/${id}`)
   keys.value = keys.value.filter((item) => item.id !== id)
+  pushNotification({
+    title: t('workspace.keyDeletedTitle'),
+    message: t('workspace.keyDeletedMessage'),
+    tone: 'info',
+  })
 }
 
 watch(() => route.fullPath, () => void load())
@@ -74,34 +154,90 @@ onMounted(() => void load())
 
 <template>
   <section class="workspace-page">
-    <header class="page-heading"><div><span class="eyebrow">{{ feature.toUpperCase() }}</span><h1>{{ title }}</h1><p v-if="isDashboard">账户概览、请求量、Token 与成本。</p><p v-else-if="isKeys">管理调用 Smirel API 的项目凭证。</p><p v-else-if="isUsage">查看最近请求、模型、Token 和费用。</p><p v-else-if="isProfile">管理当前账户信息。</p><p v-else>Smirel 独立前端功能模块。</p></div><button v-if="isDashboard || isKeys || isUsage" class="ghost-button" type="button" :disabled="loading" @click="load">{{ loading ? '刷新中…' : '刷新' }}</button></header>
-    <p v-if="error" class="inline-error">{{ error }}</p>
-
-    <template v-if="isDashboard">
-      <div class="metric-grid">
-        <article class="glass metric-card"><span>今日请求</span><strong>{{ Number(stats?.today_requests || 0).toLocaleString() }}</strong><small>requests</small></article>
-        <article class="glass metric-card"><span>今日 Token</span><strong>{{ Number(stats?.today_tokens || 0).toLocaleString() }}</strong><small>tokens</small></article>
-        <article class="glass metric-card"><span>今日费用</span><strong>${{ Number(stats?.today_actual_cost || 0).toFixed(3) }}</strong><small>actual cost</small></article>
-        <article class="glass metric-card"><span>有效密钥</span><strong>{{ stats?.active_api_keys || 0 }} / {{ stats?.total_api_keys || 0 }}</strong><small>API keys</small></article>
-      </div>
-      <div class="glass information-panel"><span class="eyebrow">WORKSPACE</span><h2>统一入口，独立管理。</h2><p>Base URL 固定为 <code>https://api.smirel.com/v1</code>。每个项目使用独立 API Key，方便停用、追踪和分账。</p></div>
-    </template>
-
-    <template v-else-if="isKeys">
-      <div class="glass action-strip"><input v-model="newKeyName" placeholder="新密钥名称，例如 Production" @keydown.enter="createKey" /><button class="primary-button" type="button" :disabled="loading" @click="createKey">创建 API Key</button></div>
-      <div class="glass data-table"><div class="table-head"><span>名称</span><span>密钥</span><span>状态</span><span>创建时间</span><span></span></div><div v-for="item in keys" :key="item.id" class="table-row"><strong>{{ item.name || `Key #${item.id}` }}</strong><code>{{ item.key || '••••••••' }}</code><span><i class="status-dot"></i>{{ item.status || 'active' }}</span><span>{{ item.created_at || '—' }}</span><button type="button" @click="removeKey(item.id)">删除</button></div><p v-if="!keys.length && !loading" class="empty-state">还没有 API Key。</p></div>
-    </template>
-
-    <template v-else-if="isUsage">
-      <div class="glass data-table usage-table"><div class="table-head"><span>时间</span><span>模型</span><span>Endpoint</span><span>Token</span><span>费用</span></div><div v-for="(item, index) in usage" :key="item.id || index" class="table-row"><span>{{ item.created_at || '—' }}</span><strong>{{ item.model || '—' }}</strong><code>{{ item.endpoint || '—' }}</code><span>{{ Number(item.total_tokens || 0).toLocaleString() }}</span><span>${{ Number(item.actual_cost || 0).toFixed(4) }}</span></div><p v-if="!usage.length && !loading" class="empty-state">暂无用量记录。</p></div>
-    </template>
-
-    <template v-else-if="isProfile">
-      <div class="glass profile-panel"><div class="profile-avatar">{{ (state.user?.username || state.user?.email || 'S').slice(0,1).toUpperCase() }}</div><div><span>ACCOUNT</span><h2>{{ state.user?.username || 'Smirel Account' }}</h2><p>{{ state.user?.email }}</p></div><dl><div><dt>角色</dt><dd>{{ state.user?.role === 'admin' ? '管理员' : '用户' }}</dd></div><div><dt>状态</dt><dd>{{ state.user?.status || 'active' }}</dd></div><div><dt>余额</dt><dd>${{ Number(state.user?.balance || 0).toFixed(2) }}</dd></div></dl></div>
-    </template>
+    <AdminUsersPage v-if="isAdminUsers" />
 
     <template v-else>
-      <div class="glass information-panel module-panel"><span class="eyebrow">SMIREL MODULE</span><h2>{{ title }}</h2><p>这个入口已经完全脱离旧前端，当前只连接 Smirel 自己的页面层。后端业务能力保持原样，具体操作面板会继续在这里补齐，而不会重新接回任何 legacy UI。</p><div class="module-contract"><span>UI</span><strong>Smirel Native</strong><span>Backend</span><strong>TermRelay API</strong></div></div>
+      <header v-if="!isDashboard" class="page-heading">
+        <div>
+          <h1>{{ title }}</h1>
+          <p>{{ pageDescription }}</p>
+        </div>
+        <button v-if="isKeys || isUsage" class="ghost-button" type="button" :disabled="loading" @click="load">{{ loading ? t('workspace.refreshing') : t('workspace.refresh') }}</button>
+      </header>
+
+      <p v-if="error" class="inline-error">{{ error }}</p>
+
+      <AdminOpsPage v-if="isAdminOps" />
+
+      <AdminSettingsPage v-else-if="isAdminSettings" />
+
+      <UserDashboardPage
+        v-else-if="isDashboard"
+        :stats="stats"
+        :balance="accountBalance"
+        :loading="loading"
+        @refresh="load"
+      />
+
+      <template v-else-if="isKeys">
+        <section class="keys-create-panel">
+          <div class="keys-create-copy">
+            <span>NEW KEY</span>
+            <strong>{{ t('workspace.createKey') }}</strong>
+          </div>
+          <div class="keys-create-form">
+            <input v-model="newKeyName" :aria-label="`${t('workspace.key')} ${t('workspace.name')}`" :placeholder="t('workspace.keyNamePlaceholder')" @keydown.enter="createKey" />
+            <button class="primary-button" type="button" :disabled="loading" @click="createKey">{{ t('workspace.createKey') }}</button>
+          </div>
+        </section>
+
+        <section class="keys-library">
+          <header class="keys-library-head">
+            <div>
+              <strong>API Keys</strong>
+              <span class="keys-library-count">{{ keys.length }}</span>
+            </div>
+          </header>
+
+          <div v-if="keys.length" class="api-key-grid">
+            <ApiKeyCredentialCard
+              v-for="item in keys"
+              :key="item.id"
+              :item="item"
+              @remove="removeKey"
+            />
+          </div>
+
+          <p v-else-if="!loading" class="keys-empty-state">{{ t('workspace.noKeys') }}</p>
+        </section>
+      </template>
+
+      <template v-else-if="isUsage">
+        <section class="glass table-toolbar standalone-toolbar">
+          <div><strong>{{ t('workspace.recentRequests') }}</strong><span class="table-count">{{ usage.length }}</span></div>
+          <div class="usage-total"><span>{{ visibleUsageTokens.toLocaleString() }} Tokens</span><span>${{ visibleUsageCost.toFixed(4) }}</span></div>
+        </section>
+        <div class="glass data-table usage-table">
+          <div class="table-head"><span>{{ t('workspace.time') }}</span><span>{{ t('workspace.model') }}</span><span>{{ t('workspace.endpoint') }}</span><span>{{ t('workspace.token') }}</span><span>{{ t('workspace.cost') }}</span></div>
+          <div v-for="(item, index) in usage" :key="item.id || index" class="table-row">
+            <span>{{ item.created_at || '—' }}</span>
+            <strong>{{ item.model || '—' }}</strong>
+            <code>{{ item.endpoint || '—' }}</code>
+            <span>{{ Number(item.total_tokens || 0).toLocaleString() }}</span>
+            <span>${{ Number(item.actual_cost || 0).toFixed(4) }}</span>
+          </div>
+          <p v-if="!usage.length && !loading" class="empty-state">{{ t('workspace.noUsage') }}</p>
+        </div>
+      </template>
+
+      <AccountSettingsPage v-else-if="isProfile" />
+
+      <template v-else>
+        <section class="glass module-panel">
+          <h2>{{ title }}</h2>
+          <p>{{ t('workspace.modulePending') }}</p>
+        </section>
+      </template>
     </template>
   </section>
 </template>

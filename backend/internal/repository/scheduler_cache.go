@@ -987,6 +987,8 @@ func filterSchedulerExtra(extra map[string]any) map[string]any {
 		"quota_weekly_reset_hour",
 		"quota_reset_timezone",
 		"mixed_scheduling",
+		"provider_id",
+		"scheduling_weight",
 		"window_cost_limit",
 		"window_cost_sticky_reserve",
 		"max_sessions",

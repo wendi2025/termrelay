@@ -53,6 +53,7 @@ type GeminiMessagesCompatService struct {
 	rateLimitService          *RateLimitService
 	httpUpstream              HTTPUpstream
 	antigravityGatewayService *AntigravityGatewayService
+	providerAdapters          *ProviderAdapterRegistry
 	cfg                       *config.Config
 	responseHeaderFilter      *responseheaders.CompiledHeaderFilter
 }
@@ -80,7 +81,7 @@ func NewGeminiMessagesCompatService(
 	antigravityGatewayService *AntigravityGatewayService,
 	cfg *config.Config,
 ) *GeminiMessagesCompatService {
-	return &GeminiMessagesCompatService{
+	svc := &GeminiMessagesCompatService{
 		accountRepo:               accountRepo,
 		groupRepo:                 groupRepo,
 		cache:                     cache,
@@ -92,6 +93,8 @@ func NewGeminiMessagesCompatService(
 		cfg:                       cfg,
 		responseHeaderFilter:      compileResponseHeaderFilter(cfg),
 	}
+	svc.providerAdapters = MustNewProviderAdapterRegistry(newGeminiGatewayProviderAdapter(svc))
+	return svc
 }
 
 // GetTokenProvider returns the token provider for OAuth accounts
@@ -595,9 +598,9 @@ func (s *GeminiMessagesCompatService) Forward(ctx context.Context, c *gin.Contex
 	}
 
 	originalModel := req.Model
-	mappedModel := req.Model
-	if account.Type == AccountTypeAPIKey || account.Type == AccountTypeServiceAccount {
-		mappedModel = account.GetMappedModel(req.Model)
+	mappedModel, err := s.resolveGeminiProviderModel(account, req.Model)
+	if err != nil {
+		return nil, err
 	}
 
 	geminiReq, err := convertClaudeMessagesToGeminiGenerateContent(body)
@@ -612,155 +615,26 @@ func (s *GeminiMessagesCompatService) Forward(ctx context.Context, c *gin.Contex
 		proxyURL = account.Proxy.URL()
 	}
 
-	var requestIDHeader string
-	var buildReq func(ctx context.Context) (*http.Request, string, error)
 	useUpstreamStream := req.Stream
 	if account.Type == AccountTypeOAuth && !req.Stream && strings.TrimSpace(account.GetCredential("project_id")) != "" {
 		// Code Assist's non-streaming generateContent may return no content; use streaming upstream and aggregate.
 		useUpstreamStream = true
 	}
 
-	switch account.Type {
-	case AccountTypeAPIKey:
-		buildReq = func(ctx context.Context) (*http.Request, string, error) {
-			apiKey := account.GetCredential("api_key")
-			if strings.TrimSpace(apiKey) == "" {
-				return nil, "", errors.New("gemini api_key not configured")
-			}
-
-			baseURL := account.GetGeminiBaseURL(geminicli.AIStudioBaseURL)
-			normalizedBaseURL, err := s.validateUpstreamBaseURL(baseURL)
-			if err != nil {
-				return nil, "", err
-			}
-
-			action := "generateContent"
-			if req.Stream {
-				action = "streamGenerateContent"
-			}
-			fullURL, err := buildGeminiAIStudioModelActionURL(normalizedBaseURL, mappedModel, action, req.Stream)
-			if err != nil {
-				return nil, "", err
-			}
-
-			restGeminiReq := normalizeGeminiRequestForAIStudio(geminiReq)
-			upstreamReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(restGeminiReq))
-			if err != nil {
-				return nil, "", err
-			}
-			upstreamReq.Header.Set("Content-Type", "application/json")
-			upstreamReq.Header.Set("x-goog-api-key", apiKey)
-			return upstreamReq, "x-request-id", nil
-		}
-		requestIDHeader = "x-request-id"
-
-	case AccountTypeOAuth:
-		buildReq = func(ctx context.Context) (*http.Request, string, error) {
-			if s.tokenProvider == nil {
-				return nil, "", errors.New("gemini token provider not configured")
-			}
-			accessToken, err := s.tokenProvider.GetAccessToken(ctx, account)
-			if err != nil {
-				return nil, "", err
-			}
-
-			projectID := strings.TrimSpace(account.GetCredential("project_id"))
-
-			action := "generateContent"
-			if useUpstreamStream {
-				action = "streamGenerateContent"
-			}
-
-			// Two modes for OAuth:
-			// 1. With project_id -> Code Assist API (wrapped request)
-			// 2. Without project_id -> AI Studio API (direct OAuth, like API key but with Bearer token)
-			if projectID != "" {
-				// Mode 1: Code Assist API
-				baseURL, err := s.validateUpstreamBaseURL(geminicli.GeminiCliBaseURL)
-				if err != nil {
-					return nil, "", err
-				}
-				fullURL := fmt.Sprintf("%s/v1internal:%s", strings.TrimRight(baseURL, "/"), action)
-				if useUpstreamStream {
-					fullURL += "?alt=sse"
-				}
-
-				wrapped := map[string]any{
-					"model":   mappedModel,
-					"project": projectID,
-				}
-				var inner any
-				if err := json.Unmarshal(geminiReq, &inner); err != nil {
-					return nil, "", fmt.Errorf("failed to parse gemini request: %w", err)
-				}
-				wrapped["request"] = inner
-				wrappedBytes, _ := json.Marshal(wrapped)
-
-				upstreamReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(wrappedBytes))
-				if err != nil {
-					return nil, "", err
-				}
-				upstreamReq.Header.Set("Content-Type", "application/json")
-				upstreamReq.Header.Set("Authorization", "Bearer "+accessToken)
-				upstreamReq.Header.Set("User-Agent", geminicli.GeminiCLIUserAgent)
-				return upstreamReq, "x-request-id", nil
-			} else {
-				// Mode 2: AI Studio API with OAuth (like API key mode, but using Bearer token)
-				baseURL := account.GetGeminiBaseURL(geminicli.AIStudioBaseURL)
-				normalizedBaseURL, err := s.validateUpstreamBaseURL(baseURL)
-				if err != nil {
-					return nil, "", err
-				}
-
-				fullURL, err := buildGeminiAIStudioModelActionURL(normalizedBaseURL, mappedModel, action, useUpstreamStream)
-				if err != nil {
-					return nil, "", err
-				}
-
-				restGeminiReq := normalizeGeminiRequestForAIStudio(geminiReq)
-				upstreamReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(restGeminiReq))
-				if err != nil {
-					return nil, "", err
-				}
-				upstreamReq.Header.Set("Content-Type", "application/json")
-				upstreamReq.Header.Set("Authorization", "Bearer "+accessToken)
-				return upstreamReq, "x-request-id", nil
-			}
-		}
-		requestIDHeader = "x-request-id"
-
-	case AccountTypeServiceAccount:
-		buildReq = func(ctx context.Context) (*http.Request, string, error) {
-			if s.tokenProvider == nil {
-				return nil, "", errors.New("gemini token provider not configured")
-			}
-			accessToken, err := s.tokenProvider.GetAccessToken(ctx, account)
-			if err != nil {
-				return nil, "", err
-			}
-
-			action := "generateContent"
-			if req.Stream {
-				action = "streamGenerateContent"
-			}
-			fullURL, err := buildVertexGeminiURL(account.VertexProjectID(), account.VertexLocation(mappedModel), mappedModel, action, req.Stream)
-			if err != nil {
-				return nil, "", err
-			}
-
-			restGeminiReq := normalizeGeminiRequestForAIStudio(geminiReq)
-			upstreamReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(restGeminiReq))
-			if err != nil {
-				return nil, "", err
-			}
-			upstreamReq.Header.Set("Content-Type", "application/json")
-			upstreamReq.Header.Set("Authorization", "Bearer "+accessToken)
-			return upstreamReq, "x-request-id", nil
-		}
-		requestIDHeader = "x-request-id"
-
-	default:
-		return nil, fmt.Errorf("unsupported account type: %s", account.Type)
+	action := "generateContent"
+	if useUpstreamStream {
+		action = "streamGenerateContent"
+	}
+	buildReq, requestIDHeader, buildFactoryErr := s.newGeminiProviderRequestFactory(ProviderRequestInput{
+		Account:  account,
+		Protocol: ProviderProtocolAnthropic,
+		Endpoint: action,
+		Model:    mappedModel,
+		Body:     geminiReq,
+		Stream:   useUpstreamStream,
+	})
+	if buildFactoryErr != nil {
+		return nil, buildFactoryErr
 	}
 
 	var resp *http.Response
@@ -796,7 +670,7 @@ func (s *GeminiMessagesCompatService) Forward(ctx context.Context, c *gin.Contex
 				continue
 			}
 			setOpsUpstreamError(c, 0, safeErr, "")
-			return nil, s.writeClaudeError(c, http.StatusBadGateway, "upstream_error", "Upstream request failed after retries: "+safeErr)
+			return nil, &UpstreamFailoverError{StatusCode: http.StatusBadGateway}
 		}
 
 		// Special-case: signature/thought_signature validation errors are not transient, but may be fixed by
@@ -852,6 +726,17 @@ func (s *GeminiMessagesCompatService) Forward(ctx context.Context, c *gin.Contex
 				if txErr == nil {
 					logger.LegacyPrintf("service.gemini_messages_compat", "Gemini account %d: detected signature-related 400, retrying with downgraded Claude blocks (%s)", account.ID, stageName)
 					geminiReq = retryGeminiReq
+					buildReq, requestIDHeader, buildFactoryErr = s.newGeminiProviderRequestFactory(ProviderRequestInput{
+						Account:  account,
+						Protocol: ProviderProtocolAnthropic,
+						Endpoint: action,
+						Model:    mappedModel,
+						Body:     geminiReq,
+						Stream:   useUpstreamStream,
+					})
+					if buildFactoryErr != nil {
+						return nil, s.writeClaudeError(c, http.StatusBadGateway, "upstream_error", buildFactoryErr.Error())
+					}
 					// Consume one retry budget attempt and continue with the updated request payload.
 					sleepGeminiBackoff(1)
 					continue
@@ -1145,9 +1030,9 @@ func (s *GeminiMessagesCompatService) ForwardNative(ctx context.Context, c *gin.
 	// `thoughtSignature` to avoid frequent INVALID_ARGUMENT 400s.
 	body = ensureGeminiFunctionCallThoughtSignatures(body)
 
-	mappedModel := originalModel
-	if account.Type == AccountTypeAPIKey || account.Type == AccountTypeServiceAccount {
-		mappedModel = account.GetMappedModel(originalModel)
+	mappedModel, err := s.resolveGeminiProviderModel(account, originalModel)
+	if err != nil {
+		return nil, s.writeGoogleError(c, http.StatusBadGateway, err.Error())
 	}
 
 	proxyURL := ""
@@ -1162,136 +1047,16 @@ func (s *GeminiMessagesCompatService) ForwardNative(ctx context.Context, c *gin.
 		useUpstreamStream = true
 		upstreamAction = "streamGenerateContent"
 	}
-	forceAIStudio := action == "countTokens"
-
-	var requestIDHeader string
-	var buildReq func(ctx context.Context) (*http.Request, string, error)
-
-	switch account.Type {
-	case AccountTypeAPIKey:
-		buildReq = func(ctx context.Context) (*http.Request, string, error) {
-			apiKey := account.GetCredential("api_key")
-			if strings.TrimSpace(apiKey) == "" {
-				return nil, "", errors.New("gemini api_key not configured")
-			}
-
-			baseURL := account.GetGeminiBaseURL(geminicli.AIStudioBaseURL)
-			normalizedBaseURL, err := s.validateUpstreamBaseURL(baseURL)
-			if err != nil {
-				return nil, "", err
-			}
-
-			fullURL, err := buildGeminiAIStudioModelActionURL(normalizedBaseURL, mappedModel, upstreamAction, useUpstreamStream)
-			if err != nil {
-				return nil, "", err
-			}
-
-			upstreamReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(body))
-			if err != nil {
-				return nil, "", err
-			}
-			upstreamReq.Header.Set("Content-Type", "application/json")
-			upstreamReq.Header.Set("x-goog-api-key", apiKey)
-			return upstreamReq, "x-request-id", nil
-		}
-		requestIDHeader = "x-request-id"
-
-	case AccountTypeOAuth:
-		buildReq = func(ctx context.Context) (*http.Request, string, error) {
-			if s.tokenProvider == nil {
-				return nil, "", errors.New("gemini token provider not configured")
-			}
-			accessToken, err := s.tokenProvider.GetAccessToken(ctx, account)
-			if err != nil {
-				return nil, "", err
-			}
-
-			projectID := strings.TrimSpace(account.GetCredential("project_id"))
-
-			// Two modes for OAuth:
-			// 1. With project_id -> Code Assist API (wrapped request)
-			// 2. Without project_id -> AI Studio API (direct OAuth, like API key but with Bearer token)
-			if projectID != "" && !forceAIStudio {
-				// Mode 1: Code Assist API
-				baseURL, err := s.validateUpstreamBaseURL(geminicli.GeminiCliBaseURL)
-				if err != nil {
-					return nil, "", err
-				}
-				fullURL := fmt.Sprintf("%s/v1internal:%s", strings.TrimRight(baseURL, "/"), upstreamAction)
-				if useUpstreamStream {
-					fullURL += "?alt=sse"
-				}
-
-				wrapped := map[string]any{
-					"model":   mappedModel,
-					"project": projectID,
-				}
-				var inner any
-				if err := json.Unmarshal(body, &inner); err != nil {
-					return nil, "", fmt.Errorf("failed to parse gemini request: %w", err)
-				}
-				wrapped["request"] = inner
-				wrappedBytes, _ := json.Marshal(wrapped)
-
-				upstreamReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(wrappedBytes))
-				if err != nil {
-					return nil, "", err
-				}
-				upstreamReq.Header.Set("Content-Type", "application/json")
-				upstreamReq.Header.Set("Authorization", "Bearer "+accessToken)
-				upstreamReq.Header.Set("User-Agent", geminicli.GeminiCLIUserAgent)
-				return upstreamReq, "x-request-id", nil
-			} else {
-				// Mode 2: AI Studio API with OAuth (like API key mode, but using Bearer token)
-				baseURL := account.GetGeminiBaseURL(geminicli.AIStudioBaseURL)
-				normalizedBaseURL, err := s.validateUpstreamBaseURL(baseURL)
-				if err != nil {
-					return nil, "", err
-				}
-
-				fullURL, err := buildGeminiAIStudioModelActionURL(normalizedBaseURL, mappedModel, upstreamAction, useUpstreamStream)
-				if err != nil {
-					return nil, "", err
-				}
-
-				upstreamReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(body))
-				if err != nil {
-					return nil, "", err
-				}
-				upstreamReq.Header.Set("Content-Type", "application/json")
-				upstreamReq.Header.Set("Authorization", "Bearer "+accessToken)
-				return upstreamReq, "x-request-id", nil
-			}
-		}
-		requestIDHeader = "x-request-id"
-
-	case AccountTypeServiceAccount:
-		buildReq = func(ctx context.Context) (*http.Request, string, error) {
-			if s.tokenProvider == nil {
-				return nil, "", errors.New("gemini token provider not configured")
-			}
-			accessToken, err := s.tokenProvider.GetAccessToken(ctx, account)
-			if err != nil {
-				return nil, "", err
-			}
-
-			fullURL, err := buildVertexGeminiURL(account.VertexProjectID(), account.VertexLocation(mappedModel), mappedModel, upstreamAction, useUpstreamStream)
-			if err != nil {
-				return nil, "", err
-			}
-
-			upstreamReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewReader(body))
-			if err != nil {
-				return nil, "", err
-			}
-			upstreamReq.Header.Set("Content-Type", "application/json")
-			upstreamReq.Header.Set("Authorization", "Bearer "+accessToken)
-			return upstreamReq, "x-request-id", nil
-		}
-		requestIDHeader = "x-request-id"
-
-	default:
-		return nil, s.writeGoogleError(c, http.StatusBadGateway, "Unsupported account type: "+account.Type)
+	buildReq, requestIDHeader, buildFactoryErr := s.newGeminiProviderRequestFactory(ProviderRequestInput{
+		Account:  account,
+		Protocol: ProviderProtocolGemini,
+		Endpoint: upstreamAction,
+		Model:    mappedModel,
+		Body:     body,
+		Stream:   useUpstreamStream,
+	})
+	if buildFactoryErr != nil {
+		return nil, s.writeGoogleError(c, http.StatusBadGateway, buildFactoryErr.Error())
 	}
 
 	var resp *http.Response
@@ -1339,7 +1104,7 @@ func (s *GeminiMessagesCompatService) ForwardNative(ctx context.Context, c *gin.
 				}, nil
 			}
 			setOpsUpstreamError(c, 0, safeErr, "")
-			return nil, s.writeGoogleError(c, http.StatusBadGateway, "Upstream request failed after retries: "+safeErr)
+			return nil, &UpstreamFailoverError{StatusCode: http.StatusBadGateway}
 		}
 
 		// 错误策略优先：匹配则跳过重试直接处理。
