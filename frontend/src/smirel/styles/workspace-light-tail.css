@@ -2,6 +2,28 @@
  * hard-coded dark palettes. Keep dark mode unchanged.
  */
 
+/* Sidebar selected state: WorkspaceShell owns a scoped white label color for
+ * active links. In light mode that label must follow the blue active palette
+ * instead of inheriting the dark-theme white text. */
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active,
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active:hover {
+  border-color: #c9ddeb;
+  color: #155e98;
+  background: linear-gradient(90deg, rgba(78, 164, 224, .16), rgba(237, 245, 251, .94));
+  box-shadow: inset 3px 0 0 rgba(24, 119, 201, .78);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active > span,
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active:hover > span {
+  color: #155e98;
+  font-weight: 680;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active .workspace-nav-icon,
+html.smirel-app[data-theme='light'] .workspace-root .workspace-nav a.active:hover .workspace-nav-icon {
+  color: #248bd1;
+}
+
 /* API Keys page ----------------------------------------------------------- */
 html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-page-heading h1 {
   color: #1d2228;
