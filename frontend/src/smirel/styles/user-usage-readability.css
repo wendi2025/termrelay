@@ -911,3 +911,444 @@ html.smirel-app .user-usage-page .log-footer span:first-child {
     transition: none;
   }
 }
+/* Endpoint + profile cards — premium paired treatment */
+html.smirel-app .user-usage-page .endpoint-panel,
+html.smirel-app .user-usage-page .overview-panel {
+  position: relative;
+  isolation: isolate;
+  min-height: 326px;
+  overflow: hidden;
+  border: 1px solid #293039;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(83, 157, 214, .045), transparent 27%),
+    linear-gradient(180deg, #101317 0%, #0e1115 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .018),
+    0 12px 30px rgba(0, 0, 0, .075);
+  transition:
+    transform .2s cubic-bezier(.2, .75, .25, 1),
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel::before,
+html.smirel-app .user-usage-page .overview-panel::before {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 24px;
+  width: 66px;
+  height: 2px;
+  border-radius: 0 0 999px 999px;
+  pointer-events: none;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel::before {
+  background: linear-gradient(90deg, #70a6c9, rgba(112, 166, 201, .12));
+}
+
+html.smirel-app .user-usage-page .overview-panel::before {
+  background: linear-gradient(90deg, #7d91bc, rgba(125, 145, 188, .12));
+}
+
+html.smirel-app .user-usage-page .endpoint-panel:hover,
+html.smirel-app .user-usage-page .overview-panel:hover {
+  transform: translateY(-2px);
+  border-color: #343d47;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .022),
+    0 18px 40px rgba(0, 0, 0, .10);
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .panel-heading,
+html.smirel-app .user-usage-page .overview-panel .panel-heading {
+  position: relative;
+  z-index: 2;
+  min-height: 92px;
+  padding: 22px 25px 20px;
+  border-bottom: 1px solid #242a31;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .012), transparent);
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .panel-heading > div,
+html.smirel-app .user-usage-page .overview-panel .panel-heading > div {
+  min-width: 0;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .panel-heading small,
+html.smirel-app .user-usage-page .overview-panel .panel-heading small {
+  margin-bottom: 9px;
+  color: #758492;
+  font-size: .62rem;
+  font-weight: 720;
+  letter-spacing: .17em;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .panel-heading h2,
+html.smirel-app .user-usage-page .overview-panel .panel-heading h2 {
+  color: #f0f3f6;
+  font-size: 1.08rem;
+  font-weight: 710;
+  letter-spacing: -.022em;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .panel-caption,
+html.smirel-app .user-usage-page .overview-panel .panel-caption {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #2b333c;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #87939f;
+  background: rgba(255, 255, 255, .018);
+  font-size: .69rem;
+  font-weight: 590;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .panel-caption::before,
+html.smirel-app .user-usage-page .overview-panel .panel-caption::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 50%;
+  background: #678aa3;
+  box-shadow: 0 0 0 3px rgba(103, 138, 163, .07);
+}
+
+html.smirel-app .user-usage-page .overview-panel .panel-caption::before {
+  background: #7186b0;
+  box-shadow: 0 0 0 3px rgba(113, 134, 176, .07);
+}
+
+/* Endpoint distribution */
+html.smirel-app .user-usage-page .endpoint-panel .distribution-list {
+  padding: 12px 25px 19px;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-row {
+  --endpoint-accent: 120, 149, 171;
+  padding: 15px 0 16px;
+  transition: transform .16s ease;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-row:nth-child(2) {
+  --endpoint-accent: 126, 142, 166;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-row:nth-child(3) {
+  --endpoint-accent: 125, 137, 153;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-row + .distribution-row {
+  border-top: 1px solid #232930;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-row:hover {
+  transform: translateX(2px);
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-head {
+  min-height: 26px;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-head code {
+  min-height: 27px;
+  padding: 0 9px;
+  border: 1px solid rgba(var(--endpoint-accent), .14);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  color: #c1ccd5;
+  background: rgba(var(--endpoint-accent), .045);
+  font: 650 .73rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: -.012em;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-head b {
+  color: #eef2f5;
+  font-size: .86rem;
+  font-weight: 730;
+  font-variant-numeric: tabular-nums;
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-track {
+  height: 7px;
+  margin-top: 11px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #20262c;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .16);
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-track i {
+  position: relative;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--endpoint-accent), .88),
+    rgba(var(--endpoint-accent), .68)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .12),
+    0 0 12px rgba(var(--endpoint-accent), .10);
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-track i::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 18px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .20));
+}
+
+html.smirel-app .user-usage-page .endpoint-panel .distribution-row > small {
+  margin-top: 9px;
+  color: #7b8792;
+  font-size: .72rem;
+  line-height: 1.4;
+  font-weight: 520;
+}
+
+/* Usage profile */
+html.smirel-app .user-usage-page .overview-panel .usage-profile-list {
+  margin: 0;
+  padding: 12px 20px 18px;
+  display: grid;
+  gap: 4px;
+}
+
+html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div {
+  position: relative;
+  min-height: 58px;
+  padding: 0 11px 0 13px;
+  border: 1px solid transparent;
+  border-bottom-color: #22282f;
+  border-radius: 9px;
+  display: grid;
+  grid-template-columns: minmax(150px, .8fr) minmax(0, 1fr);
+  align-items: center;
+  transition:
+    border-color .16s ease,
+    background-color .16s ease,
+    transform .16s ease;
+}
+
+html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div:last-child {
+  border-bottom-color: transparent;
+}
+
+html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div:hover {
+  border-color: #2b343d;
+  background: rgba(255, 255, 255, .018);
+  transform: translateX(2px);
+}
+
+html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  position: absolute;
+  left: 1px;
+  top: 50%;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: #596a79;
+  opacity: .62;
+}
+
+html.smirel-app .user-usage-page .overview-panel .usage-profile-list dt {
+  color: #88939e;
+  font-size: .76rem;
+  font-weight: 560;
+}
+
+html.smirel-app .user-usage-page .overview-panel .usage-profile-list dd {
+  min-width: 0;
+  margin: 0;
+  justify-self: end;
+  color: #e7ebef;
+  font-size: .82rem;
+  font-weight: 690;
+  letter-spacing: -.008em;
+  font-variant-numeric: tabular-nums;
+}
+
+html.smirel-app .user-usage-page .overview-panel .usage-profile-list dd code {
+  min-height: 27px;
+  max-width: 100%;
+  padding: 0 8px;
+  border: 1px solid #29323b;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  color: #aebbc6;
+  background: #12171c;
+  font: 620 .71rem/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Light theme */
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel,
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel {
+  border-color: #dbe3ea;
+  background:
+    radial-gradient(circle at 94% 0%, rgba(87, 153, 201, .055), transparent 27%),
+    linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
+  box-shadow:
+    0 1px 2px rgba(24, 34, 45, .035),
+    0 13px 34px rgba(35, 48, 62, .055);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel:hover,
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel:hover {
+  border-color: #cfdbe5;
+  box-shadow:
+    0 2px 4px rgba(24, 34, 45, .04),
+    0 18px 42px rgba(35, 48, 62, .08);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .panel-heading,
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .panel-heading {
+  border-bottom-color: #e7edf2;
+  background: linear-gradient(180deg, rgba(248, 251, 253, .7), rgba(255, 255, 255, 0));
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .panel-heading small,
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .panel-heading small {
+  color: #71808d;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .panel-heading h2,
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .panel-heading h2 {
+  color: #1f2933;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .panel-caption,
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .panel-caption {
+  border-color: #dce5ec;
+  color: #657483;
+  background: linear-gradient(180deg, #fbfdff, #f4f8fb);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .distribution-row + .distribution-row {
+  border-top-color: #e9eef2;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .distribution-head code {
+  border-color: rgba(var(--endpoint-accent), .19);
+  color: #526575;
+  background: rgba(var(--endpoint-accent), .075);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .distribution-head b {
+  color: #26313b;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .distribution-track {
+  background: #e8eef3;
+  box-shadow: inset 0 1px 2px rgba(41, 56, 69, .055);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .distribution-track i {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--endpoint-accent), .95),
+    rgba(var(--endpoint-accent), .78)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .34),
+    0 3px 9px rgba(var(--endpoint-accent), .12);
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .endpoint-panel .distribution-row > small {
+  color: #71808e;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .usage-profile-list > div {
+  border-bottom-color: #e8edf2;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .usage-profile-list > div:last-child {
+  border-bottom-color: transparent;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .usage-profile-list > div:hover {
+  border-color: #dde6ed;
+  background: #f7fafc;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .usage-profile-list > div::before {
+  background: #7f9ab0;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .usage-profile-list dt {
+  color: #657484;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .usage-profile-list dd {
+  color: #202a34;
+}
+
+html.smirel-app[data-theme='light'] .user-usage-page .overview-panel .usage-profile-list dd code {
+  border-color: #e0e7ed;
+  color: #7a8996;
+  background: #f6f9fb;
+}
+
+@media (max-width: 760px) {
+  html.smirel-app .user-usage-page .endpoint-panel,
+  html.smirel-app .user-usage-page .overview-panel {
+    min-height: auto;
+    border-radius: 15px;
+  }
+
+  html.smirel-app .user-usage-page .endpoint-panel .panel-heading,
+  html.smirel-app .user-usage-page .overview-panel .panel-heading {
+    min-height: 84px;
+    padding: 20px 18px 18px;
+  }
+
+  html.smirel-app .user-usage-page .endpoint-panel .distribution-list {
+    padding-inline: 18px;
+  }
+
+  html.smirel-app .user-usage-page .overview-panel .usage-profile-list {
+    padding-inline: 13px;
+  }
+
+  html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div {
+    min-height: 64px;
+    padding-inline: 10px;
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  html.smirel-app .user-usage-page .overview-panel .usage-profile-list dd {
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.smirel-app .user-usage-page .endpoint-panel,
+  html.smirel-app .user-usage-page .overview-panel,
+  html.smirel-app .user-usage-page .endpoint-panel .distribution-row,
+  html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div {
+    transition: none;
+  }
+
+  html.smirel-app .user-usage-page .endpoint-panel:hover,
+  html.smirel-app .user-usage-page .overview-panel:hover,
+  html.smirel-app .user-usage-page .endpoint-panel .distribution-row:hover,
+  html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div:hover {
+    transform: none;
+  }
+}
