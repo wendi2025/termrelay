@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import HomeAccountMenu from '../components/HomeAccountMenu.vue'
+import HomeTopbarControls from '../components/HomeTopbarControls.vue'
 import { useSession } from '../core/session'
 import '../styles/home-layout.css'
 import '../styles/home-gateway.css'
+import '../styles/home-light.css'
+import '../styles/home-entry.css'
 import '../styles/home-motion.css'
 
 const { isAuthenticated, isAdmin } = useSession()
@@ -97,8 +100,8 @@ async function copyBase() {
 
       <div class="home-actions">
         <template v-if="isAuthenticated">
-          <RouterLink :to="consolePath" class="top-console">{{ isAdmin ? '管理控制台' : '控制台' }}</RouterLink>
-          <HomeAccountMenu />
+          <HomeTopbarControls />
+          <HomeAccountMenu variant="toolbar" />
         </template>
         <template v-else>
           <RouterLink to="/login" class="quiet-link">登录</RouterLink>
