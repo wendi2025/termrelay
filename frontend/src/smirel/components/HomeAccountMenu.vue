@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { useSession } from '../core/session'
 
 const props = withDefaults(defineProps<{
-  variant?: 'home' | 'workspace'
+  variant?: 'home' | 'workspace' | 'toolbar'
 }>(), {
   variant: 'home',
 })
@@ -21,6 +21,8 @@ const secondaryText = computed(() => state.user?.email || (isAdmin.value ? 'ç®¡ç
 const avatarUrl = computed(() => state.user?.avatar_url || '')
 const roleLabel = computed(() => isAdmin.value ? 'ADMIN' : 'ACCOUNT')
 const isWorkspace = computed(() => props.variant === 'workspace')
+const isToolbar = computed(() => props.variant === 'toolbar')
+const showTriggerCopy = computed(() => isWorkspace.value || isToolbar.value)
 
 function closeMenu(focusTrigger = false) {
   open.value = false
@@ -62,12 +64,12 @@ onBeforeUnmount(() => {
   <div
     ref="root"
     class="home-account-menu"
-    :class="{ 'home-account-menu--workspace': isWorkspace }"
+    :class="{ 'home-account-menu--workspace': isWorkspace, 'home-account-menu--toolbar': isToolbar }"
   >
     <button
       ref="trigger"
       class="home-account-trigger"
-      :class="{ 'is-open': open, 'is-workspace': isWorkspace }"
+      :class="{ 'is-open': open, 'is-workspace': isWorkspace, 'is-toolbar': isToolbar }"
       type="button"
       aria-haspopup="menu"
       :aria-expanded="open"
@@ -80,7 +82,7 @@ onBeforeUnmount(() => {
         <span v-else>{{ initials }}</span>
       </span>
 
-      <span v-if="isWorkspace" class="home-account-trigger-copy">
+      <span v-if="showTriggerCopy" class="home-account-trigger-copy">
         <strong>{{ displayName }}</strong>
       </span>
 
@@ -196,7 +198,8 @@ onBeforeUnmount(() => {
   transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
 }
 
-.home-account-trigger.is-workspace {
+.home-account-trigger.is-workspace,
+.home-account-trigger.is-toolbar {
   width: auto;
   min-width: 146px;
   height: 42px;
@@ -241,7 +244,8 @@ onBeforeUnmount(() => {
   line-height: 1;
 }
 
-.is-workspace .home-account-trigger-avatar {
+.is-workspace .home-account-trigger-avatar,
+.is-toolbar .home-account-trigger-avatar {
   width: 32px;
   height: 32px;
   flex-basis: 32px;
@@ -312,6 +316,60 @@ onBeforeUnmount(() => {
 
 .home-account-menu--workspace .home-account-popover {
   width: min(314px, calc(100vw - 28px));
+}
+
+.home-account-menu--toolbar .home-account-popover {
+  width: min(314px, calc(100vw - 28px));
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-trigger {
+  border-color: #d8e1e8;
+  color: #29333d;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(33, 47, 60, .035);
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-trigger:hover,
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-trigger.is-open {
+  border-color: #c9d5df;
+  background: #f6f9fb;
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-trigger-avatar {
+  border-color: #d3dde6;
+  color: #33414d;
+  background: #f2f6f9;
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-trigger-copy strong {
+  color: #2b3540;
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-popover {
+  border-color: #d6dfe7;
+  color: #2a333c;
+  background: #ffffff;
+  box-shadow: 0 20px 50px rgba(35, 47, 59, .14);
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-identity,
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-item {
+  color: #566575;
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-copy strong,
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-item:hover,
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-item:focus-visible {
+  color: #27313b;
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-item:hover,
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-item:focus-visible {
+  background: #f5f8fa;
+}
+
+html.smirel-app[data-theme='light'] .home-account-menu--toolbar .home-account-divider {
+  background: #e2e7ec;
 }
 
 .home-account-identity {
@@ -499,6 +557,20 @@ onBeforeUnmount(() => {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 1280px) {
+  .home-account-menu--toolbar .home-account-trigger {
+    min-width: 42px;
+    width: 42px;
+    padding: 4px;
+    justify-content: center;
+  }
+
+  .home-account-menu--toolbar .home-account-trigger-copy,
+  .home-account-menu--toolbar .home-account-trigger-chevron {
+    display: none;
   }
 }
 
