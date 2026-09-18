@@ -1,4 +1,5 @@
 name: Smirel UI Preview
+# Synced from main for visual review.
 
 on:
   push:
