@@ -6,7 +6,6 @@ import { useSession } from '../core/session'
 import '../styles/home-layout.css'
 import '../styles/home-gateway.css'
 import '../styles/home-light.css'
-import '../styles/home-entry.css'
 import '../styles/home-motion.css'
 
 const { isAuthenticated, isAdmin } = useSession()
