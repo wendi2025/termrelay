@@ -1,61 +1,137 @@
-/* API key creation modal alignment pass.
+/* API key creation modal — layout, readability and theme polish.
  *
- * Root cause: the modal mixed three vertical systems: 43px core controls,
- * browser/base-select picker geometry, and an advanced row with top-only
- * padding. Header/body/footer shared similar but not identical spacing, so
- * labels, controls, chevrons and action buttons never landed on one rhythm.
- * This layer establishes one dialog gutter and one form-control baseline
- * without changing any API-key business logic.
+ * Keep this file after interface-preferences.css so the modal gets a deliberate
+ * light/dark treatment instead of inheriting dark-only colours from the page.
  */
 
 #app .keys-create-modal {
-  --key-modal-gutter: 28px;
-  --key-control-height: 48px;
-  width: min(800px, 100%);
+  --key-modal-gutter: 30px;
+  --key-control-height: 50px;
+  --key-accent: #2f96e8;
+  --key-accent-strong: #2087d8;
+  --key-surface: #101419;
+  --key-surface-raised: #13181f;
+  --key-surface-soft: #0c1117;
+  --key-field: #0a0f14;
+  --key-border: #2a333d;
+  --key-border-soft: #222a33;
+  --key-text: #edf2f7;
+  --key-text-soft: #c3cbd4;
+  --key-muted: #7d8995;
+  --key-subtle: #64717d;
+  --key-focus-ring: rgba(47, 150, 232, .16);
+
+  position: relative;
+  isolation: isolate;
+  width: min(820px, calc(100vw - 32px));
+  max-height: min(880px, calc(100vh - 40px));
+  border-color: var(--key-border);
+  border-radius: 20px;
+  color: var(--key-text);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .018), transparent 140px),
+    var(--key-surface);
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, .46),
+    0 10px 28px rgba(0, 0, 0, .22);
+}
+
+#app .keys-create-modal::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 0 72px auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(71, 166, 235, .7), transparent);
+  pointer-events: none;
+}
+
+#app .keys-modal-backdrop {
+  padding: 20px;
+  background: rgba(5, 9, 13, .68);
+  backdrop-filter: blur(10px) saturate(.9);
 }
 
 #app .keys-create-modal .keys-modal-header {
-  min-height: 126px;
-  padding: 24px var(--key-modal-gutter) 23px;
+  min-height: 132px;
+  padding: 27px var(--key-modal-gutter) 25px;
+  border-bottom-color: var(--key-border-soft);
   align-items: flex-start;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(47, 150, 232, .08), transparent 36%),
+    var(--key-surface-raised);
 }
 
 #app .keys-create-modal .keys-modal-header > div {
   min-width: 0;
-  padding-right: 18px;
+  padding-right: 22px;
 }
 
 #app .keys-create-modal .keys-modal-header > div > span {
   display: block;
+  color: #6daedc;
+  font-size: .64rem;
   line-height: 1;
+  font-weight: 780;
+  letter-spacing: .15em;
 }
 
 #app .keys-create-modal .keys-modal-header h2 {
-  margin: 9px 0 7px;
-  font-size: 1.28rem;
-  line-height: 1.16;
+  margin: 10px 0 8px;
+  color: var(--key-text);
+  font-size: 1.46rem;
+  line-height: 1.15;
+  font-weight: 720;
+  letter-spacing: -.035em;
 }
 
 #app .keys-create-modal .keys-modal-header p {
-  max-width: 610px;
-  font-size: .78rem;
-  line-height: 1.58;
+  max-width: 640px;
+  margin: 0;
+  color: var(--key-muted);
+  font-size: .79rem;
+  line-height: 1.7;
 }
 
 #app .keys-create-modal .keys-modal-close {
-  width: 36px;
-  height: 36px;
-  flex-basis: 36px;
-  margin-top: -2px;
+  width: 38px;
+  height: 38px;
+  flex-basis: 38px;
+  margin-top: -3px;
+  border-color: transparent;
+  border-radius: 10px;
+  color: var(--key-muted);
+  transition:
+    color .16s ease,
+    background-color .16s ease,
+    border-color .16s ease,
+    transform .16s ease;
+}
+
+#app .keys-create-modal .keys-modal-close:hover {
+  border-color: var(--key-border);
+  color: var(--key-text);
+  background: rgba(255, 255, 255, .045);
+  transform: rotate(2deg);
+}
+
+#app .keys-create-modal .keys-modal-close svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.8;
 }
 
 #app .keys-create-modal .keys-modal-body,
 #app .keys-create-modal .keys-success-body {
-  padding: 26px var(--key-modal-gutter) 28px;
+  padding: 28px var(--key-modal-gutter) 30px;
+  scrollbar-color: #3b4652 transparent;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .012), transparent 110px),
+    var(--key-surface);
 }
 
 #app .keys-create-modal .keys-core-fields {
-  gap: 21px;
+  gap: 22px;
 }
 
 #app .keys-create-modal .keys-form-field {
@@ -67,31 +143,49 @@
   min-height: 20px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  color: #d1d6dc;
-  font-size: .78rem;
+  gap: 8px;
+  color: var(--key-text-soft);
+  font-size: .79rem;
   line-height: 20px;
-  font-weight: 630;
+  font-weight: 650;
 }
 
 #app .keys-create-modal .keys-form-field > span b {
+  min-height: 20px;
   margin-left: 0;
+  padding: 0 7px;
+  border: 1px solid rgba(47, 150, 232, .22);
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  align-self: center;
-  color: #62a9d8;
-  font-size: .64rem;
+  color: #71b7e8;
+  background: rgba(47, 150, 232, .08);
+  font-size: .61rem;
   line-height: 1;
-  font-weight: 700;
+  font-weight: 740;
+}
+
+#app .keys-create-modal .keys-form-field input,
+#app .keys-create-modal .keys-form-field select,
+#app .keys-create-modal .keys-form-field textarea {
+  box-sizing: border-box;
+  border-color: var(--key-border);
+  border-radius: 12px;
+  color: var(--key-text);
+  background: var(--key-field);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .018);
+  transition:
+    border-color .16s ease,
+    box-shadow .16s ease,
+    background-color .16s ease;
 }
 
 #app .keys-create-modal .keys-form-field input,
 #app .keys-create-modal .keys-form-field select {
-  box-sizing: border-box;
   height: var(--key-control-height);
   min-height: var(--key-control-height);
-  padding: 0 14px;
-  font-size: .82rem;
+  padding: 0 15px;
+  font-size: .84rem;
   line-height: 1.2;
 }
 
@@ -103,18 +197,46 @@
   display: flex;
   align-items: center;
   padding-block: 0;
+  cursor: pointer;
 }
 
 #app .keys-create-modal .keys-form-field textarea {
-  box-sizing: border-box;
-  padding: 13px 14px;
+  min-height: 108px;
+  padding: 14px 15px;
   font-size: .82rem;
+  line-height: 1.6;
+}
+
+#app .keys-create-modal .keys-form-field input:hover,
+#app .keys-create-modal .keys-form-field select:hover,
+#app .keys-create-modal .keys-form-field textarea:hover {
+  border-color: #394653;
+  background: #0c1218;
+}
+
+#app .keys-create-modal .keys-form-field input:focus,
+#app .keys-create-modal .keys-form-field select:focus,
+#app .keys-create-modal .keys-form-field textarea:focus {
+  border-color: rgba(62, 161, 232, .82);
+  background: #0c1218;
+  box-shadow: 0 0 0 4px var(--key-focus-ring);
+}
+
+#app .keys-create-modal .keys-form-field input::placeholder,
+#app .keys-create-modal .keys-form-field textarea::placeholder {
+  color: #5d6975;
+}
+
+#app .keys-create-modal .keys-form-field select:disabled {
+  cursor: not-allowed;
+  opacity: .54;
 }
 
 #app .keys-create-modal .keys-form-field small,
 #app .keys-create-modal .keys-ip-hint {
+  color: var(--key-subtle);
   font-size: .68rem;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 #app .keys-create-modal .keys-selected-group,
@@ -123,19 +245,64 @@
 }
 
 #app .keys-create-modal .keys-selected-group {
-  min-height: 78px;
-  padding: 14px 16px;
+  min-height: 82px;
+  padding: 15px 17px;
+  border-color: rgba(61, 126, 174, .3);
+  border-radius: 13px;
+  background:
+    linear-gradient(135deg, rgba(47, 150, 232, .075), transparent 48%),
+    var(--key-surface-soft);
+}
+
+#app .keys-create-modal .keys-selected-group > div > span {
+  color: #71b5e5;
+}
+
+#app .keys-create-modal .keys-selected-group strong {
+  color: var(--key-text);
+  font-size: .82rem;
+}
+
+#app .keys-create-modal .keys-selected-group p,
+#app .keys-create-modal .keys-selected-group dt {
+  color: var(--key-subtle);
+}
+
+#app .keys-create-modal .keys-selected-group dd {
+  color: var(--key-text-soft);
 }
 
 #app .keys-create-modal .keys-selected-group dl {
   align-items: center;
 }
 
+#app .keys-create-modal .keys-no-groups {
+  padding: 12px 14px;
+  border-radius: 11px;
+}
+
 #app .keys-create-modal .keys-advanced-toggle {
-  min-height: 78px;
-  margin-top: 25px;
-  padding: 18px 2px;
+  min-height: 76px;
+  margin-top: 24px;
+  padding: 15px 17px;
+  border: 1px solid var(--key-border-soft);
+  border-radius: 13px;
   align-items: center;
+  background: rgba(255, 255, 255, .016);
+  transition:
+    border-color .16s ease,
+    background-color .16s ease,
+    transform .16s ease;
+}
+
+#app .keys-create-modal .keys-advanced-toggle:hover {
+  border-color: #35414c;
+  background: rgba(255, 255, 255, .028);
+}
+
+#app .keys-create-modal .keys-advanced-toggle[aria-expanded='true'] {
+  border-color: rgba(47, 150, 232, .3);
+  background: rgba(47, 150, 232, .045);
 }
 
 #app .keys-create-modal .keys-advanced-toggle div {
@@ -143,52 +310,317 @@
 }
 
 #app .keys-create-modal .keys-advanced-toggle strong {
-  font-size: .79rem;
+  color: var(--key-text-soft);
+  font-size: .8rem;
   line-height: 1.25;
+  font-weight: 670;
 }
 
 #app .keys-create-modal .keys-advanced-toggle span {
+  color: var(--key-subtle);
   font-size: .68rem;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 #app .keys-create-modal .keys-advanced-toggle svg {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  padding: 4px;
+  box-sizing: content-box;
+  border-radius: 8px;
+  stroke: var(--key-muted);
+  background: rgba(255, 255, 255, .025);
 }
 
 #app .keys-create-modal .keys-advanced-panel {
-  margin-top: 2px;
-  padding: 18px;
-  gap: 18px;
+  margin-top: 12px;
+  padding: 20px;
+  gap: 19px;
+  border-color: var(--key-border-soft);
+  border-radius: 14px;
+  background: var(--key-surface-soft);
 }
 
 #app .keys-create-modal .keys-number-grid,
 #app .keys-create-modal .keys-ip-grid {
-  gap: 15px 16px;
+  gap: 16px;
+}
+
+#app .keys-create-modal .keys-ip-hint {
+  margin: -5px 0 0;
+}
+
+#app .keys-create-modal .keys-create-error {
+  margin: 18px 0 0;
+  border-radius: 11px;
 }
 
 #app .keys-create-modal .keys-modal-footer {
-  min-height: 76px;
-  padding: 14px var(--key-modal-gutter);
-  gap: 10px;
+  min-height: 80px;
+  padding: 15px var(--key-modal-gutter);
+  gap: 11px;
+  border-top-color: var(--key-border-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .012), transparent),
+    var(--key-surface-raised);
 }
 
 #app .keys-create-modal .keys-modal-footer .keys-primary-button,
 #app .keys-create-modal .keys-modal-footer .keys-secondary-button {
-  min-height: 44px;
-  height: 44px;
-  padding: 0 17px;
-  font-size: .79rem;
+  min-height: 46px;
+  height: 46px;
+  padding: 0 19px;
+  border-radius: 11px;
+  font-size: .8rem;
+  font-weight: 680;
 }
 
 #app .keys-create-modal .keys-modal-footer .keys-secondary-button {
-  min-width: 82px;
+  min-width: 88px;
+  border-color: var(--key-border);
+  color: #aab4bf;
+  background: transparent;
+}
+
+#app .keys-create-modal .keys-modal-footer .keys-secondary-button:hover:not(:disabled) {
+  border-color: #3c4854;
+  color: var(--key-text);
+  background: rgba(255, 255, 255, .035);
 }
 
 #app .keys-create-modal .keys-modal-footer .keys-primary-button {
-  min-width: 128px;
+  min-width: 136px;
+  border-color: var(--key-accent);
+  background: linear-gradient(180deg, #3ba2eb, var(--key-accent-strong));
+  box-shadow: 0 8px 18px rgba(47, 150, 232, .18);
+}
+
+#app .keys-create-modal .keys-modal-footer .keys-primary-button:hover:not(:disabled) {
+  border-color: #56acec;
+  background: linear-gradient(180deg, #49aaee, #2a94df);
+  box-shadow: 0 10px 22px rgba(47, 150, 232, .24);
+}
+
+#app .keys-create-modal .keys-modal-footer .keys-primary-button:disabled {
+  border-color: #33404b;
+  color: #72808d;
+  background: #1b242d;
+  box-shadow: none;
+  opacity: 1;
+}
+
+#app .keys-create-modal .keys-success-header {
+  align-items: center;
+}
+
+#app .keys-create-modal .keys-success-mark {
+  border-radius: 12px;
+}
+
+#app .keys-create-modal .keys-created-credential {
+  border-radius: 13px;
+}
+
+/* Light theme: this modal previously kept dark-theme text colours, which made
+ * labels such as 名称 / 使用分组 almost disappear on the white surface.
+ * Define the full palette here instead of relying on generic workspace rules.
+ */
+html.smirel-app[data-theme='light'] #app .keys-modal-backdrop {
+  background: rgba(27, 34, 42, .58);
+  backdrop-filter: blur(10px) saturate(.9);
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal {
+  --key-accent: #268ed8;
+  --key-accent-strong: #177fc8;
+  --key-surface: #ffffff;
+  --key-surface-raised: #fbfcfe;
+  --key-surface-soft: #f6f8fb;
+  --key-field: #fcfdff;
+  --key-border: #d7dee7;
+  --key-border-soft: #e5e9ee;
+  --key-text: #20262d;
+  --key-text-soft: #39434d;
+  --key-muted: #717d89;
+  --key-subtle: #89949f;
+  --key-focus-ring: rgba(38, 142, 216, .13);
+
+  border-color: #d8dee6;
+  background:
+    linear-gradient(180deg, rgba(38, 142, 216, .018), transparent 150px),
+    #ffffff;
+  box-shadow:
+    0 28px 78px rgba(34, 45, 58, .2),
+    0 8px 24px rgba(34, 45, 58, .08);
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal::before {
+  background: linear-gradient(90deg, transparent, rgba(38, 142, 216, .52), transparent);
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-header {
+  border-bottom-color: var(--key-border-soft);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(38, 142, 216, .075), transparent 38%),
+    #fbfcfe;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-header > div > span {
+  color: #527fa2;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-header h2 {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-header p {
+  color: #76818d;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-close {
+  color: #7a8590;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-close:hover {
+  border-color: #dbe1e7;
+  color: #252c33;
+  background: #f2f5f8;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-body,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-success-body {
+  scrollbar-color: #c3cad3 transparent;
+  background:
+    linear-gradient(180deg, rgba(38, 142, 216, .012), transparent 110px),
+    #ffffff;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field > span {
+  color: #3b4650;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field > span b {
+  border-color: #c9e1f2;
+  color: #2779b2;
+  background: #eef7fd;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field input,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field select,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field textarea {
+  border-color: #d5dde6;
+  color: #242b32;
+  background: #fcfdff;
+  box-shadow: 0 1px 2px rgba(32, 43, 55, .025);
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field input:hover,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field select:hover,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field textarea:hover {
+  border-color: #c4ced8;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field input:focus,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field select:focus,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field textarea:focus {
+  border-color: #67aede;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field input::placeholder,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field textarea::placeholder {
+  color: #8f99a4;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-form-field small,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-ip-hint {
+  color: #89939e;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-selected-group {
+  border-color: #d5e5f0;
+  background:
+    linear-gradient(135deg, rgba(38, 142, 216, .055), transparent 50%),
+    #f8fbfd;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-selected-group strong,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-selected-group dd {
+  color: #35414c;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-selected-group p,
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-selected-group dt {
+  color: #84909b;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-advanced-toggle {
+  border-color: #e0e5eb;
+  background: #fafbfd;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-advanced-toggle:hover {
+  border-color: #cfd8e1;
+  background: #f6f9fb;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-advanced-toggle[aria-expanded='true'] {
+  border-color: #c8dfef;
+  background: #f3f9fd;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-advanced-toggle strong {
+  color: #35404a;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-advanced-toggle span {
+  color: #87929d;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-advanced-toggle svg {
+  stroke: #75818c;
+  background: #f0f3f6;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-advanced-panel {
+  border-color: #dfe5eb;
+  background: #f8fafc;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-footer {
+  border-top-color: #e3e8ed;
+  background:
+    linear-gradient(180deg, rgba(32, 43, 55, .012), transparent),
+    #fbfcfe;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-footer .keys-secondary-button {
+  border-color: #d5dde5;
+  color: #5d6873;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-footer .keys-secondary-button:hover:not(:disabled) {
+  border-color: #c7d0d9;
+  color: #29313a;
+  background: #f5f7f9;
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-footer .keys-primary-button {
+  border-color: #278ed8;
+  color: #ffffff;
+  background: linear-gradient(180deg, #3ca0e7, #2188d1);
+  box-shadow: 0 8px 18px rgba(38, 142, 216, .18);
+}
+
+html.smirel-app[data-theme='light'] #app .keys-create-modal .keys-modal-footer .keys-primary-button:disabled {
+  border-color: #b9daf0;
+  color: rgba(255, 255, 255, .94);
+  background: #9acbf0;
+  box-shadow: none;
+  opacity: 1;
 }
 
 @supports (appearance: base-select) {
@@ -201,39 +633,93 @@
     height: 15px;
     flex: 0 0 15px;
     margin-inline-start: auto;
+    color: var(--key-muted);
   }
 }
 
 @media (max-width: 640px) {
+  #app .keys-modal-backdrop {
+    padding: 10px;
+  }
+
   #app .keys-create-modal {
     --key-modal-gutter: 18px;
+    width: min(100%, calc(100vw - 20px));
+    max-height: calc(100vh - 20px);
+    border-radius: 16px;
   }
 
   #app .keys-create-modal .keys-modal-header {
     min-height: 118px;
-    padding-top: 21px;
+    padding-top: 22px;
     padding-bottom: 20px;
+  }
+
+  #app .keys-create-modal .keys-modal-header > div {
+    padding-right: 6px;
+  }
+
+  #app .keys-create-modal .keys-modal-header h2 {
+    font-size: 1.28rem;
   }
 
   #app .keys-create-modal .keys-modal-body,
   #app .keys-create-modal .keys-success-body {
     padding-top: 22px;
-    padding-bottom: 23px;
+    padding-bottom: 24px;
   }
 
   #app .keys-create-modal .keys-core-fields {
-    gap: 18px;
+    gap: 19px;
+  }
+
+  #app .keys-create-modal .keys-selected-group {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  #app .keys-create-modal .keys-selected-group dl {
+    width: 100%;
   }
 
   #app .keys-create-modal .keys-advanced-toggle {
     min-height: 72px;
-    margin-top: 22px;
-    padding: 16px 1px;
+    margin-top: 21px;
+    padding: 14px;
+  }
+
+  #app .keys-create-modal .keys-advanced-panel {
+    padding: 16px;
+  }
+
+  #app .keys-create-modal .keys-number-grid,
+  #app .keys-create-modal .keys-ip-grid {
+    grid-template-columns: 1fr;
   }
 
   #app .keys-create-modal .keys-modal-footer {
-    min-height: 72px;
+    min-height: 74px;
     padding-top: 12px;
     padding-bottom: 12px;
+  }
+
+  #app .keys-create-modal .keys-modal-footer .keys-secondary-button,
+  #app .keys-create-modal .keys-modal-footer .keys-primary-button {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app .keys-create-modal .keys-modal-close,
+  #app .keys-create-modal .keys-form-field input,
+  #app .keys-create-modal .keys-form-field select,
+  #app .keys-create-modal .keys-form-field textarea,
+  #app .keys-create-modal .keys-advanced-toggle {
+    transition: none;
+  }
+
+  #app .keys-create-modal .keys-modal-close:hover {
+    transform: none;
   }
 }
