@@ -27,9 +27,9 @@ function setupHomeMotion() {
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const groups: Array<{ selector: string; variant?: string; step?: number }> = [
-    { selector: '.hero-copy-block > .hero-kicker, .hero-copy-block > h1, .hero-copy-block > p, .hero-actions, .hero-trust', variant: 'copy', step: 72 },
-    { selector: '.gateway-preview', variant: 'panel', step: 0 },
-    { selector: '.gateway-preview-head, .gateway-endpoint, .gateway-detail, .gateway-preview-foot', variant: 'panel-child', step: 58 },
+    // The first viewport has its own one-shot composition in home-entry.css.
+    // Keep IntersectionObserver for below-the-fold content so the two motion
+    // systems never fight over opacity/transform during the initial paint.
     { selector: '.workspace-copy > span, .workspace-copy > h2, .workspace-copy > p', variant: 'copy', step: 78 },
     { selector: '.workspace-links > a', variant: 'card', step: 92 },
     { selector: '.closing-status, .closing-copy > h2, .closing-copy > p, .closing-meta', variant: 'copy', step: 76 },
