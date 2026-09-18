@@ -1,15 +1,78 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import HomeAccountMenu from '../components/HomeAccountMenu.vue'
 import { useSession } from '../core/session'
 import '../styles/home-layout.css'
 import '../styles/home-gateway.css'
+import '../styles/home-motion.css'
 
 const { isAuthenticated, isAdmin } = useSession()
 const copied = ref(false)
 const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
 const apiBase = 'https://api.smirel.com/v1'
 const consolePath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
+const homeRoot = ref<HTMLElement | null>(null)
+let revealObserver: IntersectionObserver | undefined
+
+function revealImmediately(nodes: HTMLElement[]) {
+  nodes.forEach((node) => node.classList.add('is-visible'))
+}
+
+function setupHomeMotion() {
+  const root = homeRoot.value
+  if (!root) return
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const groups: Array<{ selector: string; variant?: string; step?: number }> = [
+    { selector: '.hero-copy-block > .hero-kicker, .hero-copy-block > h1, .hero-copy-block > p, .hero-actions, .hero-trust', variant: 'copy', step: 72 },
+    { selector: '.gateway-preview', variant: 'panel', step: 0 },
+    { selector: '.gateway-preview-head, .gateway-endpoint, .gateway-detail, .gateway-preview-foot', variant: 'panel-child', step: 58 },
+    { selector: '.workspace-copy > span, .workspace-copy > h2, .workspace-copy > p', variant: 'copy', step: 78 },
+    { selector: '.workspace-links > a', variant: 'card', step: 92 },
+    { selector: '.closing-status, .closing-copy > h2, .closing-copy > p, .closing-meta', variant: 'copy', step: 76 },
+    { selector: '.closing-actions', variant: 'panel', step: 0 },
+    { selector: '.home-footer > span', variant: 'copy', step: 70 },
+  ]
+
+  const nodes: HTMLElement[] = []
+  groups.forEach(({ selector, variant = 'copy', step = 70 }) => {
+    Array.from(root.querySelectorAll<HTMLElement>(selector)).forEach((node, index) => {
+      node.dataset.homeReveal = variant
+      node.style.setProperty('--home-reveal-delay', `${Math.min(index * step, 360)}ms`)
+      nodes.push(node)
+    })
+  })
+
+  root.classList.add('home-motion-ready')
+
+  if (reducedMotion || !('IntersectionObserver' in window)) {
+    revealImmediately(nodes)
+    return
+  }
+
+  revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return
+      const node = entry.target as HTMLElement
+      node.classList.add('is-visible')
+      observer.unobserve(node)
+    })
+  }, {
+    threshold: 0.14,
+    rootMargin: '0px 0px -9% 0px',
+  })
+
+  nodes.forEach((node) => revealObserver?.observe(node))
+}
+
+onMounted(() => {
+  void nextTick(setupHomeMotion)
+})
+
+onBeforeUnmount(() => {
+  revealObserver?.disconnect()
+  revealObserver = undefined
+})
 
 async function copyBase() {
   await navigator.clipboard.writeText(apiBase)
@@ -19,7 +82,7 @@ async function copyBase() {
 </script>
 
 <template>
-  <div class="home-page">
+  <div ref="homeRoot" class="home-page">
     <header class="home-topbar">
       <RouterLink to="/home" class="brand-link">
         <img :src="logoUrl" alt="Smirel" />
