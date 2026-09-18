@@ -181,6 +181,13 @@
   mask-image: url('../assets/providers/antigravity.svg');
 }
 
+.workspace-root .provider-mark[data-provider=composite]::before,
+.workspace-root .provider-mini-mark[data-provider=composite]::before,
+.workspace-root .provider-filter button[data-provider=composite]::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 4h5v5H4V4zm11 0h5v5h-5V4zM4 15h5v5H4v-5zm11 0h5v5h-5v-5zM9 6h6v1.5H9V6zm-2 3h1.5v6H7V9zm8.5 0H17v6h-1.5V9zM9 16.5h6V18H9v-1.5z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 4h5v5H4V4zm11 0h5v5h-5V4zM4 15h5v5H4v-5zm11 0h5v5h-5v-5zM9 6h6v1.5H9V6zm-2 3h1.5v6H7V9zm8.5 0H17v6h-1.5V9zM9 16.5h6V18H9v-1.5z'/%3E%3C/svg%3E");
+}
+
 .workspace-root .provider-mark[data-provider=deepseek],
 .workspace-root .provider-mini-mark[data-provider=deepseek],
 .workspace-root .provider-filter button[data-provider=deepseek]::before { color: #6f9cff; }
@@ -220,3 +227,7 @@
 .workspace-root .provider-mark[data-provider=antigravity],
 .workspace-root .provider-mini-mark[data-provider=antigravity],
 .workspace-root .provider-filter button[data-provider=antigravity]::before { color: #d8dde5; }
+
+.workspace-root .provider-mark[data-provider=composite],
+.workspace-root .provider-mini-mark[data-provider=composite],
+.workspace-root .provider-filter button[data-provider=composite]::before { color: #79b9e8; }
