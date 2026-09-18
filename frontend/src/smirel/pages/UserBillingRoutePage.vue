@@ -11,7 +11,7 @@ const title = computed(() => locale.value === 'zh-CN' ? '充值/订阅' : 'Recha
 const description = computed(() => locale.value === 'zh-CN'
   ? '为账户充值余额，或选择适合你的订阅方案。'
   : 'Add account balance or choose a subscription plan that fits your needs.')
-const eyebrow = computed(() => locale.value === 'zh-CN' ? 'BILLING & PLANS' : 'BILLING & PLANS')
+const eyebrow = computed(() => 'BILLING & PLANS')
 const assurance = computed(() => locale.value === 'zh-CN' ? '安全支付 · 即时开通' : 'Secure payment · Instant activation')
 const accountBalance = computed(() => Number(state.user?.balance || 0))
 </script>
@@ -35,9 +35,43 @@ const accountBalance = computed(() => Number(state.user?.balance || 0))
 
 <style scoped>
 .billing-route-page {
-  width: min(100%, 1480px);
+  --billing-surface: rgba(15, 19, 25, 0.94);
+  --billing-surface-raised: rgba(20, 25, 32, 0.96);
+  --billing-surface-soft: rgba(255, 255, 255, 0.035);
+  --billing-border: rgba(255, 255, 255, 0.08);
+  --billing-border-strong: rgba(121, 196, 245, 0.38);
+  --billing-text: #f4f7fa;
+  --billing-text-soft: rgba(226, 234, 241, 0.72);
+  --billing-muted: rgba(207, 218, 228, 0.5);
+  --billing-subtle: rgba(199, 212, 224, 0.36);
+  --billing-accent: #79c4f5;
+  --billing-accent-strong: #4ca7e0;
+  --billing-accent-soft: rgba(121, 196, 245, 0.1);
+  --billing-success: #61d9b1;
+  --billing-danger: #f48b8b;
+  --billing-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+
+  width: min(100%, 1240px);
   margin: 0 auto;
-  padding-bottom: 52px;
+  padding: 4px 2px 52px;
+}
+
+:global(html.smirel-app[data-theme='light']) .billing-route-page {
+  --billing-surface: #ffffff;
+  --billing-surface-raised: #ffffff;
+  --billing-surface-soft: #f7f9fb;
+  --billing-border: #e1e7ed;
+  --billing-border-strong: #9cc9e8;
+  --billing-text: #17212b;
+  --billing-text-soft: #4d5a67;
+  --billing-muted: #72808d;
+  --billing-subtle: #98a3ad;
+  --billing-accent: #1978bd;
+  --billing-accent-strong: #11649f;
+  --billing-accent-soft: #edf6fc;
+  --billing-success: #168c66;
+  --billing-danger: #b84e4e;
+  --billing-shadow: 0 16px 42px rgba(37, 54, 70, 0.07);
 }
 
 .billing-heading {
@@ -46,9 +80,10 @@ const accountBalance = computed(() => Number(state.user?.balance || 0))
   align-items: flex-end;
   justify-content: space-between;
   gap: 32px;
-  margin-bottom: 24px;
-  padding: 6px 0 22px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  min-height: 112px;
+  margin-bottom: 22px;
+  padding: 10px 0 24px;
+  border-bottom: 1px solid var(--billing-border);
 }
 
 .billing-heading::after {
@@ -56,9 +91,10 @@ const accountBalance = computed(() => Number(state.user?.balance || 0))
   position: absolute;
   left: 0;
   bottom: -1px;
-  width: 86px;
-  height: 1px;
-  background: linear-gradient(90deg, #79c4f5, rgba(121, 196, 245, 0));
+  width: 96px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--billing-accent), transparent);
 }
 
 .billing-heading-copy {
@@ -69,30 +105,30 @@ const accountBalance = computed(() => Number(state.user?.balance || 0))
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  margin-bottom: 9px;
+  margin-bottom: 10px;
   padding: 0 9px;
-  border: 1px solid rgba(121, 196, 245, 0.18);
+  border: 1px solid var(--billing-border);
   border-radius: 999px;
-  background: rgba(121, 196, 245, 0.06);
-  color: rgba(139, 207, 250, 0.82);
-  font-size: 0.63rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  background: var(--billing-accent-soft);
+  color: var(--billing-accent);
+  font-size: 0.62rem;
+  font-weight: 760;
+  letter-spacing: 0.13em;
 }
 
 .billing-heading h1 {
   margin: 0;
-  color: #f5f8fb;
-  font-size: clamp(2rem, 2.5vw, 2.55rem);
-  font-weight: 720;
+  color: var(--billing-text);
+  font-size: clamp(2rem, 2.5vw, 2.45rem);
+  font-weight: 740;
   letter-spacing: -0.045em;
 }
 
 .billing-heading p {
   max-width: 650px;
   margin: 8px 0 0;
-  color: rgba(212, 222, 232, 0.56);
-  font-size: 0.86rem;
+  color: var(--billing-muted);
+  font-size: 0.82rem;
   line-height: 1.7;
 }
 
@@ -103,232 +139,119 @@ const accountBalance = computed(() => Number(state.user?.balance || 0))
   gap: 8px;
   min-height: 34px;
   padding: 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--billing-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.025);
-  color: rgba(224, 232, 239, 0.5);
+  background: var(--billing-surface);
+  color: var(--billing-muted);
   font-size: 0.72rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
 }
 
 .billing-assurance-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #62d3a5;
-  box-shadow: 0 0 0 4px rgba(98, 211, 165, 0.08);
+  background: var(--billing-success);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--billing-success) 12%, transparent);
 }
 
 :deep(.billing-page) {
-  gap: 22px;
+  gap: 18px;
 }
 
 :deep(.billing-mode) {
   gap: 4px;
-  padding: 5px;
-  border-color: rgba(255, 255, 255, 0.075);
-  border-radius: 14px;
-  background: rgba(10, 13, 18, 0.72);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025), 0 10px 30px rgba(0, 0, 0, 0.14);
+  padding: 4px;
+  border-color: var(--billing-border);
+  border-radius: 13px;
+  background: var(--billing-surface);
+  box-shadow: 0 6px 20px rgba(26, 42, 58, 0.04);
 }
 
 :deep(.billing-mode button) {
-  min-width: 104px;
+  min-width: 108px;
   min-height: 38px;
   padding: 0 18px;
-  border-radius: 10px;
+  border-radius: 9px;
+  color: var(--billing-muted);
   transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
 :deep(.billing-mode button:hover:not(.active)) {
-  color: rgba(255, 255, 255, 0.78);
-  background: rgba(255, 255, 255, 0.035);
+  color: var(--billing-text-soft);
+  background: var(--billing-surface-soft);
 }
 
 :deep(.billing-mode button.active) {
-  background: linear-gradient(180deg, rgba(52, 80, 107, 0.72), rgba(34, 54, 73, 0.78));
-  color: #f7fbff;
-  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.22), inset 0 1px rgba(255, 255, 255, 0.06);
+  background: var(--billing-accent-soft);
+  color: var(--billing-accent-strong);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--billing-accent) 18%, transparent);
 }
 
 :deep(.plan-list) {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
   align-items: stretch;
 }
 
-:deep(.plan-card) {
-  position: relative;
-  isolation: isolate;
-  min-height: 318px;
-  gap: 0;
-  overflow: hidden;
-  padding: 24px 24px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 18px;
+:deep(.pricing-card) {
+  border-color: var(--billing-border);
   background:
-    radial-gradient(circle at 100% 0%, rgba(121, 196, 245, 0.07), transparent 34%),
-    linear-gradient(155deg, rgba(19, 24, 31, 0.97), rgba(10, 13, 18, 0.98));
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.025), 0 12px 36px rgba(0, 0, 0, 0.12);
-  cursor: pointer;
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--billing-accent) 8%, transparent), transparent 34%),
+    var(--billing-surface);
+  box-shadow: var(--billing-shadow);
 }
 
-:deep(.plan-card)::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(135deg, rgba(121, 196, 245, 0.08), transparent 48%);
-  transition: opacity 180ms ease;
+:deep(.pricing-card:hover) {
+  border-color: var(--billing-border-strong);
 }
 
-:deep(.plan-card:hover) {
-  transform: translateY(-3px);
-  border-color: rgba(121, 196, 245, 0.24);
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.04), 0 20px 52px rgba(0, 0, 0, 0.24);
+:deep(.pricing-card.selected) {
+  border-color: var(--billing-accent);
 }
 
-:deep(.plan-card:hover)::after,
-:deep(.plan-card.selected)::after {
-  opacity: 1;
+:deep(.pricing-title h3),
+:deep(.pricing-price) {
+  color: var(--billing-text);
 }
 
-:deep(.plan-card.selected) {
-  border-color: rgba(121, 196, 245, 0.68);
-  box-shadow: 0 0 0 1px rgba(121, 196, 245, 0.08), 0 20px 54px rgba(16, 49, 72, 0.2);
+:deep(.pricing-title p),
+:deep(.pricing-reference),
+:deep(.pricing-facts dt),
+:deep(.pricing-benefits li),
+:deep(.pricing-footnote) {
+  color: var(--billing-muted);
 }
 
-:deep(.plan-card.selected)::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 20px;
-  right: 20px;
-  height: 2px;
-  border-radius: 0 0 999px 999px;
-  background: linear-gradient(90deg, transparent, #79c4f5 22%, #8dd0fb 78%, transparent);
-  box-shadow: 0 0 16px rgba(121, 196, 245, 0.44);
+:deep(.pricing-facts),
+:deep(.pricing-facts > div) {
+  border-color: var(--billing-border);
 }
 
-:deep(.plan-card header) {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  min-height: 84px;
-  padding-bottom: 17px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-:deep(.plan-card header strong) {
-  max-width: 100%;
-  color: #f4f7fa;
-  font-size: 1.02rem;
-  font-weight: 680;
-  line-height: 1.42;
-  letter-spacing: -0.015em;
-}
-
-:deep(.plan-card header .price) {
-  display: inline-flex;
-  align-items: baseline;
-  color: #7ec8f7;
-  font-size: 1.46rem;
-  font-weight: 720;
-  line-height: 1;
-  letter-spacing: -0.025em;
-  text-shadow: 0 0 20px rgba(121, 196, 245, 0.1);
-}
-
-:deep(.plan-card > p) {
-  min-height: 42px;
-  margin: 16px 0 0;
-  color: rgba(204, 216, 227, 0.54);
-  font-size: 0.76rem;
-  line-height: 1.65;
-}
-
-:deep(.plan-card ul) {
-  flex: 1;
-  gap: 9px;
-  margin-top: 17px;
-}
-
-:deep(.plan-card ul li) {
-  position: relative;
-  padding-left: 22px;
-  color: rgba(221, 230, 238, 0.7);
-  font-size: 0.76rem;
-  line-height: 1.5;
-}
-
-:deep(.plan-card ul li)::before {
-  content: '✓';
-  top: 0.05em;
-  left: 1px;
-  display: grid;
-  width: 15px;
-  height: 15px;
-  place-items: center;
-  border: 1px solid rgba(121, 196, 245, 0.22);
-  border-radius: 50%;
-  background: rgba(121, 196, 245, 0.07);
-  color: #82caf8;
-  font-size: 0.58rem;
-  font-weight: 800;
-}
-
-:deep(.plan-card .primary) {
-  width: 100%;
-  height: 45px;
-  margin-top: 22px;
-  border-color: rgba(121, 196, 245, 0.22);
-  border-radius: 11px;
-  background: linear-gradient(180deg, rgba(53, 91, 119, 0.74), rgba(36, 66, 89, 0.82));
-  color: #eef8ff;
-  font-size: 0.82rem;
-  font-weight: 660;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0.07);
-  transition: transform 150ms ease, background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
-}
-
-:deep(.plan-card .primary:hover:not(:disabled)) {
-  transform: translateY(-1px);
-  border-color: rgba(121, 196, 245, 0.48);
-  background: linear-gradient(180deg, rgba(70, 125, 165, 0.92), rgba(45, 85, 115, 0.96));
-  box-shadow: 0 8px 22px rgba(31, 90, 130, 0.2), inset 0 1px rgba(255, 255, 255, 0.1);
-}
-
-:deep(.plan-card.selected .primary) {
-  border-color: #79c4f5;
-  background: linear-gradient(180deg, #85cdf9, #68b7e9);
-  color: #08121a;
-}
-
-:deep(.plan-card .primary:disabled) {
-  opacity: 0.42;
+:deep(.pricing-facts dd) {
+  color: var(--billing-text-soft);
 }
 
 :deep(.empty) {
-  min-height: 170px;
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
-  background: linear-gradient(155deg, rgba(18, 22, 28, 0.9), rgba(10, 13, 18, 0.94));
+  border-color: var(--billing-border);
+  background: var(--billing-surface);
+  color: var(--billing-muted);
 }
 
 @media (max-width: 980px) {
+  .billing-route-page {
+    width: min(100%, 860px);
+  }
+
   .billing-heading {
     align-items: flex-start;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
   }
 
   :deep(.plan-list) {
-    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 }
 
@@ -338,8 +261,9 @@ const accountBalance = computed(() => Number(state.user?.balance || 0))
   }
 
   .billing-heading {
+    min-height: 0;
     margin-bottom: 18px;
-    padding-bottom: 18px;
+    padding: 4px 0 18px;
   }
 
   .billing-heading h1 {
@@ -366,14 +290,9 @@ const accountBalance = computed(() => Number(state.user?.balance || 0))
     gap: 14px;
   }
 
-  :deep(.plan-card) {
+  :deep(.pricing-card) {
     min-height: 0;
-    padding: 21px 20px 18px;
     border-radius: 16px;
-  }
-
-  :deep(.plan-card header) {
-    min-height: 0;
   }
 }
 </style>
