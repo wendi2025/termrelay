@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { api, getErrorMessage, previewMode } from '../core/api'
 import { interfacePreferences } from '../core/preferences'
 
@@ -145,6 +145,16 @@ const groupId = ref<number | 'all'>('all')
 const sortBy = ref<SortKey>('recommended')
 const copied = ref('')
 const expandedModels = ref<string[]>([])
+const providerRailRef = ref<HTMLElement | null>(null)
+const providerIndicator = ref({
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  ready: false,
+})
+const providerButtonMap = new Map<string, HTMLButtonElement>()
+let providerResizeObserver: ResizeObserver | null = null
 
 function rate(group: PlazaGroup) {
   return Number(group.user_rate_multiplier ?? group.rate_multiplier ?? 1)
@@ -413,6 +423,48 @@ function selectGroup(id: number | 'all') {
   provider.value = 'all'
 }
 
+function setProviderButtonRef(key: string, el: unknown) {
+  if (el instanceof HTMLButtonElement) {
+    providerButtonMap.set(key, el)
+    return
+  }
+  providerButtonMap.delete(key)
+}
+
+async function updateProviderIndicator() {
+  await nextTick()
+
+  const rail = providerRailRef.value
+  const activeButton = providerButtonMap.get(provider.value)
+  if (!rail || !activeButton) return
+
+  const railRect = rail.getBoundingClientRect()
+  const buttonRect = activeButton.getBoundingClientRect()
+
+  providerIndicator.value = {
+    x: buttonRect.left - railRect.left + rail.scrollLeft,
+    y: buttonRect.top - railRect.top + rail.scrollTop,
+    width: buttonRect.width,
+    height: buttonRect.height,
+    ready: true,
+  }
+}
+
+function selectProvider(key: string) {
+  provider.value = key
+  void nextTick().then(() => {
+    providerButtonMap.get(key)?.scrollIntoView({
+      behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    })
+  })
+}
+
+function handleProviderRailResize() {
+  void updateProviderIndicator()
+}
+
 function isModelExpanded(id: string) {
   return expandedModels.value.includes(id)
 }
@@ -447,7 +499,24 @@ async function copyId(id: string) {
   }, 1200)
 }
 
-onMounted(() => void loadCatalog())
+watch([provider, providers], () => {
+  void updateProviderIndicator()
+}, { flush: 'post' })
+
+onMounted(() => {
+  if (typeof ResizeObserver !== 'undefined' && providerRailRef.value) {
+    providerResizeObserver = new ResizeObserver(handleProviderRailResize)
+    providerResizeObserver.observe(providerRailRef.value)
+  }
+
+  window.addEventListener('resize', handleProviderRailResize)
+  void loadCatalog().finally(() => updateProviderIndicator())
+})
+
+onBeforeUnmount(() => {
+  providerResizeObserver?.disconnect()
+  window.removeEventListener('resize', handleProviderRailResize)
+})
 </script>
 
 <template>
@@ -487,18 +556,40 @@ onMounted(() => void loadCatalog())
 
     <template v-else>
       <section class="market-filter-shell">
-        <div class="provider-filter" role="tablist" :aria-label="isZh ? '模型服务商' : 'Providers'">
-          <button type="button" data-provider="all" :class="{ active: provider === 'all' }" @click="provider = 'all'">
+        <div
+          ref="providerRailRef"
+          class="provider-filter provider-segmented"
+          role="tablist"
+          :aria-label="isZh ? '模型服务商' : 'Providers'"
+        >
+          <i
+            class="provider-filter-indicator"
+            :class="{ ready: providerIndicator.ready }"
+            :style="{
+              width: `${providerIndicator.width}px`,
+              height: `${providerIndicator.height}px`,
+              transform: `translate3d(${providerIndicator.x}px, ${providerIndicator.y}px, 0)`,
+            }"
+            aria-hidden="true"
+          ></i>
+          <button
+            :ref="(el) => setProviderButtonRef('all', el)"
+            type="button"
+            data-provider="all"
+            :class="{ active: provider === 'all' }"
+            @click="selectProvider('all')"
+          >
             <span>{{ isZh ? '全部模型' : 'All models' }}</span>
             <b>{{ models.length }}</b>
           </button>
           <button
             v-for="item in providers"
             :key="item.key"
+            :ref="(el) => setProviderButtonRef(item.key, el)"
             type="button"
             :data-provider="item.key"
             :class="{ active: provider === item.key }"
-            @click="provider = item.key"
+            @click="selectProvider(item.key)"
           >
             <span>{{ item.name }}</span>
             <b>{{ item.count }}</b>

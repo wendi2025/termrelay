@@ -1,0 +1,269 @@
+/* Provider selector — animated segmented rail.
+ *
+ * Keeps the existing provider logo masks and filtering behavior, but replaces
+ * the row of independent buttons with one continuous segmented control and a
+ * single animated selection surface.
+ */
+
+.workspace-root .model-market-page .provider-filter.provider-segmented {
+  position: relative;
+  isolation: isolate;
+  min-height: 66px;
+  margin: 11px 12px 9px;
+  padding: 6px;
+  border: 1px solid #2a3139;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.018), transparent),
+    #0d1014;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.018),
+    0 4px 14px rgba(0,0,0,.08);
+  scrollbar-width: none;
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented::-webkit-scrollbar {
+  display: none;
+}
+
+.workspace-root .model-market-page .provider-filter-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 0;
+  border: 1px solid #36546a;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(76,166,224,.10), rgba(76,166,224,.045)),
+    #151b21;
+  box-shadow:
+    0 7px 18px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.035);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, width, height;
+  transition:
+    transform .38s cubic-bezier(.22,1,.36,1),
+    width .38s cubic-bezier(.22,1,.36,1),
+    height .28s cubic-bezier(.22,1,.36,1),
+    opacity .16s ease;
+}
+
+.workspace-root .model-market-page .provider-filter-indicator.ready {
+  opacity: 1;
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  min-width: 112px;
+  height: 52px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #929da8;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  cursor: pointer;
+  transform: translateZ(0);
+  transition:
+    color .20s ease,
+    opacity .20s ease,
+    transform .18s cubic-bezier(.22,1,.36,1);
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button:first-of-type {
+  min-width: 132px;
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button:hover {
+  border-color: transparent;
+  color: #cbd3da;
+  background: transparent;
+  transform: translateY(-1px);
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button:active {
+  transform: translateY(0) scale(.985);
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button.active {
+  border-color: transparent;
+  color: #a9d8f4;
+  background: transparent;
+  box-shadow: none;
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button::before {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  opacity: .78;
+  transition:
+    color .20s ease,
+    opacity .20s ease,
+    transform .26s cubic-bezier(.22,1,.36,1);
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button:hover::before {
+  opacity: .95;
+  transform: scale(1.04);
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button.active::before {
+  opacity: 1;
+  transform: scale(1.07);
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button > span {
+  color: inherit;
+  font-size: .78rem;
+  line-height: 1;
+  font-weight: 660;
+  white-space: nowrap;
+  transition: color .20s ease;
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button > b {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  color: #78838e;
+  background: rgba(255,255,255,.04);
+  font-size: .62rem;
+  line-height: 1;
+  font-weight: 700;
+  transition:
+    color .20s ease,
+    background-color .20s ease,
+    transform .24s cubic-bezier(.22,1,.36,1);
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button.active > b {
+  color: #9ed0ef;
+  background: rgba(83,166,219,.12);
+  transform: scale(1.04);
+}
+
+.workspace-root .model-market-page .provider-filter.provider-segmented > button:focus-visible {
+  outline: 2px solid rgba(78,165,222,.55);
+  outline-offset: -2px;
+}
+
+/* The provider rail now owns its own visual boundary, so the group section can
+ * breathe underneath it instead of touching a full-width button strip. */
+.workspace-root .model-market-page .market-filter-shell > .group-filter-row {
+  border-top-color: #242a31;
+}
+
+/* Light theme */
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter.provider-segmented {
+  border-color: #d9e2e9;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
+  box-shadow:
+    0 8px 24px rgba(36,55,70,.055),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter-indicator {
+  border-color: #bfd7e8;
+  background:
+    linear-gradient(180deg, #eef7fd 0%, #e8f2f9 100%);
+  box-shadow:
+    0 7px 18px rgba(45,91,122,.075),
+    inset 0 1px 0 rgba(255,255,255,.95);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter.provider-segmented > button {
+  color: #697683;
+  background: transparent;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter.provider-segmented > button:hover {
+  color: #33414d;
+  background: transparent;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter.provider-segmented > button.active {
+  color: #176a9f;
+  background: transparent;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter.provider-segmented > button > b {
+  color: #77838e;
+  background: #f0f3f6;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter.provider-segmented > button.active > b {
+  color: #2b719d;
+  background: rgba(63,139,190,.10);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-filter-shell > .group-filter-row {
+  border-top-color: #e3e8ec;
+}
+
+@media (max-width: 900px) {
+  .workspace-root .model-market-page .provider-filter.provider-segmented {
+    margin: 9px 10px 8px;
+    padding: 5px;
+    border-radius: 12px;
+  }
+
+  .workspace-root .model-market-page .provider-filter.provider-segmented > button {
+    min-width: 102px;
+    height: 48px;
+    padding: 0 12px;
+    gap: 9px;
+  }
+
+  .workspace-root .model-market-page .provider-filter.provider-segmented > button:first-of-type {
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 640px) {
+  .workspace-root .model-market-page .provider-filter.provider-segmented {
+    margin: 8px;
+  }
+
+  .workspace-root .model-market-page .provider-filter.provider-segmented > button {
+    min-width: 96px;
+    height: 46px;
+    padding: 0 11px;
+  }
+
+  .workspace-root .model-market-page .provider-filter.provider-segmented > button:first-of-type {
+    min-width: 116px;
+  }
+
+  .workspace-root .model-market-page .provider-filter.provider-segmented > button > span {
+    font-size: .74rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-root .model-market-page .provider-filter-indicator,
+  .workspace-root .model-market-page .provider-filter.provider-segmented > button,
+  .workspace-root .model-market-page .provider-filter.provider-segmented > button::before,
+  .workspace-root .model-market-page .provider-filter.provider-segmented > button > b {
+    transition: none !important;
+  }
+}
