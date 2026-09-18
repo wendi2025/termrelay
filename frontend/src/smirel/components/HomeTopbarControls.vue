@@ -285,17 +285,20 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .home-workspace-controls {
-  --home-toolbar-surface: #0f1115;
-  --home-toolbar-soft: #14171c;
-  --home-toolbar-border: #2a2f37;
-  --home-toolbar-border-strong: #39414b;
-  --home-toolbar-text: #dce1e7;
-  --home-toolbar-muted: #89939e;
-  --home-toolbar-subtle: #69737e;
-  --home-toolbar-accent: #2f96e8;
+  --home-toolbar-surface: var(--surface, #0f1115);
+  --home-toolbar-soft: var(--surface-hover, #14171c);
+  --home-toolbar-border: var(--border, #2a2f37);
+  --home-toolbar-border-strong: var(--border-strong, #39414b);
+  --home-toolbar-text: var(--text, #dce1e7);
+  --home-toolbar-muted: var(--muted, #89939e);
+  --home-toolbar-subtle: var(--subtle, #69737e);
+  --home-toolbar-accent: var(--accent, #2f96e8);
+  min-width: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .home-workspace-link,
@@ -318,10 +321,12 @@ onBeforeUnmount(() => {
 
 .home-workspace-link {
   min-width: 38px;
+  flex: 0 0 auto;
   padding: 0 10px;
   gap: 7px;
   font-size: .76rem;
   font-weight: 610;
+  white-space: nowrap;
 }
 
 .home-workspace-link :deep(.workspace-nav-icon) {
@@ -339,12 +344,12 @@ onBeforeUnmount(() => {
 }
 
 .home-workspace-link:hover :deep(.workspace-nav-icon) {
-  color: #aeb9c4;
+  color: var(--home-toolbar-text);
 }
 
 .home-mode-switch {
   position: relative;
-  width: 148px;
+  width: 164px;
   height: 42px;
   margin-left: 5px;
   padding: 4px;
@@ -353,7 +358,8 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   background: var(--home-toolbar-surface);
-  box-shadow: inset 0 1px rgba(255,255,255,.018);
+  box-shadow: inset 0 1px color-mix(in srgb, var(--home-toolbar-text) 4%, transparent);
+  flex: 0 0 auto;
 }
 
 .home-mode-indicator {
@@ -362,10 +368,10 @@ onBeforeUnmount(() => {
   left: 4px;
   width: calc(50% - 4px);
   height: 32px;
-  border: 1px solid #33414e;
+  border: 1px solid color-mix(in srgb, var(--home-toolbar-accent) 25%, var(--home-toolbar-border));
   border-radius: 8px;
-  background: #18232d;
-  box-shadow: 0 3px 10px rgba(0,0,0,.18);
+  background: color-mix(in srgb, var(--home-toolbar-accent) 8%, var(--home-toolbar-surface));
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--home-toolbar-text) 8%, transparent);
   transition: transform .28s cubic-bezier(.22,1,.36,1);
 }
 
@@ -377,7 +383,7 @@ onBeforeUnmount(() => {
   position: relative;
   z-index: 1;
   border: 0;
-  color: #77828e;
+  color: var(--home-toolbar-muted);
   background: transparent;
   font: inherit;
   font-size: .71rem;
@@ -386,14 +392,14 @@ onBeforeUnmount(() => {
 }
 
 .home-mode-switch button.active {
-  color: #bfe1f7;
+  color: color-mix(in srgb, var(--home-toolbar-accent) 78%, var(--home-toolbar-text));
 }
 
 .home-control-divider {
   width: 1px;
   height: 22px;
   margin: 0 7px;
-  background: #2b3037;
+  background: var(--home-toolbar-border);
 }
 
 .home-utility-control {
@@ -410,10 +416,10 @@ onBeforeUnmount(() => {
 }
 
 .home-utility-button.active {
-  border-color: #36546b;
+  border-color: color-mix(in srgb, var(--home-toolbar-accent) 34%, var(--home-toolbar-border-strong));
   color: var(--home-toolbar-text);
-  background: #121a22;
-  box-shadow: 0 0 0 3px rgba(47,150,232,.07);
+  background: color-mix(in srgb, var(--home-toolbar-accent) 6%, var(--home-toolbar-surface));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--home-toolbar-accent) 7%, transparent);
 }
 
 .home-utility-button svg {
@@ -449,7 +455,7 @@ onBeforeUnmount(() => {
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  border: 2px solid #090a0c;
+  border: 2px solid var(--bg, #090a0c);
   border-radius: 999px;
   color: #fff;
   background: var(--home-toolbar-accent);
@@ -707,40 +713,7 @@ onBeforeUnmount(() => {
 .theme-light { background: #f2f4f6; }
 .theme-system { background: linear-gradient(135deg, #f2f4f6 0 49%, #171a1f 50% 100%); }
 
-:global(html.smirel-app[data-theme='light']) .home-workspace-controls {
-  --home-toolbar-surface: #ffffff;
-  --home-toolbar-soft: #f5f8fa;
-  --home-toolbar-border: #dbe3ea;
-  --home-toolbar-border-strong: #cbd6df;
-  --home-toolbar-text: #2a333c;
-  --home-toolbar-muted: #687686;
-  --home-toolbar-subtle: #85929e;
-}
-
-:global(html.smirel-app[data-theme='light']) .home-mode-indicator {
-  border-color: #cbddea;
-  background: #eaf4fb;
-  box-shadow: 0 3px 10px rgba(45,77,101,.08);
-}
-
-:global(html.smirel-app[data-theme='light']) .home-mode-switch button.active {
-  color: #155f97;
-}
-
-:global(html.smirel-app[data-theme='light']) .home-control-divider {
-  background: #d5dde5;
-}
-
-:global(html.smirel-app[data-theme='light']) .home-utility-button.active {
-  border-color: #bcd7e9;
-  background: #eef7fd;
-}
-
-:global(html.smirel-app[data-theme='light']) .home-notification-badge {
-  border-color: #f5f7fa;
-}
-
-:global(html.smirel-app[data-theme='light']) .home-utility-popover {
+:global(html.smirel-app[data-theme='light'] .home-page) .home-utility-popover {
   box-shadow: 0 20px 50px rgba(35,47,59,.14);
 }
 
@@ -749,7 +722,7 @@ onBeforeUnmount(() => {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@media (max-width: 1420px) {
+@media (max-width: 1320px) {
   .home-workspace-link {
     width: 38px;
     padding: 0;
@@ -760,7 +733,7 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1100px) {
   .home-mode-switch {
     width: 116px;
   }
