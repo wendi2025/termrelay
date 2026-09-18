@@ -809,21 +809,26 @@
 }
 
 /* Desktop viewport shell --------------------------------------------------
- * Keep navigation chrome anchored to the viewport and let only the main
- * workspace column scroll. This prevents the sidebar and contextual top bar
- * from drifting with long pages while preserving independent sidebar nav
- * scrolling.
+ * The previous pass moved scrolling into .workspace-main, which made the
+ * sidebar and header share a scroll relationship with some detail views.
+ * Keep page scrolling on the document and pin the chrome to the viewport
+ * instead. This is deliberately desktop-only; mobile keeps the drawer shell.
  */
 @media (min-width: 981px) {
   .workspace-root {
-    height: 100vh;
-    height: 100dvh;
+    --workspace-sidebar-width: 232px;
+    display: block;
     min-height: 100vh;
     min-height: 100dvh;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .workspace-root .workspace-sidebar {
+    position: fixed;
+    z-index: 40;
+    left: 0;
+    top: 0;
+    width: var(--workspace-sidebar-width);
     height: 100vh;
     height: 100dvh;
     max-height: 100vh;
@@ -831,17 +836,11 @@
   }
 
   .workspace-root .workspace-main {
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior-y: contain;
-    scrollbar-gutter: stable;
-  }
-
-  .workspace-root .workspace-topbar {
-    top: 0;
+    width: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin-left: var(--workspace-sidebar-width);
+    overflow: visible;
   }
 }
 
@@ -854,6 +853,7 @@
 
 @media (max-width: 1120px) {
   .workspace-root {
+    --workspace-sidebar-width: 220px;
     grid-template-columns: 220px minmax(0, 1fr);
   }
 
