@@ -922,17 +922,21 @@ onMounted(() => void load())
 }
 
 .model-distribution-list {
-  padding: 10px 14px 14px;
+  padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 9px;
 }
 
 .model-distribution-row {
   position: relative;
   padding: 12px 11px 11px;
-  border: 1px solid transparent;
-  border-radius: 11px;
+  border: 1px solid #202831;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .012);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .012),
+    0 1px 1px rgba(0, 0, 0, .08);
   transition:
     transform .18s cubic-bezier(.2, .75, .25, 1),
     border-color .18s ease,
@@ -941,14 +945,12 @@ onMounted(() => void load())
 }
 
 .model-distribution-row:hover {
-  border-color: #252e37;
-  background: rgba(255, 255, 255, .022);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, .11);
+  border-color: #2b3641;
+  background: rgba(255, 255, 255, .024);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, .018),
+    0 8px 22px rgba(0, 0, 0, .11);
   transform: translateY(-1px);
-}
-
-.model-distribution-row + .model-distribution-row {
-  border-top-color: transparent;
 }
 
 .model-distribution-row .distribution-head > span {
