@@ -1,0 +1,220 @@
+/* Homepage hero button interactions ---------------------------------------
+ *
+ * Keep the two CTAs tactile and premium without making them feel playful.
+ * The primary action gets lift + a restrained sheen; the secondary action
+ * gets a quieter border/surface response. Entry animation is handled by
+ * home-entry.css and releases transform after completion.
+ */
+
+.home-page .hero-actions {
+  --hero-button-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+.home-page .hero-actions .primary-button,
+.home-page .hero-actions .secondary-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: translate3d(0, 0, 0);
+  will-change: transform, box-shadow;
+  transition:
+    transform .22s var(--hero-button-ease),
+    box-shadow .22s var(--hero-button-ease),
+    border-color .18s ease,
+    background-color .18s ease,
+    color .18s ease,
+    filter .18s ease;
+}
+
+.home-page .hero-actions .primary-button {
+  box-shadow:
+    0 8px 20px rgba(36, 153, 230, .15),
+    inset 0 1px 0 rgba(255, 255, 255, .13);
+}
+
+.home-page .hero-actions .primary-button::before {
+  content: '';
+  position: absolute;
+  inset: -35% -24%;
+  z-index: 0;
+  background: linear-gradient(
+    112deg,
+    transparent 32%,
+    rgba(255, 255, 255, .02) 41%,
+    rgba(255, 255, 255, .20) 49%,
+    rgba(255, 255, 255, .035) 57%,
+    transparent 66%
+  );
+  opacity: 0;
+  transform: translate3d(-72%, 0, 0) skewX(-14deg);
+  pointer-events: none;
+}
+
+.home-page .hero-actions .primary-button::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 18%;
+  right: 18%;
+  bottom: -18px;
+  height: 30px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(36, 153, 230, .33), rgba(36, 153, 230, 0) 72%);
+  opacity: 0;
+  filter: blur(10px);
+  transform: scale(.78);
+  pointer-events: none;
+  transition:
+    opacity .22s ease,
+    transform .28s var(--hero-button-ease);
+}
+
+.home-page .hero-actions .secondary-button {
+  box-shadow:
+    0 5px 14px rgba(0, 0, 0, .05),
+    inset 0 1px 0 rgba(255, 255, 255, .025);
+}
+
+.home-page .hero-actions .secondary-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 22% 12%, rgba(73, 166, 228, .11), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, .025), transparent 60%);
+  opacity: 0;
+  transform: scale(.96);
+  pointer-events: none;
+  transition:
+    opacity .2s ease,
+    transform .28s var(--hero-button-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-page .hero-actions .primary-button:hover {
+    transform: translate3d(0, -3px, 0) scale(1.012);
+    border-color: #43b2f5;
+    background: #2ca3ec;
+    box-shadow:
+      0 14px 30px rgba(36, 153, 230, .24),
+      0 0 0 1px rgba(91, 185, 241, .08),
+      inset 0 1px 0 rgba(255, 255, 255, .18);
+    filter: saturate(1.04);
+  }
+
+  .home-page .hero-actions .primary-button:hover::before {
+    opacity: 1;
+    animation: homePrimaryButtonSheen .78s var(--hero-button-ease) 1;
+  }
+
+  .home-page .hero-actions .primary-button:hover::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .home-page .hero-actions .secondary-button:hover {
+    transform: translate3d(0, -2px, 0);
+    border-color: #40515f;
+    background: #151a20;
+    color: #f2f7fa;
+    box-shadow:
+      0 11px 24px rgba(0, 0, 0, .11),
+      0 0 0 1px rgba(72, 151, 205, .045),
+      inset 0 1px 0 rgba(255, 255, 255, .045);
+  }
+
+  .home-page .hero-actions .secondary-button:hover::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .home-page .hero-actions:hover .primary-button:not(:hover),
+  .home-page .hero-actions:hover .secondary-button:not(:hover) {
+    transform: translate3d(0, -1px, 0);
+  }
+}
+
+.home-page .hero-actions .primary-button:active,
+.home-page .hero-actions .secondary-button:active {
+  transform: translate3d(0, 0, 0) scale(.975);
+  transition-duration: .09s;
+}
+
+.home-page .hero-actions .primary-button:focus-visible,
+.home-page .hero-actions .secondary-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(67, 164, 230, .16),
+    0 10px 24px rgba(0, 0, 0, .12);
+}
+
+@keyframes homePrimaryButtonSheen {
+  from {
+    transform: translate3d(-72%, 0, 0) skewX(-14deg);
+  }
+  to {
+    transform: translate3d(72%, 0, 0) skewX(-14deg);
+  }
+}
+
+/* Light theme ------------------------------------------------------------ */
+
+html.smirel-app[data-theme='light'] .home-page .hero-actions .primary-button {
+  box-shadow:
+    0 8px 20px rgba(38, 143, 216, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .24);
+}
+
+html.smirel-app[data-theme='light'] .home-page .hero-actions .secondary-button {
+  box-shadow:
+    0 6px 16px rgba(32, 49, 64, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+html.smirel-app[data-theme='light'] .home-page .hero-actions .secondary-button::before {
+  background:
+    radial-gradient(circle at 22% 12%, rgba(58, 145, 204, .085), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(239, 246, 250, .32));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.smirel-app[data-theme='light'] .home-page .hero-actions .primary-button:hover {
+    border-color: #4aa6e2;
+    background: #278fd6;
+    box-shadow:
+      0 14px 30px rgba(38, 143, 216, .20),
+      0 0 0 1px rgba(75, 162, 220, .10),
+      inset 0 1px 0 rgba(255, 255, 255, .28);
+  }
+
+  html.smirel-app[data-theme='light'] .home-page .hero-actions .secondary-button:hover {
+    border-color: #b7ccdb;
+    background: #fbfdff;
+    color: #245e86;
+    box-shadow:
+      0 11px 24px rgba(35, 55, 72, .075),
+      0 0 0 1px rgba(75, 149, 200, .075),
+      inset 0 1px 0 rgba(255, 255, 255, .96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .hero-actions .primary-button,
+  .home-page .hero-actions .secondary-button,
+  .home-page .hero-actions .primary-button::before,
+  .home-page .hero-actions .primary-button::after,
+  .home-page .hero-actions .secondary-button::before {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .home-page .hero-actions .primary-button:hover,
+  .home-page .hero-actions .secondary-button:hover,
+  .home-page .hero-actions:hover .primary-button:not(:hover),
+  .home-page .hero-actions:hover .secondary-button:not(:hover),
+  .home-page .hero-actions .primary-button:active,
+  .home-page .hero-actions .secondary-button:active {
+    transform: none !important;
+  }
+}
