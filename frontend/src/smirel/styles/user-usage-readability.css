@@ -1152,40 +1152,41 @@ html.smirel-app .user-usage-page .overview-panel .usage-profile-list {
 html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div {
   position: relative;
   min-height: 58px;
-  padding: 0 11px 0 13px;
-  border: 1px solid transparent;
-  border-bottom-color: #22282f;
-  border-radius: 9px;
+  padding: 0 12px 0 26px;
+  border: 0;
+  border-radius: 10px;
   display: grid;
   grid-template-columns: minmax(150px, .8fr) minmax(0, 1fr);
   align-items: center;
+  background: rgba(255, 255, 255, .012);
   transition:
-    border-color .16s ease,
     background-color .16s ease,
-    transform .16s ease;
+    transform .16s ease,
+    box-shadow .16s ease;
 }
 
 html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div:last-child {
-  border-bottom-color: transparent;
+  border: 0;
 }
 
 html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div:hover {
-  border-color: #2b343d;
-  background: rgba(255, 255, 255, .018);
+  border: 0;
+  background: rgba(255, 255, 255, .026);
+  box-shadow: inset 0 0 0 1px rgba(129, 153, 174, .07);
   transform: translateX(2px);
 }
 
 html.smirel-app .user-usage-page .overview-panel .usage-profile-list > div::before {
   content: '';
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   position: absolute;
-  left: 1px;
+  left: 11px;
   top: 50%;
-  margin-top: -2px;
+  margin-top: -2.5px;
   border-radius: 50%;
-  background: #596a79;
-  opacity: .62;
+  background: #64798a;
+  opacity: .66;
 }
 
 html.smirel-app .user-usage-page .overview-panel .usage-profile-list dt {
