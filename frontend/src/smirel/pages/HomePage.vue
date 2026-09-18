@@ -83,13 +83,13 @@ async function copyBase() {
 
 <template>
   <div ref="homeRoot" class="home-page">
-    <header class="home-topbar">
+    <header class="home-topbar" :class="{ 'home-topbar--signed-in': isAuthenticated }">
       <RouterLink to="/home" class="brand-link">
         <img :src="logoUrl" alt="Smirel" />
         <span><strong>Smirel</strong><small>API SERVICE</small></span>
       </RouterLink>
 
-      <nav class="home-nav">
+      <nav v-if="!isAuthenticated" class="home-nav">
         <RouterLink to="/model-plaza">模型与价格</RouterLink>
         <RouterLink to="/key-usage">用量查询</RouterLink>
         <a href="https://api.smirel.com" target="_blank" rel="noreferrer">接入文档</a>
