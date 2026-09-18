@@ -808,6 +808,43 @@
   font-size: .72rem;
 }
 
+/* Desktop viewport shell --------------------------------------------------
+ * Keep navigation chrome anchored to the viewport and let only the main
+ * workspace column scroll. This prevents the sidebar and contextual top bar
+ * from drifting with long pages while preserving independent sidebar nav
+ * scrolling.
+ */
+@media (min-width: 981px) {
+  .workspace-root {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .workspace-root .workspace-sidebar {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+
+  .workspace-root .workspace-main {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .workspace-root .workspace-topbar {
+    top: 0;
+  }
+}
+
 /* Responsive */
 .workspace-root .mobile-menu,
 .workspace-root .mobile-close,
