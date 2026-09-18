@@ -261,3 +261,51 @@ html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-use
 html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-heading small {
   color: #7b8691;
 }
+/* API key credential actions — light-mode final override */
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .api-key-card .api-key-secret .api-key-secret-actions > button {
+  border-color: #d5dfe7 !important;
+  color: #536574 !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 1px 2px rgba(27, 43, 57, .035),
+    inset 0 1px 0 rgba(255, 255, 255, .95) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .api-key-card .api-key-secret .api-key-secret-actions > .api-key-reveal-button {
+  border-color: #d7e0e8 !important;
+  color: #5b6875 !important;
+  background: linear-gradient(180deg, #ffffff, #f7f9fb) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .api-key-card .api-key-secret .api-key-secret-actions > .api-key-copy-button {
+  border-color: #cbdfea !important;
+  color: #2f78aa !important;
+  background: linear-gradient(180deg, #f5faff, #edf6fc) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .api-key-card .api-key-secret .api-key-secret-actions > button:hover:not(:disabled) {
+  border-color: #b9ccd9 !important;
+  color: #315d7c !important;
+  background: #f4f8fb !important;
+  box-shadow:
+    0 4px 10px rgba(38, 72, 97, .07),
+    inset 0 1px 0 rgba(255, 255, 255, .98) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .api-key-card .api-key-secret .api-key-secret-actions > .api-key-copy-button:hover:not(:disabled) {
+  border-color: #abd0e7 !important;
+  color: #176a9f !important;
+  background: #e9f5fc !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .api-key-card .api-key-secret .api-key-secret-actions > .api-key-copy-button.copied {
+  border-color: #b9dfce !important;
+  color: #1d805c !important;
+  background: #edf8f3 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .api-key-card .api-key-secret .api-key-secret-actions > button svg {
+  color: currentColor;
+  stroke: currentColor;
+}
+
