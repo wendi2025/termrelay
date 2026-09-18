@@ -120,6 +120,13 @@ function isPicked(opt: MethodOption) {
       <span class="eyebrow">{{ t('payment.methodLabel') }}</span>
       <small>{{ t('payment.methodDescription') }}</small>
     </header>
+    <div v-if="grouped.length === 0" class="methods-empty">
+      <span class="methods-empty-icon">—</span>
+      <div>
+        <strong>{{ t('payment.methodUnavailable') }}</strong>
+        <small>{{ t('payment.methodDescription') }}</small>
+      </div>
+    </div>
     <div v-for="[group, items] in grouped" :key="group" class="group">
       <div class="group-head">
         <span class="group-icon">{{ groupIcon(group) }}</span>
@@ -152,97 +159,181 @@ function isPicked(opt: MethodOption) {
 
 <style scoped>
 .payment-methods-picker {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  background: rgba(15, 18, 24, 0.78);
-  padding: 16px 18px 18px;
+  padding: 18px;
+  border: 1px solid var(--billing-border, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  background: var(--billing-surface, rgba(15, 18, 24, 0.78));
 }
+
 .payment-methods-picker header {
   display: flex;
   flex-direction: column;
   gap: 4px;
   margin-bottom: 14px;
 }
+
 .payment-methods-picker .eyebrow {
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
+  color: var(--billing-text, rgba(255,255,255,.9));
+  font-size: .76rem;
+  font-weight: 700;
 }
+
 .payment-methods-picker header small {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--billing-muted, rgba(255,255,255,.42));
+  font-size: .68rem;
 }
+
+.methods-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 82px;
+  padding: 15px;
+  border: 1px dashed var(--billing-border, rgba(255,255,255,.1));
+  border-radius: 12px;
+  background: var(--billing-surface-soft, rgba(255,255,255,.025));
+}
+
+.methods-empty-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--billing-accent-soft, rgba(121,196,245,.08));
+  color: var(--billing-accent-strong, #79c4f5);
+  font-size: 1rem;
+}
+
+.methods-empty strong {
+  display: block;
+  color: var(--billing-text-soft, rgba(255,255,255,.75));
+  font-size: .76rem;
+  font-weight: 680;
+}
+
+.methods-empty small {
+  display: block;
+  margin-top: 4px;
+  color: var(--billing-muted, rgba(255,255,255,.42));
+  font-size: .66rem;
+  line-height: 1.45;
+}
+
 .group {
   margin-bottom: 14px;
 }
+
 .group:last-child {
   margin-bottom: 0;
 }
+
 .group-head {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.55);
-  font-weight: 560;
+  color: var(--billing-muted, rgba(255,255,255,.55));
+  font-size: .71rem;
+  font-weight: 620;
 }
+
 .group-icon {
-  width: 22px;
-  height: 22px;
   display: inline-flex;
+  width: 24px;
+  height: 24px;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  background: rgba(120, 175, 230, 0.12);
-  color: #79c4f5;
-  font-size: 0.7rem;
-  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--billing-accent, #79c4f5) 16%, transparent);
+  border-radius: 7px;
+  background: var(--billing-accent-soft, rgba(120,175,230,.12));
+  color: var(--billing-accent-strong, #79c4f5);
+  font-size: .66rem;
+  font-weight: 760;
 }
+
 .options {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
   gap: 8px;
 }
+
 .options button {
+  position: relative;
   display: flex;
+  min-height: 66px;
   flex-direction: column;
+  justify-content: center;
   gap: 4px;
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  color: rgba(255, 255, 255, 0.78);
+  padding: 11px 13px;
+  border: 1px solid var(--billing-border, rgba(255,255,255,.08));
+  border-radius: 11px;
+  background: var(--billing-surface-soft, rgba(255,255,255,.02));
+  color: var(--billing-text-soft, rgba(255,255,255,.78));
+  font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: all 0.18s ease;
-  font-family: inherit;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
 }
+
 .options button:hover:not(:disabled) {
-  border-color: rgba(120, 175, 230, 0.4);
-  background: rgba(120, 175, 230, 0.05);
+  transform: translateY(-1px);
+  border-color: var(--billing-border-strong, rgba(120,175,230,.4));
+  background: var(--billing-accent-soft, rgba(120,175,230,.05));
 }
+
 .options button.active {
-  border-color: #79c4f5;
-  background: rgba(120, 175, 230, 0.12);
-  color: #fff;
+  border-color: var(--billing-accent, #79c4f5);
+  background: var(--billing-accent-soft, rgba(120,175,230,.12));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--billing-accent, #79c4f5) 8%, transparent);
 }
+
+.options button.active::after {
+  content: '✓';
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--billing-accent, #79c4f5);
+  color: #07131c;
+  font-size: .58rem;
+  font-weight: 900;
+}
+
 .options button.unavailable {
-  opacity: 0.5;
+  opacity: .48;
   cursor: not-allowed;
 }
+
 .options button strong {
-  font-size: 0.84rem;
-  font-weight: 600;
+  padding-right: 24px;
+  font-size: .8rem;
+  font-weight: 680;
 }
+
 .options button small {
-  font-size: 0.66rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--billing-muted, rgba(255,255,255,.45));
+  font-size: .64rem;
 }
+
 .options button .reason {
-  font-size: 0.6rem;
-  color: #f48b8b;
   margin-top: 2px;
+  color: var(--billing-danger, #f48b8b);
+  font-size: .6rem;
+}
+
+@media (max-width: 560px) {
+  .payment-methods-picker {
+    padding: 15px;
+  }
+
+  .options {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
