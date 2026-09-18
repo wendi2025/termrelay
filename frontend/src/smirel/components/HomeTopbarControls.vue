@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
       <span>{{ item.label }}</span>
     </RouterLink>
 
-    <div v-if="isAdmin" class="home-mode-switch" role="group" :aria-label="t('shell.switchWorkspace')">
+    <div v-if="isAdmin" class="home-mode-switch" role="group" :aria-label="interfacePreferences.locale === 'zh-CN' ? '切换工作区' : 'Switch workspace'">
       <span class="home-mode-indicator" :class="{ 'is-admin': homeMode === 'admin' }" aria-hidden="true"></span>
       <button
         type="button"
