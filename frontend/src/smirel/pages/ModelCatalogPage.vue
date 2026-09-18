@@ -144,6 +144,7 @@ const provider = ref('all')
 const groupId = ref<number | 'all'>('all')
 const sortBy = ref<SortKey>('recommended')
 const copied = ref('')
+const expandedModels = ref<string[]>([])
 
 function rate(group: PlazaGroup) {
   return Number(group.user_rate_multiplier ?? group.rate_multiplier ?? 1)
@@ -412,6 +413,16 @@ function selectGroup(id: number | 'all') {
   provider.value = 'all'
 }
 
+function isModelExpanded(id: string) {
+  return expandedModels.value.includes(id)
+}
+
+function toggleModelDetails(id: string) {
+  expandedModels.value = isModelExpanded(id)
+    ? expandedModels.value.filter((item) => item !== id)
+    : [...expandedModels.value, id]
+}
+
 async function copyId(id: string) {
   if (!navigator.clipboard) return
   await navigator.clipboard.writeText(id)
@@ -535,7 +546,12 @@ onMounted(() => void loadCatalog())
       </section>
 
       <div v-if="filtered.length" class="model-market-grid">
-        <article v-for="(model, index) in filtered" :key="model.id" class="model-market-card">
+        <article
+          v-for="(model, index) in filtered"
+          :key="model.id"
+          class="model-market-card"
+          :class="{ 'is-expanded': isModelExpanded(model.id) }"
+        >
           <header class="model-card-head">
             <div class="model-identity">
               <span class="provider-mark" :data-provider="model.providerKey">{{ model.mark }}</span>
@@ -548,10 +564,22 @@ onMounted(() => void loadCatalog())
                 </div>
               </div>
             </div>
-            <span class="model-rank">#{{ String(index + 1).padStart(2, '0') }}</span>
+            <div class="model-card-actions">
+              <span class="model-rank">#{{ String(index + 1).padStart(2, '0') }}</span>
+              <button
+                class="model-detail-toggle"
+                type="button"
+                :aria-expanded="isModelExpanded(model.id)"
+                :aria-controls="`model-details-${index}`"
+                @click="toggleModelDetails(model.id)"
+              >
+                <span>{{ isModelExpanded(model.id) ? (isZh ? '收起' : 'Less') : (isZh ? '详情' : 'Details') }}</span>
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
+              </button>
+            </div>
           </header>
 
-          <section class="model-price-grid">
+          <section class="model-primary-prices">
             <div>
               <span>{{ isZh ? '输入' : 'Input' }}</span>
               <strong>{{ money(model.inputPerM) }}<small v-if="model.inputPerM != null"> / M tokens</small></strong>
@@ -560,54 +588,61 @@ onMounted(() => void loadCatalog())
               <span>{{ isZh ? '输出' : 'Output' }}</span>
               <strong>{{ money(model.outputPerM) }}<small v-if="model.outputPerM != null"> / M tokens</small></strong>
             </div>
-            <div>
-              <span>{{ isZh ? '缓存写入' : 'Cache write' }}</span>
-              <strong>{{ money(model.cacheWritePerM) }}<small v-if="model.cacheWritePerM != null"> / M tokens</small></strong>
-            </div>
-            <div>
-              <span>{{ isZh ? '缓存读取' : 'Cache read' }}</span>
-              <strong>{{ money(model.cacheReadPerM) }}<small v-if="model.cacheReadPerM != null"> / M tokens</small></strong>
-            </div>
           </section>
 
-          <section class="model-specs">
-            <div><span>{{ isZh ? '可用分组' : 'Groups' }}</span><strong>{{ model.offers.length }}</strong></div>
-            <div><span>{{ isZh ? '最低倍率' : 'Best rate' }}</span><strong>{{ model.bestRate.toFixed(2) }}×</strong></div>
-            <div><span>{{ isZh ? '价格来源' : 'Price source' }}</span><strong>{{ priceSourceLabel(model.priceSource) }}</strong></div>
-          </section>
+          <Transition name="model-details">
+            <div v-if="isModelExpanded(model.id)" :id="`model-details-${index}`" class="model-detail-content">
+              <section class="model-secondary-prices">
+                <div>
+                  <span>{{ isZh ? '缓存写入' : 'Cache write' }}</span>
+                  <strong>{{ money(model.cacheWritePerM) }}<small v-if="model.cacheWritePerM != null"> / M tokens</small></strong>
+                </div>
+                <div>
+                  <span>{{ isZh ? '缓存读取' : 'Cache read' }}</span>
+                  <strong>{{ money(model.cacheReadPerM) }}<small v-if="model.cacheReadPerM != null"> / M tokens</small></strong>
+                </div>
+              </section>
 
-          <section class="model-access-block">
-            <div class="model-id-row">
-              <span>{{ isZh ? '模型 ID' : 'Model ID' }}</span>
-              <code>{{ model.id }}</code>
-              <button type="button" @click="copyId(model.id)">{{ copied === model.id ? (isZh ? '已复制' : 'Copied') : (isZh ? '复制' : 'Copy') }}</button>
-            </div>
-            <div class="protocol-list">
-              <span>{{ isZh ? '兼容接口' : 'APIs' }}</span>
-              <div><b v-for="item in protocols(model)" :key="item">{{ item }}</b></div>
-            </div>
-            <div v-if="mappedModels(model).length" class="mapped-model-list">
-              <span>{{ isZh ? '上游映射' : 'Mapped IDs' }}</span>
-              <div><code v-for="mapped in mappedModels(model)" :key="mapped">{{ mapped }}</code></div>
-            </div>
-          </section>
+              <section class="model-specs">
+                <div><span>{{ isZh ? '可用分组' : 'Groups' }}</span><strong>{{ model.offers.length }}</strong></div>
+                <div><span>{{ isZh ? '最低倍率' : 'Best rate' }}</span><strong>{{ model.bestRate.toFixed(2) }}×</strong></div>
+                <div><span>{{ isZh ? '价格来源' : 'Price source' }}</span><strong>{{ priceSourceLabel(model.priceSource) }}</strong></div>
+              </section>
 
-          <footer class="model-group-section">
-            <div class="model-group-title">
-              <span>{{ isZh ? '可用分组 / 路由' : 'Available groups / routes' }}</span>
-              <strong>{{ model.offers.length }}</strong>
+              <section class="model-access-block">
+                <div class="model-id-row">
+                  <span>{{ isZh ? '模型 ID' : 'Model ID' }}</span>
+                  <code>{{ model.id }}</code>
+                  <button type="button" @click="copyId(model.id)">{{ copied === model.id ? (isZh ? '已复制' : 'Copied') : (isZh ? '复制' : 'Copy') }}</button>
+                </div>
+                <div class="protocol-list">
+                  <span>{{ isZh ? '兼容接口' : 'APIs' }}</span>
+                  <div><b v-for="item in protocols(model)" :key="item">{{ item }}</b></div>
+                </div>
+                <div v-if="mappedModels(model).length" class="mapped-model-list">
+                  <span>{{ isZh ? '上游映射' : 'Mapped IDs' }}</span>
+                  <div><code v-for="mapped in mappedModels(model)" :key="mapped">{{ mapped }}</code></div>
+                </div>
+              </section>
+
+              <footer class="model-group-section">
+                <div class="model-group-title">
+                  <span>{{ isZh ? '可用分组 / 路由' : 'Available groups / routes' }}</span>
+                  <strong>{{ model.offers.length }}</strong>
+                </div>
+                <div class="model-group-list">
+                  <div v-for="offer in model.offers" :key="`${offer.group.id}-${offer.model.platform}-${offer.model.mapped_model || offer.model.name}`" class="model-group-item">
+                    <i class="provider-mini-mark" :data-provider="providerKeyForGroup(offer.group)">{{ providerMarkForGroup(offer.group) }}</i>
+                    <span class="model-group-copy">
+                      <b>{{ offer.group.name }}</b>
+                      <small>#{{ offer.group.id }} · {{ protocol(offer.group.platform) }}<template v-if="offer.model.mapped_model && offer.model.mapped_model !== model.id"> · {{ offer.model.mapped_model }}</template></small>
+                    </span>
+                    <em>{{ rate(offer.group).toFixed(2) }}×</em>
+                  </div>
+                </div>
+              </footer>
             </div>
-            <div class="model-group-list">
-              <div v-for="offer in model.offers" :key="`${offer.group.id}-${offer.model.platform}-${offer.model.mapped_model || offer.model.name}`" class="model-group-item">
-                <i class="provider-mini-mark" :data-provider="providerKeyForGroup(offer.group)">{{ providerMarkForGroup(offer.group) }}</i>
-                <span class="model-group-copy">
-                  <b>{{ offer.group.name }}</b>
-                  <small>#{{ offer.group.id }} · {{ protocol(offer.group.platform) }}<template v-if="offer.model.mapped_model && offer.model.mapped_model !== model.id"> · {{ offer.model.mapped_model }}</template></small>
-                </span>
-                <em>{{ rate(offer.group).toFixed(2) }}×</em>
-              </div>
-            </div>
-          </footer>
+          </Transition>
         </article>
       </div>
 
