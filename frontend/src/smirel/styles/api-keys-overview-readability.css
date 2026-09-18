@@ -67,33 +67,32 @@
 }
 
 .workspace-root .api-keys-page .keys-overview .keys-metric-icon {
-  width: 48px;
-  height: 48px;
-  flex: 0 0 48px;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
   position: relative;
   z-index: 2;
-  border: 1px solid rgba(var(--metric-accent-rgb), .17);
-  border-radius: 13px;
+  border: 1px solid rgba(var(--metric-accent-rgb), .16);
+  border-radius: 12px;
   display: grid;
   place-items: center;
   color: var(--metric-accent);
-  background: rgba(var(--metric-accent-rgb), .08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .025);
+  background:
+    linear-gradient(145deg, rgba(var(--metric-accent-rgb), .105), rgba(var(--metric-accent-rgb), .045));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .035),
+    0 4px 12px rgba(var(--metric-accent-rgb), .045);
 }
 
 .workspace-root .api-keys-page .keys-overview .keys-metric-icon svg {
-  width: 23px;
-  height: 23px;
+  width: 21px;
+  height: 21px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.75;
+  stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.workspace-root .api-keys-page .keys-overview .keys-overview-card--concurrency .keys-metric-icon svg {
-  fill: currentColor;
-  stroke: none;
+  vector-effect: non-scaling-stroke;
 }
 
 .workspace-root .api-keys-page .keys-overview .keys-metric-copy {
@@ -259,9 +258,13 @@ html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overvie
 }
 
 html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-icon {
-  border-color: rgba(var(--metric-accent-rgb), .16);
+  border-color: rgba(var(--metric-accent-rgb), .18);
   color: var(--metric-accent);
-  background: rgba(var(--metric-accent-rgb), .09);
+  background:
+    linear-gradient(145deg, rgba(var(--metric-accent-rgb), .115), rgba(var(--metric-accent-rgb), .055));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .72),
+    0 4px 12px rgba(var(--metric-accent-rgb), .055);
 }
 
 html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview .keys-metric-label {
