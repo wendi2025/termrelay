@@ -817,7 +817,8 @@
 @media (min-width: 981px) {
   .workspace-root {
     --workspace-sidebar-width: 232px;
-    display: block;
+    display: grid;
+    grid-template-columns: var(--workspace-sidebar-width) minmax(0, 1fr);
     min-height: 100vh;
     min-height: 100dvh;
     overflow: visible;
@@ -836,11 +837,20 @@
   }
 
   .workspace-root .workspace-main {
-    width: auto;
+    grid-column: 2;
+    width: 100%;
+    min-width: 0;
     min-height: 100vh;
     min-height: 100dvh;
-    margin-left: var(--workspace-sidebar-width);
+    margin-left: 0;
     overflow: visible;
+  }
+
+  .workspace-root .workspace-canvas,
+  .workspace-root .workspace-route-stage,
+  .workspace-root .workspace-page {
+    width: 100%;
+    min-width: 0;
   }
 }
 
