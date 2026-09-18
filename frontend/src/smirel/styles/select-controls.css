@@ -174,6 +174,90 @@
   }
 }
 
+/* Light theme picker */
+html.smirel-app[data-theme='light'] select {
+  color-scheme: light;
+}
+
+html.smirel-app[data-theme='light'] select option {
+  background: #ffffff;
+  color: #394653;
+}
+
+@supports (appearance: base-select) {
+  html.smirel-app[data-theme='light'] select:hover:not(:disabled) {
+    color: #1f2b36;
+  }
+
+  html.smirel-app[data-theme='light'] select:open {
+    border-color: #a9c6db;
+    box-shadow: 0 0 0 3px rgba(54, 135, 192, .08);
+  }
+
+  html.smirel-app[data-theme='light'] select::picker(select) {
+    margin-block: 7px;
+    padding: 6px;
+    border: 1px solid #d9e2e9;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #394653;
+    box-shadow:
+      0 18px 46px rgba(29, 45, 59, .14),
+      0 3px 10px rgba(29, 45, 59, .06),
+      inset 0 1px 0 rgba(255, 255, 255, .95);
+    scrollbar-color: #c3ced7 transparent;
+  }
+
+  html.smirel-app[data-theme='light'] select option {
+    min-height: 40px;
+    margin: 1px 0;
+    padding: 9px 11px;
+    border-radius: 8px;
+    background: transparent;
+    color: #52606d;
+    font-size: .76rem;
+    font-weight: 560;
+  }
+
+  html.smirel-app[data-theme='light'] select option:hover,
+  html.smirel-app[data-theme='light'] select option:focus {
+    background: #f4f7fa;
+    color: #202b35;
+  }
+
+  html.smirel-app[data-theme='light'] select option:checked {
+    background: linear-gradient(180deg, #edf6fc, #e7f2fa);
+    color: #236f9f;
+    font-weight: 650;
+  }
+
+  html.smirel-app[data-theme='light'] select option:checked:hover,
+  html.smirel-app[data-theme='light'] select option:checked:focus {
+    background: #e3f0f9;
+  }
+
+  html.smirel-app[data-theme='light'] select option:disabled {
+    color: #a7b0b9;
+  }
+
+  html.smirel-app[data-theme='light'] select option::checkmark {
+    color: #2f91cf;
+  }
+
+  html.smirel-app[data-theme='light'] select::picker-icon {
+    color: #82909d;
+  }
+
+  html.smirel-app[data-theme='light'] select:hover::picker-icon,
+  html.smirel-app[data-theme='light'] select:open::picker-icon {
+    color: #536b7e;
+  }
+
+  html.smirel-app[data-theme='light'] select::picker(select)::-webkit-scrollbar-thumb {
+    background: #c3ced7;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .smirel-app select,
   .smirel-app select::picker-icon,
