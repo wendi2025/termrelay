@@ -745,11 +745,36 @@ onMounted(() => void loadCatalog())
 .group-filter-list button.active > b,
 .group-filter-list button.active > em { color: #b8c0c9; }
 .group-all-icon {
-  width: 15px;
-  height: 15px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #728aa5 0 42%, transparent 42% 58%, #728aa5 58%), linear-gradient(#728aa5 0 42%, transparent 42% 58%, #728aa5 58%);
-  opacity: .9;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 4px 4px, #7d9dc0 0 2px, transparent 2.25px),
+    radial-gradient(circle at 14px 4px, #9dbadd 0 2px, transparent 2.25px),
+    radial-gradient(circle at 9px 14px, #5e82aa 0 2.25px, transparent 2.5px),
+    linear-gradient(#9ab4cd 0 0) 5px 5px / 8px 1.5px no-repeat,
+    linear-gradient(#9ab4cd 0 0) 7px 8px / 1.5px 4px no-repeat,
+    linear-gradient(#9ab4cd 0 0) 11px 8px / 1.5px 4px no-repeat,
+    linear-gradient(180deg, #1f252c, #12161b);
+  box-shadow:
+    inset 0 0 0 1px #38434d,
+    0 1px 1px rgba(0, 0, 0, .18);
+  opacity: 1;
+}
+
+.group-filter-list button.active .group-all-icon {
+  background:
+    radial-gradient(circle at 4px 4px, #8fc3f3 0 2px, transparent 2.25px),
+    radial-gradient(circle at 14px 4px, #71a8dc 0 2px, transparent 2.25px),
+    radial-gradient(circle at 9px 14px, #4d86bd 0 2.25px, transparent 2.5px),
+    linear-gradient(#a7cbee 0 0) 5px 5px / 8px 1.5px no-repeat,
+    linear-gradient(#a7cbee 0 0) 7px 8px / 1.5px 4px no-repeat,
+    linear-gradient(#a7cbee 0 0) 11px 8px / 1.5px 4px no-repeat,
+    linear-gradient(180deg, #24313e, #17202a);
+  box-shadow:
+    inset 0 0 0 1px #4f7aa0,
+    0 1px 1px rgba(0, 0, 0, .16);
 }
 
 .group-selection-summary {
