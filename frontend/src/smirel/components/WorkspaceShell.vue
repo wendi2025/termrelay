@@ -39,6 +39,7 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const mobileOpen = ref(false)
+const workspaceMain = ref<HTMLElement | null>(null)
 const openUtility = ref<UtilityPanel | null>(null)
 const { state, isAdmin } = useSession()
 const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
@@ -281,6 +282,10 @@ watch(() => route.fullPath, (fullPath) => {
   writeSessionValue(MODE_STORAGE_KEY, workspaceMode.value)
   writeSessionValue(workspaceMode.value === 'admin' ? LAST_ADMIN_ROUTE_KEY : LAST_USER_ROUTE_KEY, fullPath)
 }, { immediate: true })
+
+watch(() => route.path, () => {
+  workspaceMain.value?.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+})
 </script>
 
 <template>
@@ -316,7 +321,7 @@ watch(() => route.fullPath, (fullPath) => {
     <button v-if="mobileOpen" class="workspace-scrim" type="button" :aria-label="t('shell.closeNav')" @click="mobileOpen = false"></button>
     <button v-if="openUtility" class="workspace-utility-dismiss" type="button" :aria-label="t('shell.closeNav')" @click="openUtility = null"></button>
 
-    <section class="workspace-main">
+    <section ref="workspaceMain" class="workspace-main">
       <header class="workspace-topbar workspace-topbar--contextual">
         <div class="workspace-topbar-left">
           <button class="mobile-menu" type="button" :aria-label="t('shell.openNav')" @click="mobileOpen = true"><span></span><span></span><span></span></button>
