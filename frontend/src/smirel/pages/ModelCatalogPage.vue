@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { api, getErrorMessage } from '../core/api'
+import { api, getErrorMessage, previewMode } from '../core/api'
 import { interfacePreferences } from '../core/preferences'
 
 type Pricing = {
@@ -62,6 +62,76 @@ type CatalogModel = {
   cacheReadPerM: number | null
   cacheWritePerM: number | null
   priceSource: PriceSource
+}
+
+const previewCatalog: PlazaResponse = {
+  groups: [
+    {
+      id: 101,
+      name: 'Smirel OpenAI',
+      description: 'OpenAI-compatible preview route',
+      platform: 'openai',
+      subscription_type: 'shared',
+      rate_multiplier: 0.88,
+      models: [
+        { name: 'gpt-5', platform: 'openai', pricing: { input_price: 0.00000125, output_price: 0.00001, cache_read_price: 0.000000125 } },
+        { name: 'gpt-5-mini', platform: 'openai', pricing: { input_price: 0.00000025, output_price: 0.000002, cache_read_price: 0.000000025 } },
+        { name: 'o3', platform: 'openai', pricing: { input_price: 0.000002, output_price: 0.000008 } },
+      ],
+    },
+    {
+      id: 102,
+      name: 'Smirel Anthropic',
+      description: 'Messages API preview route',
+      platform: 'anthropic',
+      subscription_type: 'shared',
+      rate_multiplier: 0.92,
+      models: [
+        { name: 'claude-sonnet-4', platform: 'anthropic', pricing: { input_price: 0.000003, output_price: 0.000015, cache_write_price: 0.00000375, cache_read_price: 0.0000003 } },
+        { name: 'claude-opus-4.1', platform: 'anthropic', pricing: { input_price: 0.000015, output_price: 0.000075, cache_write_price: 0.00001875, cache_read_price: 0.0000015 } },
+      ],
+    },
+    {
+      id: 103,
+      name: 'Smirel Gemini',
+      description: 'Gemini API preview route',
+      platform: 'gemini',
+      subscription_type: 'shared',
+      rate_multiplier: 0.84,
+      models: [
+        { name: 'gemini-2.5-pro', platform: 'gemini', pricing: { input_price: 0.00000125, output_price: 0.00001, cache_read_price: 0.000000125 } },
+        { name: 'gemini-2.5-flash', platform: 'gemini', pricing: { input_price: 0.0000003, output_price: 0.0000025, cache_read_price: 0.00000003 } },
+      ],
+    },
+    {
+      id: 104,
+      name: 'Smirel xAI',
+      description: 'OpenAI-compatible xAI preview route',
+      platform: 'xai',
+      subscription_type: 'shared',
+      rate_multiplier: 0.9,
+      models: [
+        { name: 'grok-4', platform: 'xai', pricing: { input_price: 0.000003, output_price: 0.000015 } },
+        { name: 'grok-3-mini', platform: 'xai', pricing: { input_price: 0.0000003, output_price: 0.0000005 } },
+      ],
+    },
+    {
+      id: 105,
+      name: 'Smirel Composite',
+      description: 'Cross-provider preview routes',
+      platform: 'composite',
+      subscription_type: 'shared',
+      rate_multiplier: 0.95,
+      models: [
+        { name: 'gpt-5', platform: 'openai', mapped_model: 'openai/gpt-5', official_pricing: { input_price: 0.00000125, output_price: 0.00001 } },
+        { name: 'claude-sonnet-4', platform: 'anthropic', mapped_model: 'anthropic/claude-sonnet-4', official_pricing: { input_price: 0.000003, output_price: 0.000015 } },
+        { name: 'gemini-2.5-pro', platform: 'gemini', mapped_model: 'google/gemini-2.5-pro', official_pricing: { input_price: 0.00000125, output_price: 0.00001 } },
+        { name: 'deepseek-v3.1', platform: 'composite', mapped_model: 'deepseek/deepseek-v3.1', pricing: { input_price: 0.00000056, output_price: 0.00000168 } },
+        { name: 'qwen3-coder', platform: 'composite', mapped_model: 'qwen/qwen3-coder', pricing: { input_price: 0.0000004, output_price: 0.0000016 } },
+        { name: 'kimi-k2', platform: 'composite', mapped_model: 'moonshot/kimi-k2', pricing: { input_price: 0.0000006, output_price: 0.0000025 } },
+      ],
+    },
+  ],
 }
 
 const isZh = computed(() => interfacePreferences.locale === 'zh-CN')
@@ -236,6 +306,17 @@ const activeGroup = computed(() =>
 async function loadCatalog() {
   loading.value = true
   error.value = ''
+
+  if (previewMode) {
+    description.value = isZh.value
+      ? '预览示例数据：用于在静态测试页检查模型、分组、价格与路由的视觉效果。'
+      : 'Preview sample data for reviewing models, groups, pricing and route presentation.'
+    groups.value = previewCatalog.groups || []
+    if (groupId.value !== 'all' && !groups.value.some((group) => group.id === groupId.value)) groupId.value = 'all'
+    loading.value = false
+    return
+  }
+
   try {
     const response = await api.get<PlazaResponse>('/model-plaza')
     description.value = String(response.data?.description || '')
@@ -419,8 +500,10 @@ onMounted(() => void loadCatalog())
             <small v-if="activeGroup">#{{ activeGroup.id }} · {{ protocol(activeGroup.platform) }} · {{ rate(activeGroup).toFixed(2) }}×</small>
           </div>
           <div class="catalog-state">
-            <span><i></i>{{ loading ? (isZh ? '同步中' : 'Syncing') : (isZh ? '服务端实时数据' : 'Live server data') }}</span>
-            <small>{{ isZh ? '模型、价格与路由均来自当前 TermRelay 配置。' : 'Models, prices and routes come from the current TermRelay configuration.' }}</small>
+            <span><i></i>{{ loading ? (isZh ? '同步中' : 'Syncing') : (previewMode ? (isZh ? '预览示例数据' : 'Preview sample data') : (isZh ? '服务端实时数据' : 'Live server data')) }}</span>
+            <small>{{ previewMode
+              ? (isZh ? '静态测试页使用示例目录，仅用于 UI 预览，不代表生产实时配置。' : 'The static preview uses sample catalog data for UI review only.')
+              : (isZh ? '模型、价格与路由均来自当前 TermRelay 配置。' : 'Models, prices and routes come from the current TermRelay configuration.') }}</small>
           </div>
         </div>
       </section>
