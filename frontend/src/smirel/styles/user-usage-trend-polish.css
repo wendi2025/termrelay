@@ -1,0 +1,347 @@
+/* Usage trend chart — focused visual polish for the preview branch.
+ *
+ * Keeps the existing SVG/data model intact and only improves hierarchy,
+ * depth, contrast, hover feedback, and light/dark theme consistency.
+ */
+
+html.smirel-app .workspace-root .user-usage-page .trend-panel {
+  position: relative;
+  isolation: isolate;
+  min-height: 396px;
+  overflow: hidden;
+  border-color: #29313a;
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 78% 6%, rgba(69, 154, 214, .055), transparent 32%),
+    linear-gradient(180deg, #0e1115 0%, #0c0f12 100%);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .018);
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-panel::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  top: -1px;
+  left: 24px;
+  width: 82px;
+  height: 2px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, #4aa4df 0%, rgba(74, 164, 223, .18) 76%, transparent 100%);
+  pointer-events: none;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-heading {
+  min-height: 90px;
+  padding: 20px 24px;
+  border-bottom-color: #222931;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .012), rgba(255, 255, 255, 0));
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-heading > div:first-child {
+  position: relative;
+  padding-left: 14px;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-heading > div:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2px;
+  height: 31px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #58ace3, #347fae);
+  box-shadow: 0 0 0 3px rgba(76, 164, 220, .045);
+  transform: translateY(-50%);
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-heading small {
+  margin-bottom: 8px;
+  color: #73808d;
+  font-size: .62rem;
+  font-weight: 760;
+  letter-spacing: .15em;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-heading h2 {
+  color: #f3f5f7;
+  font-size: 1.08rem;
+  line-height: 1.15;
+  font-weight: 690;
+  letter-spacing: -.022em;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-heading .panel-total {
+  min-width: 96px;
+  padding-left: 22px;
+  border-left: 1px solid #252c34;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-heading .panel-total span {
+  margin-bottom: 6px;
+  color: #77838e;
+  font-size: .69rem;
+  line-height: 1;
+  font-weight: 550;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-heading .panel-total strong {
+  display: block;
+  color: #f7f9fa;
+  font-size: 1.28rem;
+  line-height: 1;
+  font-weight: 720;
+  letter-spacing: -.025em;
+  font-variant-numeric: tabular-nums;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-chart {
+  position: relative;
+  height: 306px;
+  padding: 30px 26px 20px;
+  color: #58a6da;
+  background:
+    radial-gradient(ellipse at 72% 18%, rgba(74, 161, 219, .05), transparent 40%),
+    linear-gradient(180deg, rgba(255, 255, 255, .006), transparent 52%);
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-chart::after {
+  content: '';
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  bottom: 50px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(106, 129, 147, .13) 12%, rgba(106, 129, 147, .13) 88%, transparent);
+  pointer-events: none;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-grid-lines {
+  inset: 30px 26px 51px;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-grid-lines i {
+  border-top: 1px dashed #252c33;
+  opacity: .78;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-grid-lines i:first-child,
+html.smirel-app .workspace-root .user-usage-page .trend-grid-lines i:last-child {
+  opacity: .55;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-line-svg {
+  inset: 23px 26px 42px;
+  width: calc(100% - 52px);
+  height: calc(100% - 65px);
+  color: #58a6da;
+  overflow: visible;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-area {
+  fill: url(#usageTrendArea);
+  color: inherit;
+  opacity: .72;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-line {
+  stroke: currentColor;
+  stroke-width: 2.65;
+  filter: drop-shadow(0 2px 5px rgba(60, 149, 207, .18));
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-point circle {
+  fill: #0f1419;
+  stroke: #69b0df;
+  stroke-width: 2.05;
+  opacity: 1;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .24));
+  transition:
+    r .15s cubic-bezier(.2, .7, .2, 1),
+    fill .15s ease,
+    stroke .15s ease,
+    filter .15s ease;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-point:hover circle {
+  r: 7px;
+  fill: #58a6da;
+  stroke: #dff3ff;
+  filter:
+    drop-shadow(0 0 0 rgba(0, 0, 0, 0))
+    drop-shadow(0 0 6px rgba(80, 169, 224, .5));
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-axis {
+  left: 26px;
+  right: 26px;
+  bottom: 17px;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-axis small {
+  color: #7e8994;
+  font-size: .68rem;
+  line-height: 1;
+  font-weight: 540;
+  letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-axis small:first-child {
+  text-align: left;
+}
+
+html.smirel-app .workspace-root .user-usage-page .trend-axis small:last-child {
+  text-align: right;
+}
+
+/* Light mode: quiet blue data ink on a clean analytical surface. */
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-panel {
+  border-color: #d9e2e9;
+  background:
+    radial-gradient(circle at 78% 5%, rgba(54, 139, 197, .055), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #fcfdfe 100%);
+  box-shadow:
+    0 12px 34px rgba(29, 49, 65, .055),
+    inset 0 1px 0 rgba(255, 255, 255, .9);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-panel::before {
+  background: linear-gradient(90deg, #438fbe 0%, rgba(67, 143, 190, .18) 76%, transparent 100%);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-heading {
+  border-bottom-color: #e5eaee;
+  background: linear-gradient(180deg, #ffffff, #fcfdfe);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-heading > div:first-child::before {
+  background: linear-gradient(180deg, #4d97c5, #326f98);
+  box-shadow: 0 0 0 3px rgba(67, 143, 190, .05);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-heading small {
+  color: #71808d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-heading h2 {
+  color: #17232d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-heading .panel-total {
+  border-left-color: #e2e8ed;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-heading .panel-total span {
+  color: #6f7d89;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-heading .panel-total strong {
+  color: #15232e;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-chart {
+  color: #4c87b0;
+  background:
+    radial-gradient(ellipse at 74% 12%, rgba(70, 145, 194, .07), transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-chart::after {
+  background: linear-gradient(90deg, transparent, rgba(121, 142, 158, .18) 12%, rgba(121, 142, 158, .18) 88%, transparent);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-grid-lines i {
+  border-top-color: #e2e8ed;
+  opacity: .9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-line-svg {
+  color: #4c87b0;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-area {
+  opacity: .68;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-line {
+  filter: drop-shadow(0 2px 4px rgba(55, 122, 166, .12));
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-point circle {
+  fill: #ffffff;
+  stroke: #547f9e;
+  stroke-width: 2.1;
+  filter: drop-shadow(0 2px 4px rgba(41, 75, 98, .12));
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-point:hover circle {
+  fill: #4c87b0;
+  stroke: #ffffff;
+  filter:
+    drop-shadow(0 0 0 rgba(0, 0, 0, 0))
+    drop-shadow(0 0 6px rgba(76, 135, 176, .34));
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-axis small {
+  color: #687785;
+  font-weight: 560;
+}
+
+@media (max-width: 760px) {
+  html.smirel-app .workspace-root .user-usage-page .trend-panel {
+    min-height: 344px;
+    border-radius: 13px;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-heading {
+    min-height: 82px;
+    padding: 17px;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-heading > div:first-child {
+    padding-left: 11px;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-heading .panel-total {
+    min-width: 82px;
+    padding-left: 14px;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-heading .panel-total strong {
+    font-size: 1.08rem;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-chart {
+    height: 258px;
+    padding: 23px 14px 17px;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-grid-lines {
+    inset: 23px 14px 45px;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-line-svg {
+    inset: 17px 14px 37px;
+    width: calc(100% - 28px);
+    height: calc(100% - 54px);
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-axis {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+  }
+
+  html.smirel-app .workspace-root .user-usage-page .trend-axis small {
+    font-size: .63rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.smirel-app .workspace-root .user-usage-page .trend-point circle {
+    transition: none;
+  }
+}

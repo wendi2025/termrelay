@@ -30,6 +30,7 @@ import './smirel/styles/admin-payment-light.css'
 import './smirel/styles/admin-resource-light.css'
 import './smirel/styles/workspace-light-tail.css'
 import './smirel/styles/user-light-complete.css'
+import './smirel/styles/user-usage-trend-polish.css'
 import './smirel/styles/account-settings-light.css'
 import './smirel/styles/route-transitions.css'
 
