@@ -287,24 +287,55 @@ function viewOrder(o: PaymentOrder) {
       <RouterLink class="primary" to="/subscriptions">{{ t('payment.tabRecharge') }}</RouterLink>
     </header>
 
-    <section class="stats">
-      <div class="stat">
-        <span class="eyebrow">{{ t('payment.ordersTotal') }}</span>
-        <strong>{{ total }}</strong>
-      </div>
-      <div class="stat">
-        <span class="eyebrow">{{ t('payment.ordersCompleted') }}</span>
-        <strong>{{ completedCount }}</strong>
-      </div>
-      <div class="stat">
-        <span class="eyebrow">{{ t('payment.ordersPaidAmount') }}</span>
-        <strong>
-          <span v-for="(v, k) in totalsByCurrency" :key="k">
-            {{ k }} {{ v.total.toFixed(2) }}
-          </span>
-          <span v-if="Object.keys(totalsByCurrency).length === 0">—</span>
-        </strong>
-      </div>
+    <section class="stats" aria-label="Order overview">
+      <article class="stat stat--orders">
+        <span class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="5" y="3.5" width="14" height="17" rx="2.5" />
+            <path d="M8.5 8h7M8.5 12h7M8.5 16h4.5" />
+          </svg>
+        </span>
+        <div class="stat-copy">
+          <span class="eyebrow">{{ t('payment.ordersTotal') }}</span>
+          <strong>{{ total }}</strong>
+        </div>
+        <span class="stat-decoration stat-decoration--rings" aria-hidden="true"></span>
+      </article>
+
+      <article class="stat stat--completed">
+        <span class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="8.25" />
+            <path d="m8.5 12.1 2.25 2.25 4.9-5.05" />
+          </svg>
+        </span>
+        <div class="stat-copy">
+          <span class="eyebrow">{{ t('payment.ordersCompleted') }}</span>
+          <strong>{{ completedCount }}</strong>
+        </div>
+        <span class="stat-decoration stat-decoration--check" aria-hidden="true"></span>
+      </article>
+
+      <article class="stat stat--paid">
+        <span class="stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="3.75" y="6" width="16.5" height="12" rx="2.5" />
+            <path d="M3.75 10h16.5M7.5 14.25h3.25" />
+          </svg>
+        </span>
+        <div class="stat-copy">
+          <span class="eyebrow">{{ t('payment.ordersPaidAmount') }}</span>
+          <strong class="stat-value-group">
+            <span v-for="(v, k) in totalsByCurrency" :key="k">
+              <small>{{ k }}</small>{{ v.total.toFixed(2) }}
+            </span>
+            <span v-if="Object.keys(totalsByCurrency).length === 0">—</span>
+          </strong>
+        </div>
+        <span class="stat-decoration stat-decoration--bars" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </span>
+      </article>
     </section>
 
     <section class="filter-bar">
@@ -588,28 +619,219 @@ function viewOrder(o: PaymentOrder) {
 }
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
+
 .stat {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(18, 22, 28, 0.88), rgba(12, 16, 22, 0.94));
-  padding: 16px 18px;
+  --stat-accent: 103, 172, 239;
+
+  min-width: 0;
+  min-height: 126px;
+  padding: 21px 22px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(var(--stat-accent), 0.08), transparent 39%),
+    linear-gradient(155deg, rgba(18, 22, 28, 0.94), rgba(12, 16, 22, 0.97));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.018),
+    0 10px 28px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.18s cubic-bezier(.2, .75, .25, 1),
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
+
+.stat:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--stat-accent), 0.30);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 14px 32px rgba(0, 0, 0, 0.12);
+}
+
+.stat--completed {
+  --stat-accent: 76, 196, 145;
+}
+
+.stat--paid {
+  --stat-accent: 224, 166, 88;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(var(--stat-accent), 0.18);
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: rgb(var(--stat-accent));
+  background:
+    linear-gradient(145deg, rgba(var(--stat-accent), 0.12), rgba(var(--stat-accent), 0.05));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 4px 12px rgba(var(--stat-accent), 0.045);
+}
+
+.stat-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stat-copy {
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
 .stat .eyebrow {
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(218, 226, 234, 0.58);
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: 0.012em;
+  text-transform: none;
 }
+
 .stat strong {
+  max-width: 100%;
+  margin-top: 10px;
   display: block;
-  font-size: 1.4rem;
-  font-weight: 640;
-  color: rgba(255, 255, 255, 0.95);
+  overflow: hidden;
+  color: rgba(248, 250, 252, 0.96);
+  font-size: 2.05rem;
+  font-weight: 710;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
   font-variant-numeric: tabular-nums;
-  margin-top: 6px;
+  text-overflow: ellipsis;
+}
+
+.stat-value-group {
+  display: flex !important;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  font-size: 1.72rem !important;
+  line-height: 1.05 !important;
+}
+
+.stat-value-group > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.stat-value-group small {
+  color: rgba(210, 220, 229, 0.48);
+  font-size: 0.68rem;
+  font-weight: 720;
+  letter-spacing: 0.055em;
+}
+
+.stat-decoration {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.42;
+}
+
+.stat-decoration--rings {
+  width: 86px;
+  height: 86px;
+  right: -24px;
+  bottom: -34px;
+  border: 13px solid rgba(var(--stat-accent), 0.05);
+  border-radius: 50%;
+  box-shadow: 0 0 0 13px rgba(var(--stat-accent), 0.025);
+}
+
+.stat-decoration--check {
+  width: 72px;
+  height: 72px;
+  right: -8px;
+  bottom: -18px;
+  border: 1px solid rgba(var(--stat-accent), 0.08);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 11px rgba(var(--stat-accent), 0.028),
+    inset 0 0 0 24px rgba(var(--stat-accent), 0.018);
+}
+
+.stat-decoration--bars {
+  right: 18px;
+  bottom: 16px;
+  width: 54px;
+  height: 44px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.stat-decoration--bars i {
+  width: 8px;
+  border-radius: 999px;
+  background: rgba(var(--stat-accent), 0.10);
+}
+
+.stat-decoration--bars i:nth-child(1) { height: 16px; }
+.stat-decoration--bars i:nth-child(2) { height: 27px; }
+.stat-decoration--bars i:nth-child(3) { height: 40px; }
+
+:global(html.smirel-app[data-theme='light']) .orders-page .stat {
+  border-color: #dce3e9;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(var(--stat-accent), 0.075), transparent 39%),
+    linear-gradient(155deg, #ffffff, #fbfcfd);
+  box-shadow:
+    0 1px 2px rgba(26, 35, 44, 0.025),
+    0 9px 24px rgba(40, 57, 73, 0.045);
+}
+
+:global(html.smirel-app[data-theme='light']) .orders-page .stat:hover {
+  border-color: rgba(var(--stat-accent), 0.38);
+  box-shadow:
+    0 1px 2px rgba(26, 35, 44, 0.02),
+    0 13px 30px rgba(40, 57, 73, 0.07);
+}
+
+:global(html.smirel-app[data-theme='light']) .orders-page .stat-icon {
+  border-color: rgba(var(--stat-accent), 0.18);
+  background:
+    linear-gradient(145deg, rgba(var(--stat-accent), 0.115), rgba(var(--stat-accent), 0.055));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 4px 12px rgba(var(--stat-accent), 0.055);
+}
+
+:global(html.smirel-app[data-theme='light']) .orders-page .stat .eyebrow {
+  color: #637180;
+}
+
+:global(html.smirel-app[data-theme='light']) .orders-page .stat strong {
+  color: #20262d;
+}
+
+:global(html.smirel-app[data-theme='light']) .orders-page .stat-value-group small {
+  color: #7c8996;
 }
 .filter-bar {
   display: flex;
