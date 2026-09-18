@@ -796,3 +796,130 @@ html.smirel-app[data-theme='light'] .payment-public-shell .ghost:hover {
     border-bottom-color: #e5e9ee;
   }
 }
+
+
+/* Request log card — light refinement */
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-panel {
+  border-color: #d9e2e9;
+  background:
+    radial-gradient(circle at 96% 0%, rgba(61, 132, 184, .055), transparent 24%),
+    #ffffff;
+  box-shadow:
+    0 1px 2px rgba(22, 34, 46, .025),
+    0 14px 34px rgba(37, 53, 69, .065);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-panel::before {
+  background: linear-gradient(90deg, #4c9bd3, rgba(76, 155, 211, .10));
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-heading {
+  border-bottom-color: #e4e9ed;
+  background: linear-gradient(180deg, #ffffff, #fcfdfe);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-heading > div > small {
+  color: #728596;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-heading h2 {
+  color: #1d2731;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-heading p {
+  color: #74818e;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-search,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-filters select {
+  border-color: #d8e0e7;
+  color: #35414c;
+  background: #fbfcfd;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-search:hover,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-filters select:hover {
+  border-color: #c9d4dd;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-search:focus-within,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-filters select:focus {
+  border-color: #7db4da;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(66, 145, 201, .10);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-search :deep(.workspace-nav-icon) {
+  color: #71808d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-search input,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-filters select {
+  color: #35414c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-search input::placeholder {
+  color: #87939f;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-table-head {
+  border-bottom-color: #e2e8ed;
+  color: #657380;
+  background: #f5f8fa;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row:not(.usage-table-head) {
+  border-bottom-color: #e8edf1;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row:not(.usage-table-head):hover {
+  background: #f8fbfd;
+  box-shadow: inset 3px 0 0 rgba(75, 151, 204, .34);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row time {
+  color: #768390;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-model-cell i {
+  background: #5e9fd0;
+  box-shadow: 0 0 0 4px rgba(94, 159, 208, .08);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-model-cell strong {
+  color: #26323d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row code {
+  border-color: #dde5eb;
+  color: #627282;
+  background: #f4f7f9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-number {
+  color: #566473;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-cost {
+  border-color: #d5ebe2;
+  color: #26775c;
+  background: #eff8f4;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-empty {
+  color: #75818c;
+  background: linear-gradient(180deg, #ffffff, #fbfcfd);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-footer {
+  border-top-color: #e3e9ed;
+  color: #7b8792;
+  background: #fafcfd;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-footer span:first-child {
+  color: #657481;
+}
