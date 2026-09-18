@@ -410,20 +410,57 @@ onBeforeUnmount(() => {
     <p v-if="error" class="keys-inline-error">{{ error }}</p>
 
     <section class="keys-overview" aria-label="API key overview">
-      <article>
-        <span>{{ copy.activeKeys }}</span>
-        <strong>{{ activeKeyCount }}</strong>
-        <small>/ {{ keys.length }}</small>
+      <article class="keys-overview-card keys-overview-card--keys">
+        <span class="keys-metric-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="8" cy="15.5" r="3.25" />
+            <path d="m10.5 13 7.15-7.15a2.15 2.15 0 0 1 3.04 3.04L13.55 16" />
+            <path d="m15.3 8.2 2.5 2.5M13.1 10.4l2.5 2.5" />
+          </svg>
+        </span>
+        <div class="keys-metric-copy">
+          <span class="keys-metric-label">{{ copy.activeKeys }}</span>
+          <div class="keys-metric-value-row">
+            <strong>{{ activeKeyCount }}</strong>
+            <small class="keys-metric-secondary">/ {{ keys.length }}</small>
+          </div>
+        </div>
+        <span class="keys-metric-decoration keys-metric-decoration--key" aria-hidden="true"></span>
       </article>
-      <article>
-        <span>{{ copy.groups }}</span>
-        <strong>{{ groups.length }}</strong>
-        <small>{{ groups.length ? `${effectiveRate(groups[0]).toFixed(2)}×+` : '—' }}</small>
+
+      <article class="keys-overview-card keys-overview-card--groups">
+        <span class="keys-metric-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="m12 3.8 8 4.2-8 4.2L4 8l8-4.2Z" />
+            <path d="m4 12 8 4.2 8-4.2M4 16l8 4.2 8-4.2" />
+          </svg>
+        </span>
+        <div class="keys-metric-copy">
+          <span class="keys-metric-label">{{ copy.groups }}</span>
+          <div class="keys-metric-value-row">
+            <strong>{{ groups.length }}</strong>
+            <small class="keys-metric-secondary keys-metric-rate">{{ groups.length ? `${effectiveRate(groups[0]).toFixed(2)}×+` : '—' }}</small>
+          </div>
+        </div>
+        <span class="keys-metric-decoration keys-metric-decoration--layers" aria-hidden="true"></span>
       </article>
-      <article>
-        <span>{{ copy.concurrency }}</span>
-        <strong>{{ totalConcurrency }}</strong>
-        <small>LIVE</small>
+
+      <article class="keys-overview-card keys-overview-card--concurrency">
+        <span class="keys-metric-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M13.2 2.8 5.8 13h5.55l-.55 8.2L18.2 11h-5.55l.55-8.2Z" />
+          </svg>
+        </span>
+        <div class="keys-metric-copy">
+          <span class="keys-metric-label">{{ copy.concurrency }}</span>
+          <div class="keys-metric-value-row">
+            <strong>{{ totalConcurrency }}</strong>
+            <small class="keys-metric-status"><i></i>LIVE</small>
+          </div>
+        </div>
+        <span class="keys-metric-decoration keys-metric-decoration--signal" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </span>
       </article>
     </section>
 
