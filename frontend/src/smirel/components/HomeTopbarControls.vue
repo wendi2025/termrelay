@@ -722,7 +722,7 @@ onBeforeUnmount(() => {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@media (max-width: 1320px) {
+@media (max-width: 1750px) {
   .home-workspace-link {
     width: 38px;
     padding: 0;
@@ -730,6 +730,10 @@ onBeforeUnmount(() => {
 
   .home-workspace-link > span {
     display: none;
+  }
+
+  .home-mode-switch {
+    width: 148px;
   }
 }
 
