@@ -1,0 +1,241 @@
+/* Final light-theme tail pass for user/admin workspace surfaces still owning
+ * hard-coded dark palettes. Keep dark mode unchanged.
+ */
+
+/* API Keys page ----------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-page-heading h1 {
+  color: #1d2228;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-page-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-page-heading-copy > span {
+  color: #6f7a86;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-secondary-button {
+  border-color: #d7dee5;
+  color: #53606c;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-secondary-button:hover:not(:disabled) {
+  border-color: #c7d0d9;
+  color: #20262d;
+  background: #f6f8fa;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview {
+  border-color: #dfe4e9;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(26, 35, 44, .035);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview article + article {
+  border-color: #e5e9ed;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview span,
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview small {
+  color: #78838f;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-overview strong {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-library-heading strong,
+html.smirel-app[data-theme='light'] .workspace-root .keys-library-head strong {
+  color: #2a3037;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-library-heading span,
+html.smirel-app[data-theme='light'] .workspace-root .keys-library-count {
+  border-color: #dce2e8;
+  color: #697581;
+  background: #f3f6f8;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-empty-state,
+html.smirel-app[data-theme='light'] .workspace-root .keys-empty-state {
+  border-color: #d7dee5;
+  color: #697581;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-empty-mark {
+  border-color: #cddfea;
+  color: #2878b7;
+  background: #eef6fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-loading-state i {
+  border-color: #e1e6eb;
+  background: linear-gradient(105deg, #f7f9fb 25%, #eef2f5 43%, #f7f9fb 62%);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .keys-create-panel,
+html.smirel-app[data-theme='light'] .workspace-root .api-key-card {
+  border-color: #dfe4e9;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(26, 35, 44, .035);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-key-card:hover {
+  border-color: #cfd7df;
+  background: #fbfcfd;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .keys-create-copy strong,
+html.smirel-app[data-theme='light'] .workspace-root .api-key-identity strong {
+  color: #242a31;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .keys-create-copy span,
+html.smirel-app[data-theme='light'] .workspace-root .api-key-identity small,
+html.smirel-app[data-theme='light'] .workspace-root .api-key-created {
+  color: #75808c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .keys-create-form input {
+  border-color: #d6dde4;
+  color: #22282f;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .keys-create-form input:focus {
+  border-color: #80acd0;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(40, 120, 183, .09);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-key-mark {
+  border-color: #cfe0ed;
+  color: #2878b7;
+  background: #eef6fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-key-state {
+  border-color: #cbe4d9;
+  color: #187a5b;
+  background: #edf8f3;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-key-secret {
+  border-color: #e0e5ea;
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-key-secret code {
+  color: #485866;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-key-card-foot {
+  border-color: #e5e9ed;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-key-delete:hover {
+  border-color: #efcaca;
+  color: #a94747;
+  background: #fff3f3;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-warning {
+  border-color: #eadcb9;
+  background: #fffaf0;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-warning strong {
+  color: #8b6724;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .api-keys-page .keys-warning p {
+  color: #8a7650;
+}
+
+/* API key modal is teleported to <body>, so it must not depend on .workspace-root. */
+html.smirel-app[data-theme='light'] .keys-create-modal {
+  border-color: #d9e0e7;
+  color: #22282f;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(26, 35, 44, .20);
+}
+
+html.smirel-app[data-theme='light'] .keys-modal-header,
+html.smirel-app[data-theme='light'] .keys-modal-footer {
+  border-color: #e3e7eb;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .keys-modal-header h2,
+html.smirel-app[data-theme='light'] .keys-form-field > span,
+html.smirel-app[data-theme='light'] .keys-advanced-toggle strong,
+html.smirel-app[data-theme='light'] .keys-selected-group strong {
+  color: #242a31;
+}
+
+html.smirel-app[data-theme='light'] .keys-modal-header p,
+html.smirel-app[data-theme='light'] .keys-form-field small,
+html.smirel-app[data-theme='light'] .keys-ip-hint,
+html.smirel-app[data-theme='light'] .keys-advanced-toggle span,
+html.smirel-app[data-theme='light'] .keys-selected-group p {
+  color: #75808c;
+}
+
+html.smirel-app[data-theme='light'] .keys-modal-close:hover {
+  border-color: #d7dee5;
+  color: #3b444d;
+  background: #f5f7f9;
+}
+
+html.smirel-app[data-theme='light'] .keys-form-field input,
+html.smirel-app[data-theme='light'] .keys-form-field select,
+html.smirel-app[data-theme='light'] .keys-form-field textarea {
+  border-color: #d6dde4;
+  color: #242a31;
+  background: #ffffff;
+  color-scheme: light;
+}
+
+html.smirel-app[data-theme='light'] .keys-form-field input:focus,
+html.smirel-app[data-theme='light'] .keys-form-field select:focus,
+html.smirel-app[data-theme='light'] .keys-form-field textarea:focus {
+  border-color: #80acd0;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(40, 120, 183, .09);
+}
+
+html.smirel-app[data-theme='light'] .keys-selected-group,
+html.smirel-app[data-theme='light'] .keys-advanced-panel,
+html.smirel-app[data-theme='light'] .keys-created-credential {
+  border-color: #dfe5ea;
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .keys-advanced-toggle {
+  border-color: #e2e6eb;
+}
+
+html.smirel-app[data-theme='light'] .keys-created-credential code {
+  color: #3d5364;
+}
+
+html.smirel-app[data-theme='light'] .keys-created-credential button {
+  border-color: #d4dee6;
+  color: #526b7e;
+  background: #ffffff;
+}
+
+/* Admin Users: the result-count badge was still using its dark commercial skin. */
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-heading strong {
+  color: #252b32;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-heading span {
+  border: 1px solid #dce2e8;
+  color: #64717d;
+  background: #f1f4f7;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-heading small {
+  color: #7b8691;
+}

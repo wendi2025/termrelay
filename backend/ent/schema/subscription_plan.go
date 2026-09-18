@@ -57,24 +57,6 @@ func (SubscriptionPlan) Fields() []ent.Field {
 		field.String("product_name").
 			MaxLen(100).
 			Default(""),
-		field.String("card_tier").
-			MaxLen(30).
-			Default("standard"),
-		field.String("card_badge").
-			MaxLen(80).
-			Default(""),
-		field.Bool("card_featured").
-			Default(false),
-		field.String("card_footnote").
-			SchemaType(map[string]string{dialect.Postgres: "text"}).
-			Default(""),
-		field.Int("seat_limit").
-			Default(1),
-		field.Int("concurrency_limit").
-			Default(5),
-		field.String("purchase_policy").
-			MaxLen(20).
-			Default("public"),
 		field.Bool("for_sale").
 			Default(true),
 		field.Int("sort_order").

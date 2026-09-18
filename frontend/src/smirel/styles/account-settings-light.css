@@ -1,0 +1,247 @@
+/* Account settings light-mode hardening.
+ * AccountSettingsPage owns a scoped dark palette, so this file is loaded last
+ * and remaps every visible surface in light mode without touching dark mode.
+ */
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings {
+  --account-border: #dce3e9;
+  --account-border-soft: #e7ebef;
+  --account-input: #ffffff;
+  --account-text: #1f2832;
+  --account-muted: #687480;
+  --account-subtle: #87929d;
+  --account-danger: #b84c59;
+  color: #1f2832;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-hero,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-card {
+  border-color: #dce3e9 !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .035), 0 10px 30px rgba(35, 48, 62, .035) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-title-row h2,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-card-head h3,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-metrics dd,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .avatar-editor-copy strong,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .setting-row strong,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .session-copy strong,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .signout-zone strong {
+  color: #202a34 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-identity-copy > p,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-card-head p,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .avatar-editor-copy > span,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .setting-row span,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .session-copy span,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .signout-zone span,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-card-footer > span {
+  color: #727e89 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-card-kicker {
+  color: #6b8799 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-avatar,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .avatar-editor-preview {
+  border-color: #cbdce8 !important;
+  background: #edf6fc !important;
+  color: #2878b7 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-online-dot {
+  border-color: #ffffff !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-status-badge,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .session-current {
+  border-color: #cce7da !important;
+  background: #f0faf5 !important;
+  color: #197558 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-tags span {
+  border-color: #dde4ea !important;
+  background: #f7f9fb !important;
+  color: #687480 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-metrics > div,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-card-footer,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .setting-row,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .signout-zone {
+  border-color: #e5eaee !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-metrics dt,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-field small {
+  color: #858f99 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-loading,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .avatar-editor,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .session-row {
+  border-color: #e2e7ec !important;
+  background: #f9fafb !important;
+  color: #6f7b86 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .security-icon,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .session-device-icon {
+  border-color: #d6e1e9 !important;
+  background: #f2f7fa !important;
+  color: #397ea9 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-field > span {
+  color: #56626e !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-field input {
+  border-color: #d7dee5 !important;
+  background: #ffffff !important;
+  color: #27313b !important;
+  color-scheme: light;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-field input::placeholder {
+  color: #99a3ad !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-field input:hover:not(:disabled):not([readonly]) {
+  border-color: #c6d0d9 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-field input:focus:not(:disabled):not([readonly]) {
+  border-color: #70a7ce !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(58, 137, 191, .10) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-field input[readonly],
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-field input:disabled {
+  border-color: #e0e5ea !important;
+  background: #f4f6f8 !important;
+  color: #7c8792 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-error {
+  border-color: #f0ccd1 !important;
+  background: #fff4f5 !important;
+  color: #a83d4b !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-button.secondary {
+  border-color: #d5dce3 !important;
+  background: #ffffff !important;
+  color: #3b4651 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-button.secondary:hover:not(:disabled) {
+  border-color: #c5ced7 !important;
+  background: #f6f8fa !important;
+  color: #202a34 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-text-button,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-link {
+  color: #2878b7 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-text-button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-link:hover {
+  color: #155f98 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-switch {
+  border-color: #cfd7df !important;
+  background: #e9edf1 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-switch span {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(35, 45, 56, .16);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-switch.is-on {
+  border-color: #2e91cf !important;
+  background: #3297d5 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .money-input > span {
+  color: #7e8994 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-button.danger {
+  border-color: #edcbd0 !important;
+  background: #fff6f7 !important;
+  color: #ad4552 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-button.danger:hover:not(:disabled) {
+  border-color: #e0b3ba !important;
+  background: #fff0f2 !important;
+  color: #963844 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-danger-card {
+  border-color: #ecd5d9 !important;
+  background: #fffafa !important;
+  box-shadow: 0 1px 2px rgba(72, 34, 40, .025) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .danger-kicker {
+  color: #a4545f !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-account-row {
+  border-color: #eedcdf !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-account-row strong {
+  color: #5a3037 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-account-row span {
+  color: #8f666d !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-dialog-backdrop {
+  background: rgba(32, 40, 48, .34) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-dialog {
+  border-color: #e6cdd1 !important;
+  background: #ffffff !important;
+  box-shadow: 0 28px 80px rgba(35, 45, 56, .22) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-dialog-icon {
+  border-color: #ecc8ce !important;
+  background: #fff1f3 !important;
+  color: #b44c58 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-dialog h3 {
+  color: #4f2e34 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-dialog > p {
+  color: #836a6f !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-confirm-copy {
+  border-color: #eadde0 !important;
+  background: #fffafa !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-confirm-copy span {
+  color: #8a777b !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .delete-confirm-copy strong {
+  color: #5b3c42 !important;
+}

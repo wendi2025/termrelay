@@ -28,11 +28,11 @@ async function mountDropIn() {
   try {
     const sdk = await import('@airwallex/components-sdk')
     const env = (props.order.payment_env === 'demo' ? 'demo' : 'prod')
+    const light = document.documentElement.dataset.theme === 'light'
     await sdk.init({
       enabled: true,
       env,
       locale: 'en',
-      // origin 为可选校验字段，留空即可
     })
     dropInEl = await sdk.createElement('dropIn', {
       intent_id: props.order.intent_id,
@@ -40,12 +40,18 @@ async function mountDropIn() {
       currency: props.order.currency || 'USD',
       mode: 'payment',
       appearance: {
-        mode: 'dark',
-        variables: {
-          colorBrand: '#79c4f5',
-          colorText: '#e6edf3',
-          colorBackground: '#0f1620',
-        },
+        mode: light ? 'light' : 'dark',
+        variables: light
+          ? {
+              colorBrand: '#2878b7',
+              colorText: '#20262d',
+              colorBackground: '#ffffff',
+            }
+          : {
+              colorBrand: '#79c4f5',
+              colorText: '#e6edf3',
+              colorBackground: '#0f1620',
+            },
       },
     })
     dropInEl.mount(containerRef.value)

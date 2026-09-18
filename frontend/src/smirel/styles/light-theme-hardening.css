@@ -1,0 +1,417 @@
+/* Final light-theme hardening for admin/workspace surfaces that still own
+ * component-local dark palettes. Dark mode remains untouched.
+ */
+
+html.smirel-app[data-theme='light'] .workspace-root {
+  --light-surface: #ffffff;
+  --light-surface-soft: #f7f9fb;
+  --light-surface-muted: #f1f4f7;
+  --light-border: #dfe4e9;
+  --light-border-strong: #cfd7df;
+  --light-text: #1f252c;
+  --light-text-soft: #56616d;
+  --light-muted: #7a8591;
+  --light-subtle: #97a1ac;
+  --light-accent: #1877c9;
+  --light-accent-soft: #edf5fb;
+  --light-success: #187a5b;
+  --light-success-soft: #edf8f3;
+  --light-shadow: 0 1px 2px rgba(26, 35, 44, .04);
+}
+
+/* Workspace mode switch: remove the dark segmented-control island. */
+html.smirel-app[data-theme='light'] .workspace-root .workspace-mode-switch {
+  border-color: var(--light-border);
+  background: var(--light-surface);
+  box-shadow: var(--light-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-mode-indicator {
+  border-color: #d9e0e7;
+  background: #f2f5f8;
+  box-shadow: 0 1px 2px rgba(26, 35, 44, .05);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-mode-indicator.is-admin {
+  border-color: #c9ddeb;
+  background: var(--light-accent-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-mode-switch button {
+  color: #7a8490;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-mode-switch button:hover {
+  color: #3e4853;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-mode-switch button.active {
+  color: #155e98;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .workspace-mode-switch button:focus-visible {
+  outline-color: #6ca7d3;
+}
+
+/* The visible workspace account control is HomeAccountMenu, not the legacy
+ * workspace-profile-link. Give the trigger and its menu a true light skin. */
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-trigger,
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-trigger.is-workspace {
+  border-color: var(--light-border) !important;
+  background: var(--light-surface) !important;
+  color: var(--light-text) !important;
+  box-shadow: var(--light-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-trigger:hover,
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-trigger.is-open {
+  border-color: var(--light-border-strong) !important;
+  background: var(--light-surface-soft) !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-trigger-avatar {
+  border-color: #d8dee5 !important;
+  background: #f1f4f7 !important;
+  color: #3d4650 !important;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-trigger-copy strong {
+  color: #2b3138;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-trigger-chevron {
+  stroke: #7c8792;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-popover {
+  border-color: var(--light-border);
+  background: var(--light-surface);
+  box-shadow: 0 20px 52px rgba(31, 42, 53, .14), 0 2px 7px rgba(31, 42, 53, .06);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-avatar {
+  border-color: #d8dee5;
+  background: #f1f4f7;
+  color: #3d4650;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-copy strong {
+  color: #252b31;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-copy small,
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-role,
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-item small {
+  color: #7a8490;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-divider {
+  background: #e5e9ed;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-item {
+  color: #4d5762;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-item:hover,
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-item:focus-visible {
+  background: #f5f7f9;
+  color: #22282e;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-item > svg {
+  stroke: #77828d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-signout:hover,
+html.smirel-app[data-theme='light'] .workspace-root .home-account-menu--workspace .home-account-signout:focus-visible {
+  background: #fff3f3;
+  color: #a94747;
+}
+
+/* Admin Groups primary actions should read as actions, not as dark cards. */
+html.smirel-app[data-theme='light'] .workspace-root .groups-page .primary,
+html.smirel-app[data-theme='light'] .workspace-root .groups-page .detail-actions .accent {
+  border-color: #1877c9;
+  background: #1877c9;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(24, 119, 201, .18);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .groups-page .primary:hover,
+html.smirel-app[data-theme='light'] .workspace-root .groups-page .detail-actions .accent:hover {
+  border-color: #1268b3;
+  background: #1268b3;
+}
+
+/* Admin overview: remove the remaining dark icon tiles, pills and hover states. */
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-utility-cluster,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-card,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-ops-panel,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-panel {
+  border-color: var(--light-border);
+  background: var(--light-surface);
+  box-shadow: var(--light-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-requests {
+  background: var(--light-surface);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-card:hover,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-links > a:hover {
+  border-color: var(--light-border-strong);
+  background: #f8fafc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-page-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-card > strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-health-stat strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-ops-head strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-head > div strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-copy strong {
+  color: var(--light-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-page-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-heading-eyebrow,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-head > span:first-child,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-card footer,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-request-context small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-health-stat > div > span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-ops-kicker,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-head > div span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-copy b {
+  color: #6d7782;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-icon {
+  border-color: color-mix(in srgb, var(--metric-accent) 26%, #dfe4e9);
+  background: color-mix(in srgb, var(--metric-accent) 8%, #ffffff);
+  color: color-mix(in srgb, var(--metric-accent) 82%, #31404d);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-arrow,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-snapshot-icon,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-health-icon,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-icon {
+  border-color: #d9e0e7;
+  background: #f5f7f9;
+  color: #667581;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-card:hover .admin-metric-arrow {
+  border-color: #cbd5de;
+  background: #eef3f7;
+  color: #3d576a;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-snapshot-meta.ready .admin-snapshot-icon,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-ops-state.ready {
+  border-color: #c8e3d7;
+  background: var(--light-success-soft);
+  color: var(--light-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-utility-divider,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-request-context,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-ops-head,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-head,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-health-stat + .admin-health-stat,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-links > a + a {
+  border-color: #e3e7eb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-refresh {
+  color: #5e6974;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-refresh:hover:not(:disabled) {
+  color: #25303a;
+  background: #f2f5f8;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-card footer b,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-ops-state {
+  border-color: #dbe1e7;
+  background: #f5f7f9;
+  color: #66717d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-metric-progress {
+  background: #edf1f4;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-request-context b,
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-meta {
+  color: #53616e;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-ops-panel::after {
+  background-image: linear-gradient(rgba(32, 42, 54, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(32, 42, 54, .025) 1px, transparent 1px);
+}
+
+/* Operations / request-dynamics page: the source component owns a complete
+ * dark dashboard palette, so remap every visible surface in light mode. */
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-snapshot-bar,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-metric-strip,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-panel,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-panel,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-resource-panel,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-volume-panel,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcuts {
+  border-color: var(--light-border);
+  background: var(--light-surface);
+  box-shadow: var(--light-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-state-icon,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-resource-icon,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcut-icon {
+  border-color: #d9e0e7;
+  background: #f4f7f9;
+  color: #687682;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-snapshot-state.ready .ops-state-icon {
+  border-color: #c8e3d7;
+  background: var(--light-success-soft);
+  color: var(--light-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-snapshot-state strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-metric-strip strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-panel-head strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-copy > strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-copy b,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-empty strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-total strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-list dd,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-resource-copy strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-resource-value strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-volume-primary strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-volume-secondary strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcuts strong {
+  color: var(--light-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-snapshot-state small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-metric-label,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-metric-strip p,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-panel-head span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-range-label,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-copy > span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-copy p,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-empty span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-total span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-total small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-list dt,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-resource-copy small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-resource-value small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-volume-primary > span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-volume-secondary span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcuts small {
+  color: #73808c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-metric-strip article,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-panel-head,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-card,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-total,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-list > div,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-resource-row,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-volume-primary,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-volume-secondary > div + div,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcuts > a {
+  border-color: #e3e7eb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-switch {
+  border-color: #d8dfe6;
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-switch button {
+  color: #76818c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-switch button:hover:not(:disabled) {
+  color: #33404c;
+  background: #eef2f6;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-period-switch button.active {
+  color: #155e98;
+  background: #e8f2fa;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-refresh {
+  color: #66717c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-refresh:hover:not(:disabled) {
+  border-color: #d6dde4;
+  color: #26313b;
+  background: #f4f7f9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-metric-strip article > div small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-copy div small {
+  color: #818c97;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-plot line {
+  stroke: #e2e7ec;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-plot > div {
+  color: #8a949f;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-trend-empty .workspace-nav-icon {
+  color: #87929d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-panel-head a {
+  color: #4d7d9f;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-panel-head a:hover {
+  color: #155e98;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-resource-progress {
+  background: #edf1f4;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcuts > a:hover {
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcuts b {
+  color: #688198;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcuts > a:hover b {
+  color: #155e98;
+}
+
+@media (max-width: 1080px) {
+  html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-metric-strip article:nth-child(-n + 2) {
+    border-color: #e3e7eb;
+  }
+}
+
+@media (max-width: 920px) {
+  html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-health-stat:nth-child(n + 3),
+  html.smirel-app[data-theme='light'] .workspace-root .admin-overview .admin-management-links > a + a {
+    border-color: #e3e7eb;
+  }
+}
+
+@media (max-width: 760px) {
+  html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-metric-strip article,
+  html.smirel-app[data-theme='light'] .workspace-root .admin-ops-workspace .ops-shortcuts > a {
+    border-color: #e3e7eb;
+  }
+}

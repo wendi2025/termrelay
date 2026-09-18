@@ -1,0 +1,748 @@
+/* Complete light-mode pass for user-facing workspace surfaces.
+ * Dark mode remains untouched; these selectors only apply when data-theme=light.
+ */
+
+/* -------------------------------------------------------------------------
+ * User dashboard
+ * ------------------------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .workspace-root .user-console-page {
+  color: #1f252c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .user-balance-value,
+html.smirel-app[data-theme='light'] .workspace-root .user-endpoint-head strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-surface > header strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-lifetime-panel > header strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel > header strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-grid article strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-lifetime-panel dd,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel nav strong {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .user-console-eyebrow,
+html.smirel-app[data-theme='light'] .workspace-root .user-panel-label,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-surface > header span,
+html.smirel-app[data-theme='light'] .workspace-root .user-lifetime-panel > header span,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel > header span,
+html.smirel-app[data-theme='light'] .workspace-root .user-key-status,
+html.smirel-app[data-theme='light'] .workspace-root .user-key-status small,
+html.smirel-app[data-theme='light'] .workspace-root .user-endpoint-head span,
+html.smirel-app[data-theme='light'] .workspace-root .user-endpoint-meta,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-grid article > span,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-grid article small,
+html.smirel-app[data-theme='light'] .workspace-root .user-lifetime-panel dt,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel nav span,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel nav b {
+  color: #6d7884;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-overview,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-surface,
+html.smirel-app[data-theme='light'] .workspace-root .user-lifetime-panel,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel,
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-lifetime-panel,
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-quick-panel {
+  border-color: #dfe5eb;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .035);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-balance-panel,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-surface > header,
+html.smirel-app[data-theme='light'] .workspace-root .user-lifetime-panel > header,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel > header,
+html.smirel-app[data-theme='light'] .workspace-root .user-endpoint-panel > code,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-grid article,
+html.smirel-app[data-theme='light'] .workspace-root .user-lifetime-panel dl > div,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel nav a {
+  border-color: #e5e9ee;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-key-progress {
+  background: #e8edf2;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-refresh,
+html.smirel-app[data-theme='light'] .workspace-root .user-secondary-action,
+html.smirel-app[data-theme='light'] .workspace-root .user-endpoint-head button {
+  border-color: #d7dee6;
+  color: #45515d;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .03);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-refresh svg {
+  stroke: #667481;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-refresh:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .user-secondary-action:hover,
+html.smirel-app[data-theme='light'] .workspace-root .user-endpoint-head button:hover {
+  border-color: #c8d1da;
+  color: #1f252c;
+  background: #f6f8fa;
+  box-shadow: 0 4px 12px rgba(25, 36, 48, .06);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-endpoint-panel > code {
+  color: #364653;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-endpoint-meta a,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-surface > header a {
+  color: #2878b7;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-grid article:hover,
+html.smirel-app[data-theme='light'] .workspace-root .user-lifetime-panel dl > div:hover,
+html.smirel-app[data-theme='light'] .workspace-root .user-quick-panel nav a:hover {
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-lifetime-panel dl > div,
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-quick-panel nav a {
+  border-color: #e0e5ea;
+  background: #f9fafb;
+  box-shadow: none;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-lifetime-panel dl > div:hover,
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-quick-panel nav a:hover {
+  border-color: #d2d9e0;
+  background: #f4f7f9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-quick-panel nav span,
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-quick-panel nav b {
+  border-color: #dce2e8;
+  color: #65717d;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-lifetime-panel > header::after,
+html.smirel-app[data-theme='light'] .workspace-root .user-console-lower .user-quick-panel > header::after {
+  background: #cfd6dd;
+}
+
+/* -------------------------------------------------------------------------
+ * User usage analytics
+ * ------------------------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .summary-copy > strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-heading h2,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-total strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-heading h2,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .distribution-head strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .distribution-head b,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-profile-list dd,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-model-cell strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-cost {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-eyebrow,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .summary-copy > span,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .summary-copy > small,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-heading small,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-caption,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-total span,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .distribution-row > small,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-profile-list dt,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row time,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row > span,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row code,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-footer,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-empty,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-empty strong,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-empty span {
+  color: #6e7984;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .metric-switch,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .custom-range-row,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-refresh,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-summary-card,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .analytics-toolbar,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .analytics-panel,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-panel {
+  border-color: #dfe5eb;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .03);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch button,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .metric-switch button {
+  color: #68737e;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .period-switch button.active,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .metric-switch button.active {
+  color: #1f252c;
+  background: #eef3f7;
+  box-shadow: inset 0 0 0 1px #d9e0e6;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-refresh:hover:not(:disabled) {
+  border-color: #c9d1d9;
+  color: #20262d;
+  background: #f6f8fa;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .custom-range-row input,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-search,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-filters select {
+  border-color: #d8dee5;
+  color: #27313a;
+  background: #ffffff;
+  color-scheme: light;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-search input {
+  color: #27313a;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .summary-icon,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .toolbar-context b {
+  border-color: #dbe2e8;
+  color: #5f6b77;
+  background: #f5f7f9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .panel-heading,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-log-heading,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-profile-list > div,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .distribution-row,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row,
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .log-footer {
+  border-color: #e4e8ec;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-table-head {
+  color: #65717c;
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .usage-row:not(.usage-table-head):hover {
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-grid-lines i {
+  border-top-color: #e2e7eb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-point circle {
+  fill: #ffffff;
+  stroke: #647888;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .trend-tooltip {
+  border-color: #d8dfe5;
+  color: #33414d;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(32, 42, 54, .10);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .distribution-track {
+  background: #e8edf1;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .user-usage-page .distribution-track i {
+  background: #7f8d99;
+}
+
+/* -------------------------------------------------------------------------
+ * Billing / subscriptions
+ * ------------------------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .workspace-root .billing-route-page .billing-heading {
+  border-color: #dfe5eb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-route-page .billing-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .balance-label strong,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-title h3,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-price,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-facts dd,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .ledger-grid dd {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-route-page .billing-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .balance-label p,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .amount-card small,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-title p,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-reference,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-facts dt,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-benefits li,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-footnote,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .ledger-grid dt,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .ledger-note,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .secure {
+  color: #6e7984;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-route-page .billing-eyebrow,
+html.smirel-app[data-theme='light'] .workspace-root .billing-route-page .billing-assurance {
+  border-color: #d9e4ec;
+  color: #587089;
+  background: #f4f8fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .billing-mode,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .balance-card,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .amount-card,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-card,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .ledger-card,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .loading,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .empty {
+  border-color: #dfe5eb;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .03);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .billing-mode button {
+  color: #65717c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .billing-mode button:hover:not(.active) {
+  color: #20262d;
+  background: #f5f7f9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .billing-mode button.active {
+  color: #155e98;
+  background: #edf5fb;
+  box-shadow: inset 0 0 0 1px #cfddea;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .amount-grid button,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .ledger-toggle {
+  border-color: #d9e0e6;
+  color: #4d5964;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .amount-grid button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .ledger-toggle:hover {
+  background: #f5f7f9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .amount-grid button.active {
+  border-color: #7bb7e2;
+  color: #155e98;
+  background: #edf6fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .custom-input {
+  border-color: #d6dde4;
+  color: #20262d;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-card:hover {
+  border-color: #c8d7e3;
+  background: #fbfdff;
+  box-shadow: 0 12px 30px rgba(31, 56, 76, .08);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-card.selected {
+  border-color: #7fbce7;
+  background: #f8fcff;
+  box-shadow: 0 0 0 1px rgba(46, 143, 211, .06), 0 12px 30px rgba(31, 84, 119, .09);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-brand,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-tier {
+  border-color: #dbe3e9;
+  color: #60707d;
+  background: #f5f7f9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-tier {
+  color: #2878b7;
+  background: #eef6fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-facts {
+  border-color: #e4e8ec;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .pricing-facts > div,
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .ledger-entries li {
+  border-color: #e7ebef;
+  background: #f8fafb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .billing-page .ledger-entries li {
+  color: #4f5b66;
+}
+
+/* Shared checkout widgets inside subscriptions */
+html.smirel-app[data-theme='light'] .workspace-root .payment-methods-picker,
+html.smirel-app[data-theme='light'] .workspace-root .payment-order-summary {
+  border-color: #dfe5eb;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .03);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-methods-picker .eyebrow,
+html.smirel-app[data-theme='light'] .workspace-root .payment-methods-picker header small,
+html.smirel-app[data-theme='light'] .workspace-root .payment-methods-picker .group-head,
+html.smirel-app[data-theme='light'] .workspace-root .payment-methods-picker .options button small,
+html.smirel-app[data-theme='light'] .workspace-root .payment-order-summary .eyebrow,
+html.smirel-app[data-theme='light'] .workspace-root .payment-order-summary li {
+  color: #6e7984;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-methods-picker .options button {
+  border-color: #dce2e8;
+  color: #3f4a55;
+  background: #f9fafb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-methods-picker .options button:hover:not(:disabled) {
+  border-color: #bcd3e4;
+  background: #f2f8fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-methods-picker .options button.active {
+  border-color: #79b7e1;
+  color: #155e98;
+  background: #edf6fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-order-summary header strong,
+html.smirel-app[data-theme='light'] .workspace-root .payment-order-summary li strong {
+  color: #28313a;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-order-summary li.receive {
+  border-color: #e5e9ed;
+}
+
+/* -------------------------------------------------------------------------
+ * User orders
+ * ------------------------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .page-head h1,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .stat strong,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .orders-table .amount,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .modal h3,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-grid dd,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-breakdown dd,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-head h2,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-metrics dd,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-entries li .mono {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .page-head .hint,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .stat .eyebrow,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .orders-table th,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .modal-sub,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-grid dt,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-note,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-entry-time,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-head p,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-metrics dt,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-empty {
+  color: #6f7a85;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .stat,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .loading,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .empty,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .orders-table,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .modal {
+  border-color: #dfe5eb;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .03);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .tabs button,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .search,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .orders-table .actions button,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .modal textarea,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .modal-actions .ghost,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-toggle {
+  border-color: #d8dee5;
+  color: #4c5863;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .tabs button.active {
+  border-color: #79b7e1;
+  color: #155e98;
+  background: #edf6fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .search,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .modal textarea {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .orders-table th,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .orders-table td,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-breakdown,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-breakdown > div,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-metrics > div,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-entries li {
+  border-color: #e6eaee;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .orders-table td,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .orders-table code,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-entries li,
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .my-split-entries li {
+  color: #4e5a65;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-entries li {
+  background: #f8fafb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-result {
+  border-color: #c8dce9;
+  background: #f2f8fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .refund-result strong {
+  color: #235b83;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .orders-page .modal-mask {
+  background: rgba(24, 31, 39, .35);
+  backdrop-filter: blur(5px);
+}
+
+/* -------------------------------------------------------------------------
+ * Model catalog / model plaza
+ * ------------------------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-count,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-search,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-sort,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-market-card,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-price-grid,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-specs,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-access-block,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .group-filter-list button,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-group-item {
+  border-color: #dfe5eb;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .025);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-search input,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-sort select,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-identity h2,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-price-grid strong,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-specs strong,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-group-copy > b,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-empty strong {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-sort > span,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .capability-filter button,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-result-head,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-price-grid span,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-price-grid small,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-specs span,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-id-row > span,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .protocol-list > span,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-group-copy > small,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-group-title > span {
+  color: #6e7984;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .capability-filter button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .group-filter-list button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-market-card:hover {
+  border-color: #d1d8df;
+  color: #20262d;
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button.active,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .capability-filter button.active,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .group-filter-list button.active {
+  border-color: #c9dce9;
+  color: #155e98;
+  background: #edf6fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-filter button b,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .group-filter-list button > b,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .group-filter-list button > em,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-group-title > strong,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-tags span,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .protocol-list b {
+  border-color: #dde3e8;
+  color: #66727d;
+  background: #f4f6f8;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mark {
+  border-color: #d9e0e6;
+  color: #4f5c67;
+  background: #f5f7f9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mark[data-provider='openai'] {
+  border-color: #cfe3dd;
+  color: #397965;
+  background: #f0f8f5;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mark[data-provider='anthropic'] {
+  border-color: #e7d9cf;
+  color: #8b6047;
+  background: #fbf6f2;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mark[data-provider='google'] {
+  border-color: #d5e0ec;
+  color: #4b6f91;
+  background: #f2f6fa;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .provider-mark[data-provider='xai'] {
+  border-color: #dce0e4;
+  color: #545b62;
+  background: #f6f7f8;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-price-grid > div,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-specs > div + div,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .protocol-list,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-health,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-group-section {
+  border-color: #e6eaee;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .model-id-row button,
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-empty button {
+  border-color: #d6dde4;
+  color: #4f5b66;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .health-track i {
+  background: #dfe4e8;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-empty {
+  border-color: #dfe5eb;
+  color: #6f7a85;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .model-market-page .market-loading > i {
+  border-color: #e0e5ea;
+  background: linear-gradient(100deg, #f7f9fb 20%, #edf1f4 40%, #f7f9fb 60%);
+}
+
+/* -------------------------------------------------------------------------
+ * Generic user routes and account settings
+ * ------------------------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-button.secondary,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .session-action,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .setting-action {
+  border-color: #d7dee5;
+  color: #4b5661;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .account-button.secondary:hover,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .session-action:hover,
+html.smirel-app[data-theme='light'] .workspace-root .account-settings .setting-action:hover {
+  border-color: #c8d1da;
+  background: #f6f8fa;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .module-panel,
+html.smirel-app[data-theme='light'] .workspace-root .information-panel {
+  color: #20262d;
+}
+
+/* -------------------------------------------------------------------------
+ * Public checkout surfaces reached from the user side
+ * ------------------------------------------------------------------------- */
+html.smirel-app[data-theme='light'] .payment-public-shell .shell-head .back,
+html.smirel-app[data-theme='light'] .payment-public-shell .shell-head .title,
+html.smirel-app[data-theme='light'] .payment-public-shell .loading,
+html.smirel-app[data-theme='light'] .payment-public-shell .unknown,
+html.smirel-app[data-theme='light'] .payment-qrcode-card .hint,
+html.smirel-app[data-theme='light'] .payment-qrcode-card .eyebrow,
+html.smirel-app[data-theme='light'] .payment-alipay-form .eyebrow,
+html.smirel-app[data-theme='light'] .payment-alipay-form .qr p,
+html.smirel-app[data-theme='light'] .payment-alipay-form .redirect p,
+html.smirel-app[data-theme='light'] .payment-alipay-form .secure,
+html.smirel-app[data-theme='light'] .payment-stripe-form .eyebrow,
+html.smirel-app[data-theme='light'] .payment-stripe-form .secure,
+html.smirel-app[data-theme='light'] .payment-airwallex-form .eyebrow,
+html.smirel-app[data-theme='light'] .payment-airwallex-form .secure {
+  color: #6e7984;
+}
+
+html.smirel-app[data-theme='light'] .payment-public-shell .shell-head .amount,
+html.smirel-app[data-theme='light'] .payment-qrcode-card .title strong,
+html.smirel-app[data-theme='light'] .payment-qrcode-card .meta dd,
+html.smirel-app[data-theme='light'] .payment-alipay-form header strong,
+html.smirel-app[data-theme='light'] .payment-stripe-form header strong,
+html.smirel-app[data-theme='light'] .payment-airwallex-form header strong {
+  color: #20262d;
+}
+
+html.smirel-app[data-theme='light'] .payment-qrcode-card,
+html.smirel-app[data-theme='light'] .payment-alipay-form,
+html.smirel-app[data-theme='light'] .payment-stripe-form,
+html.smirel-app[data-theme='light'] .payment-airwallex-form {
+  border-color: #dfe5eb;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(20, 29, 38, .03);
+}
+
+html.smirel-app[data-theme='light'] .payment-qrcode-card .meta div,
+html.smirel-app[data-theme='light'] .payment-stripe-form .element-host,
+html.smirel-app[data-theme='light'] .payment-airwallex-form .element-host {
+  border-color: #e0e5ea;
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .payment-qrcode-card .meta dt {
+  color: #6f7a85;
+}
+
+html.smirel-app[data-theme='light'] .payment-qrcode-card .actions button.ghost,
+html.smirel-app[data-theme='light'] .payment-public-shell .ghost {
+  border-color: #d7dee5;
+  color: #4d5964;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .payment-qrcode-card .actions button.ghost:hover,
+html.smirel-app[data-theme='light'] .payment-public-shell .ghost:hover {
+  background: #f5f7f9;
+}
+
+@media (max-width: 980px) {
+  html.smirel-app[data-theme='light'] .workspace-root .user-balance-panel {
+    border-right: 0;
+    border-bottom-color: #e5e9ee;
+  }
+}
+
+@media (max-width: 700px) {
+  html.smirel-app[data-theme='light'] .workspace-root .user-usage-grid article {
+    border-right: 0;
+    border-bottom-color: #e5e9ee;
+  }
+}

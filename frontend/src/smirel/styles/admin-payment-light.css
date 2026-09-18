@@ -1,0 +1,486 @@
+/* Light-mode coverage for the payment/commerce admin surfaces.
+ * These pages own scoped dark palettes; keep those palettes for dark mode and
+ * remap the same semantic hierarchy here when the workspace is light.
+ */
+
+html.smirel-app[data-theme='light'] .workspace-root {
+  --ap-surface: #ffffff;
+  --ap-soft: #f7f9fb;
+  --ap-muted-surface: #f1f4f7;
+  --ap-border: #dfe4e9;
+  --ap-border-strong: #cfd7df;
+  --ap-text: #1f252c;
+  --ap-text-soft: #56616d;
+  --ap-muted: #75808c;
+  --ap-subtle: #96a0aa;
+  --ap-accent: #1877c9;
+  --ap-accent-soft: #edf5fb;
+  --ap-success: #187a5b;
+  --ap-success-soft: #edf8f3;
+  --ap-danger: #a94747;
+  --ap-danger-soft: #fff3f3;
+  --ap-warning: #946321;
+  --ap-warning-soft: #fff8e8;
+  --ap-shadow: 0 1px 2px rgba(26, 35, 44, .04);
+}
+
+/* Shared payment headings and controls. */
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .plans-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .providers-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .config-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-heading h1 {
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .plans-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .providers-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .config-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-heading p {
+  color: var(--ap-muted);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .refresh-btn,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .outline-link,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refresh-btn,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .action,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .pager-btn,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-toggle,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .action,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .action,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .provider-toggle,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .action {
+  border-color: var(--ap-border-strong);
+  background: var(--ap-surface);
+  color: var(--ap-text-soft);
+  box-shadow: var(--ap-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .refresh-btn:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .outline-link:hover,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refresh-btn:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .action:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .pager-btn:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-toggle:hover,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .action:hover,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .action:hover,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .action:hover:not(:disabled) {
+  border-color: #bec8d1;
+  background: var(--ap-soft);
+  color: #26303a;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .error-banner,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .error-banner,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .error-banner,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .error-banner,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .error-banner,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .error-banner {
+  border-color: #efcccc;
+  background: var(--ap-danger-soft);
+  color: var(--ap-danger);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .success-banner,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .success-banner,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .notice-banner {
+  border-color: #c9e4d7;
+  background: var(--ap-success-soft);
+  color: var(--ap-success);
+}
+
+/* Payment operations dashboard. */
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-summary-card,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-panel {
+  border-color: var(--ap-border);
+  background: var(--ap-surface);
+  box-shadow: var(--ap-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-summary-card.tone-success {
+  border-color: #cce5da;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-summary-card.tone-warning {
+  border-color: #eadcb8;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-summary-card header,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-summary-card footer,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .summary-icon,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .trend-total span,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .trend-bar-value,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .trend-bar-label,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .channel-row-foot,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .empty-state,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .top-users-list .rank,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .top-users-list .count {
+  color: var(--ap-muted);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .payment-summary-card strong,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .panel-heading h2,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .trend-total strong,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .channel-row-head,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .recent-table td,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .top-users-list .user {
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .mono {
+  color: #52606d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .trend-bar-track,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .channel-bar {
+  background: #edf1f4;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .recent-table th {
+  border-color: #e3e7eb;
+  color: #76818c;
+  background: var(--ap-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .recent-table td,
+html.smirel-app[data-theme='light'] .workspace-root .payment-overview .top-users-list li {
+  border-color: #e7eaee;
+}
+
+/* Orders and order detail/refund dialogs. */
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-search,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .filter-select select,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .field input,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .field textarea {
+  border-color: var(--ap-border-strong);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-search::placeholder,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .field input::placeholder,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .field textarea::placeholder {
+  color: var(--ap-subtle);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .filter-select,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-pager,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .detail-grid dt,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .audit-head span,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .audit-meta,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-breakdown dt,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-note,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-hint,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-entry-time {
+  color: var(--ap-muted);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-filters,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-panel,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-pager,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-breakdown,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-entries li {
+  border-color: var(--ap-border);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-panel,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-entries li {
+  background: var(--ap-surface);
+  box-shadow: var(--ap-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-table th {
+  border-color: #e3e7eb;
+  background: var(--ap-soft);
+  color: #75808c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-table td {
+  border-color: #e7eaee;
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .orders-table tr:hover td {
+  background: #f8fafc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .mono,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .detail-grid dd,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .audit-head strong,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-breakdown dd {
+  color: #4f5c68;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .modal-card {
+  border-color: var(--ap-border);
+  background: var(--ap-surface);
+  box-shadow: 0 24px 70px rgba(26, 35, 44, .16);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .modal-card h3,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .detail-heading,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .field span,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .checkbox {
+  color: var(--ap-text-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .audit-timeline li,
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-breakdown > div {
+  border-color: #e4e8ec;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .audit-detail {
+  border-color: #dde3e8;
+  background: #f6f8fa;
+  color: #586571;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .btn.ghost {
+  border-color: var(--ap-border-strong);
+  background: var(--ap-surface);
+  color: var(--ap-text-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .action.danger,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .action.danger,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .action.danger,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .action.danger {
+  border-color: #efcccc;
+  color: var(--ap-danger);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-result {
+  border-color: #c9dfee;
+  background: #f1f7fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-result strong {
+  color: #245b80;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-orders .refund-blocked {
+  border-color: #ead7a6;
+  background: var(--ap-warning-soft);
+  color: var(--ap-warning);
+}
+
+/* Plans, providers and configuration. */
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .plans-table,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .provider-card,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .config-card {
+  border-color: var(--ap-border);
+  background: var(--ap-surface);
+  box-shadow: var(--ap-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .plans-table th {
+  border-color: #e3e7eb;
+  background: var(--ap-soft);
+  color: #75808c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .plans-table td {
+  border-color: #e7eaee;
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .plans-table strong,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .provider-card-head h3,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .provider-meta li b,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .config-card h2 {
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .plan-product,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .plan-original,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .provider-meta li span,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .form-hint,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .field small,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .empty-state {
+  color: var(--ap-muted);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .provider-card-foot {
+  border-color: #e4e8ec;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .provider-toggle {
+  background: var(--ap-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .provider-toggle.on {
+  border-color: #c5e2d5;
+  background: var(--ap-success-soft);
+  color: var(--ap-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .modal-card,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .modal-card {
+  border-color: var(--ap-border);
+  background: var(--ap-surface);
+  box-shadow: 0 24px 70px rgba(26, 35, 44, .16);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .modal-card h3,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .modal-card h3,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .config-heading {
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .modal-sub {
+  border-color: #cadeec;
+  background: #f2f7fb;
+  color: #526576;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .field > span,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .checkbox,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .field > span,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .checkbox,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .field > span,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .checkbox {
+  color: #56616d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .field input,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .field textarea,
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .field select,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .field input,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .field textarea,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .field select,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .field input,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .field textarea,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .field select {
+  border-color: var(--ap-border-strong);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-plans .btn.ghost,
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .btn.ghost {
+  border-color: var(--ap-border-strong);
+  background: var(--ap-surface);
+  color: var(--ap-text-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .chip,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .chip {
+  border-color: var(--ap-border-strong);
+  background: var(--ap-soft);
+  color: #66717d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .payment-providers .chip.active,
+html.smirel-app[data-theme='light'] .workspace-root .payment-config .chip.active {
+  border-color: #c7dceb;
+  background: var(--ap-accent-soft);
+  color: #1768a5;
+}
+
+/* Revenue split / co-builder accounting. */
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-tabs {
+  border-color: #e1e5e9;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-tabs button {
+  color: #74808b;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-tabs button:hover {
+  color: #37414b;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-tabs button.active {
+  color: #1768a5;
+  border-bottom-color: var(--ap-accent);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .card,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-table,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .picker-results,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .modal-card {
+  border-color: var(--ap-border);
+  background: var(--ap-surface);
+  box-shadow: var(--ap-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .card-head h2,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .metric strong,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-table td,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-table .num.strong,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-table .strong,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .picker-results button,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .picker-name,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .modal-card h3,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .modal-card h4 {
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .card-hint,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .ratio-total,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .field .hint,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .metric span,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-table .sub,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-table .muted,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .muted,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .picker-meta,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .picker-empty,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .pager,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .empty-state {
+  color: var(--ap-muted);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .field > span {
+  color: #56616d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .field input,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .field select,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .cell-input {
+  border-color: var(--ap-border-strong);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-table th {
+  border-color: #e3e7eb;
+  background: var(--ap-soft);
+  color: #75808c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .rs-table td,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .metric,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .picker-results li + li {
+  border-color: #e7eaee;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .picker-results button:hover:not(:disabled) {
+  background: var(--ap-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .btn.ghost {
+  border-color: var(--ap-border-strong);
+  background: var(--ap-surface);
+  color: var(--ap-text-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .legal-banner {
+  border-color: #c9ddeb;
+  background: #f1f7fb;
+  color: #41657f;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .legal-banner.soft {
+  border-color: #eadbb3;
+  background: var(--ap-warning-soft);
+  color: #87642b;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .badge.pending,
+html.smirel-app[data-theme='light'] .workspace-root .revenue-split .badge.draft {
+  background: #fff5dc;
+  color: #8a6426;
+}

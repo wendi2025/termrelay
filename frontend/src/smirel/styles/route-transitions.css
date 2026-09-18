@@ -1,0 +1,72 @@
+/* Shared motion language for route changes.
+ * Keep the workspace shell stable and animate only the page content.
+ */
+
+:root {
+  --sm-motion-route-enter: 150ms;
+  --sm-motion-route-leave: 70ms;
+  --sm-motion-ease-out: cubic-bezier(.22, 1, .36, 1);
+  --sm-motion-ease-in: cubic-bezier(.4, 0, 1, 1);
+}
+
+.workspace-route-enter-active {
+  transition:
+    opacity var(--sm-motion-route-enter) var(--sm-motion-ease-out),
+    transform var(--sm-motion-route-enter) var(--sm-motion-ease-out);
+  will-change: opacity, transform;
+}
+
+.workspace-route-leave-active {
+  transition:
+    opacity var(--sm-motion-route-leave) linear,
+    transform var(--sm-motion-route-leave) var(--sm-motion-ease-in);
+  will-change: opacity, transform;
+}
+
+.workspace-route-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 7px, 0);
+}
+
+.workspace-route-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -2px, 0);
+}
+
+.app-route-enter-active {
+  transition:
+    opacity 160ms var(--sm-motion-ease-out),
+    transform 160ms var(--sm-motion-ease-out);
+  will-change: opacity, transform;
+}
+
+.app-route-leave-active {
+  transition: opacity 80ms linear;
+  will-change: opacity;
+}
+
+.app-route-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 4px, 0);
+}
+
+.app-route-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-route-enter-active,
+  .workspace-route-leave-active,
+  .app-route-enter-active,
+  .app-route-leave-active {
+    transition: none !important;
+  }
+
+  .workspace-route-enter-from,
+  .workspace-route-leave-to,
+  .app-route-enter-from,
+  .app-route-leave-to {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,767 @@
+/* Light-mode coverage for resource, routing, user and settings admin pages.
+ * All selectors are theme-gated so the existing dark theme is preserved.
+ */
+
+html.smirel-app[data-theme='light'] .workspace-root {
+  --ar-surface: #ffffff;
+  --ar-soft: #f7f9fb;
+  --ar-muted-surface: #f1f4f7;
+  --ar-border: #dfe4e9;
+  --ar-border-strong: #cfd7df;
+  --ar-text: #1f252c;
+  --ar-text-soft: #56616d;
+  --ar-muted: #75808c;
+  --ar-subtle: #96a0aa;
+  --ar-accent: #1877c9;
+  --ar-accent-soft: #edf5fb;
+  --ar-success: #187a5b;
+  --ar-success-soft: #edf8f3;
+  --ar-warning: #946321;
+  --ar-warning-soft: #fff8e8;
+  --ar-danger: #a94747;
+  --ar-danger-soft: #fff3f3;
+  --ar-shadow: 0 1px 2px rgba(26, 35, 44, .04);
+}
+
+/* Upstream accounts. Most of the page already uses local variables, so map
+ * those variables first and then cover the remaining literal dark surfaces. */
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page {
+  --aa-surface: #ffffff;
+  --aa-surface-soft: #f7f9fb;
+  --aa-surface-raised: #f3f6f8;
+  --aa-surface-hover: #f8fafc;
+  --aa-border: #dfe4e9;
+  --aa-border-strong: #cfd7df;
+  --aa-text: #1f252c;
+  --aa-text-soft: #56616d;
+  --aa-muted: #75808c;
+  --aa-subtle: #96a0aa;
+  color: var(--aa-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .fleet-primary-value strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .fleet-metric > strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .toolbar-title strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-identity strong {
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .fleet-overview {
+  border-color: var(--ar-border);
+  background: var(--ar-surface);
+  box-shadow: var(--ar-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .fleet-overview article + article::before,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-footer,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-detail {
+  border-color: #e4e8ec;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .fleet-progress {
+  background: #edf1f4;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-panel,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-toolbar,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-detail,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-footer {
+  border-color: var(--ar-border);
+  background: var(--ar-surface);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-panel {
+  box-shadow: var(--ar-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-table-head {
+  border-color: #e3e7eb;
+  background: var(--ar-soft);
+  color: #75808c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .search-control,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .select-control {
+  border-color: var(--ar-border-strong);
+  background: var(--ar-surface);
+  color: #71808c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .search-control input,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .select-control select {
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .search-control input::placeholder {
+  color: var(--ar-subtle);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .refresh-button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .clear-button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-footer button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-empty button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .edit-account-button {
+  border-color: var(--ar-border-strong);
+  background: var(--ar-surface);
+  color: var(--ar-text-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .refresh-button:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .clear-button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-footer button:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-empty button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .edit-account-button:hover {
+  border-color: #bec8d1;
+  background: var(--ar-soft);
+  color: #26303a;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .create-account-button {
+  border-color: var(--ar-accent);
+  background: var(--ar-accent);
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(24,119,201,.18);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .create-account-button:hover {
+  border-color: #1268b3;
+  background: #1268b3;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .provider-mark,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .provider-mark[data-platform='openai'],
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .provider-mark[data-platform='anthropic'],
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .provider-mark[data-platform='gemini'],
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .provider-mark[data-platform='grok'],
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .provider-mark[data-platform='xai'] {
+  border-color: #d9e0e7;
+  background: #f4f7f9;
+  color: #51606d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .health-badge,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-routing > b,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-groups > b {
+  border-color: #d9e0e7;
+  background: #f5f7f9;
+  color: #596571;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .health-badge.muted {
+  border-color: #eadbb3;
+  background: var(--ar-warning-soft);
+  color: #8a6426;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .health-badge.danger,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .accounts-error {
+  border-color: #efcccc;
+  background: var(--ar-danger-soft);
+  color: var(--ar-danger);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .load-values > b,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-detail strong {
+  color: #52606d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row:hover,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row:hover .row-action {
+  background: #f8fafc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row:hover .row-action {
+  border-color: #d5dde4;
+  color: #586571;
+}
+
+/* Channel/catalog admin. */
+html.smirel-app[data-theme='light'] .workspace-root .channels-page {
+  --border: #dfe4e9;
+  --border2: #cfd7df;
+  --text: #1f252c;
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .head h1,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .stats strong,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .toolbar strong,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .identity b,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .dialog h2 {
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .head p,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .head > div:first-child > span,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .stats span,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .stats small,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .toolbar span,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .identity small,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .stack,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .empty,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .form > label > span,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .dialog header span {
+  color: var(--ar-muted);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .stats,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .panel,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .dialog {
+  border-color: var(--ar-border);
+  background: var(--ar-surface);
+  box-shadow: var(--ar-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .stats article + article::before,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .toolbar,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .thead,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .row,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .dialog > header,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .dialog footer {
+  border-color: #e4e8ec;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .toolbar {
+  background: #fbfcfd;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .toolbar input,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .toolbar select,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .form input,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .form select,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .form textarea,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .checks {
+  border-color: var(--ar-border-strong);
+  background: var(--ar-surface);
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .identity > i {
+  border-color: #d9e0e7;
+  background: #f3f6f8;
+  color: #52606d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .groups,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .state,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .row code {
+  color: #596672;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .state.active {
+  color: var(--ar-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .actions button,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .ghost,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .dialog > header button {
+  border-color: var(--ar-border-strong);
+  background: var(--ar-surface);
+  color: var(--ar-text-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .primary {
+  border-color: var(--ar-accent);
+  background: var(--ar-accent);
+  color: #fff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .checks label {
+  color: #56616d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .checks label:hover,
+html.smirel-app[data-theme='light'] .workspace-root .channels-page .row:hover {
+  background: var(--ar-soft);
+}
+
+/* User administration. */
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-heading h1,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-summary-card strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-heading strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-identity strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-balance strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-activity strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-concurrency strong {
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-heading p,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-summary-card > div > span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-summary-card small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-identity span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-balance small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-activity span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-concurrency span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-pagination > span,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-heading small,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-empty {
+  color: var(--ar-muted);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-summary-card,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-panel {
+  border-color: var(--ar-border);
+  background: var(--ar-surface);
+  box-shadow: var(--ar-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-summary-icon,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-avatar,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-empty > span {
+  border-color: #d7e1e9;
+  background: #f1f6fa;
+  color: #397aa8;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-summary-icon.is-success {
+  border-color: #c8e3d7;
+  background: var(--ar-success-soft);
+  color: var(--ar-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-summary-icon.is-muted {
+  border-color: #dfe4e9;
+  background: #f4f6f8;
+  color: #7c8792;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-toolbar,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-heading,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-head,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-row,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-pagination {
+  border-color: #e3e7eb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-table-head {
+  background: var(--ar-soft);
+  color: #74808b;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-row {
+  color: #596571;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-row:hover {
+  background: #f8fafc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-search,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-toolbar select,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-dialog input,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-dialog select {
+  border-color: var(--ar-border-strong);
+  background: var(--ar-surface);
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-search input {
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-search input::placeholder,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-dialog input::placeholder {
+  color: var(--ar-subtle);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-role {
+  border-color: #d9dfe5;
+  background: #f5f7f9;
+  color: #65717c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-role.is-admin {
+  border-color: #cbddea;
+  background: var(--ar-accent-soft);
+  color: #1768a5;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-status {
+  background: transparent;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-secondary-button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-action-cell button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-pagination button {
+  border-color: var(--ar-border-strong);
+  background: var(--ar-surface);
+  color: #626e79;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-secondary-button:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-pagination button:hover:not(:disabled) {
+  border-color: #bec8d1;
+  background: var(--ar-soft);
+  color: #26303a;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-action-cell .admin-users-balance-button {
+  border-color: #c9ddeb;
+  background: var(--ar-accent-soft);
+  color: #1768a5;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-dialog {
+  border-color: var(--ar-border);
+  background: var(--ar-surface);
+  box-shadow: 0 24px 70px rgba(26, 35, 44, .16);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-dialog-icon {
+  border-color: #caddea;
+  background: var(--ar-accent-soft);
+  color: #1768a5;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-dialog h2,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-balance-target strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-balance-preview strong {
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-balance-target,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-balance-preview span {
+  border-color: #dfe4e9;
+  background: #f7f9fb;
+  color: #72808b;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-dialog-actions {
+  border-color: #e3e7eb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-users-error,
+html.smirel-app[data-theme='light'] .workspace-root .admin-users-page .admin-user-dialog-error {
+  border-color: #efcccc;
+  background: var(--ar-danger-soft);
+  color: var(--ar-danger) !important;
+}
+
+/* Commercial/platform settings. */
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .command-status strong,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-loading strong,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-context > strong,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-card-head h2,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-identity strong,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .toggle-row strong {
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .command-status small,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-loading small,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-nav-item,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-nav-item small,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-context > span,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-card-head p,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-identity small,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-field > span,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-field > small,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .toggle-row small,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .route-preview-list span {
+  color: var(--ar-muted);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-nav-item:hover {
+  border-color: #dde4ea;
+  background: var(--ar-soft);
+  color: #35414c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-nav-item.active {
+  border-color: #c9ddea;
+  background: var(--ar-accent-soft);
+  color: #155f98;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .nav-icon,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-logo {
+  border-color: #d9e0e7;
+  background: #f4f7f9;
+  color: #62717d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-nav-item.active .nav-icon {
+  border-color: #c6dbe9;
+  background: #e9f3fa;
+  color: #1768a5;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-card-head,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-panel,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-head {
+  border-color: var(--ar-border);
+  background: var(--ar-surface);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-panel {
+  box-shadow: var(--ar-shadow);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-test-button,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .secret-input button,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .url-input-row button,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .route-preview-list button {
+  border-color: var(--ar-border-strong);
+  background: var(--ar-surface);
+  color: #66717d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-test-button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .secret-input button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .url-input-row button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .route-preview-list button:hover {
+  background: var(--ar-soft);
+  color: #27313a;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-state {
+  border-color: #d9dfe5;
+  color: #71808c;
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .provider-state.ready {
+  border-color: #c8e3d7;
+  background: var(--ar-success-soft);
+  color: var(--ar-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .switch-control {
+  border-color: #cfd7df;
+  background: #e7ebef;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .switch-control span {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(26,35,44,.12);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .switch-control.on {
+  border-color: #3185bf;
+  background: #2583c3;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-field input {
+  border-color: var(--ar-border-strong);
+  background: var(--ar-surface);
+  color: var(--ar-text);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-field input::placeholder {
+  color: var(--ar-subtle);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-field > span em {
+  background: var(--ar-success-soft);
+  color: var(--ar-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .toggle-row,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .route-preview-list > div,
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .domain-preview-card .settings-card-head {
+  border-color: #e4e8ec;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .route-preview-list code {
+  color: #52606d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .security-note {
+  border-color: #eadbb3;
+  background: var(--ar-warning-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .security-note strong {
+  color: #8a6426;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .security-note span {
+  color: #876f49;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .commercial-settings .settings-error {
+  border-color: #efcccc;
+  background: var(--ar-danger-soft);
+  color: var(--ar-danger);
+}
+
+/* The create-upstream dialog is teleported to body, so it cannot inherit the
+ * workspace-root selector. Keep it theme-gated at the html level instead. */
+html.smirel-app[data-theme='light'] .upstream-create-dialog {
+  --uc-surface: #ffffff;
+  --uc-raised: #f7f9fb;
+  --uc-border: #dfe4e9;
+  --uc-border-strong: #cfd7df;
+  --uc-text: #1f252c;
+  --uc-soft: #56616d;
+  --uc-muted: #75808c;
+  border-color: #d9e0e6;
+  background: #ffffff;
+  color: #1f252c;
+  box-shadow: 0 28px 90px rgba(26, 35, 44, .20);
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .create-dialog-head,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .form-section + .form-section,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .notes-field,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .create-dialog-foot {
+  border-color: #e3e7eb;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .create-dialog-head h2,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .section-heading strong,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .probe-copy strong,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .group-options strong {
+  color: #1f252c;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .create-kicker,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .create-dialog-head p,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .section-heading small,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .field > small,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .probe-copy small,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .group-options small,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .security-note {
+  color: #75808c;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .field > span {
+  color: #56616d;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .dialog-close,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .section-heading > span,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .secret-input button,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .model-probe,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .probe-icon,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .model-probe > button,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .model-preview code,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .model-preview span,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .group-options > button,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .group-check,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .cancel-button {
+  border-color: #d9e0e6;
+  background: #f6f8fa;
+  color: #64717d;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .field input,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .field textarea,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .input-with-prefix,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .secret-input,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .number-suffix {
+  border-color: #d5dce3;
+  background: #ffffff;
+  color: #1f252c;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .field input::placeholder,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .field textarea::placeholder {
+  color: #9aa4ae;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .input-with-prefix b {
+  border-color: #e0e5ea;
+  color: #74808c;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .model-probe.ready,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .group-options > button.selected,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .selected .group-check {
+  border-color: #c5e2d5;
+  background: #edf8f3;
+  color: #187a5b;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .group-options > button:hover,
+html.smirel-app[data-theme='light'] .upstream-create-dialog .model-probe > button:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .upstream-create-dialog .dialog-close:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .upstream-create-dialog .cancel-button:hover:not(:disabled) {
+  border-color: #c4cdd5;
+  background: #eef2f5;
+  color: #26303a;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .create-dialog-foot {
+  background: #fbfcfd;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .save-button {
+  border-color: #1877c9;
+  background: #1877c9;
+  color: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .save-button:hover:not(:disabled) {
+  background: #1268b3;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .groups-loading i {
+  background: linear-gradient(90deg, #f1f4f7 20%, #e5eaf0 50%, #f1f4f7 80%);
+  background-size: 200% 100%;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .group-empty {
+  border-color: #d8dfe6;
+  color: #73808b;
+}
+
+html.smirel-app[data-theme='light'] .upstream-create-dialog .create-error {
+  border-color: #efcccc;
+  background: #fff3f3;
+  color: #a94747;
+}
+
+/* Compliance is outside WorkspaceShell, but should still follow the selected
+ * interface theme rather than forcing a dark full-screen card. */
+html.smirel-app[data-theme='light'] .compliance-page {
+  background: #f3f5f7;
+  color: #1f252c;
+}
+
+html.smirel-app[data-theme='light'] .compliance-page .compliance-card {
+  border-color: #d9e0e6;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(26,35,44,.12);
+}
+
+html.smirel-app[data-theme='light'] .compliance-page .lead,
+html.smirel-app[data-theme='light'] .compliance-page .muted,
+html.smirel-app[data-theme='light'] .compliance-page .phrase-label {
+  color: #6f7b86;
+}
+
+html.smirel-app[data-theme='light'] .compliance-page .meta-row,
+html.smirel-app[data-theme='light'] .compliance-page .phrase-box {
+  border-color: #dfe4e9;
+  background: #f7f9fb;
+}
+
+html.smirel-app[data-theme='light'] .compliance-page .review-check,
+html.smirel-app[data-theme='light'] .compliance-page .phrase-box code {
+  color: #46525e;
+}
+
+html.smirel-app[data-theme='light'] .compliance-page .phrase-input {
+  border-color: #cfd7df;
+  background: #ffffff;
+  color: #1f252c;
+}
+
+html.smirel-app[data-theme='light'] .compliance-page .error {
+  color: #a94747;
+}
+
+html.smirel-app[data-theme='light'] .compliance-page .accept-button {
+  background: #1877c9;
+  color: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .compliance-page .secondary-button {
+  border-color: #cfd7df;
+  background: #ffffff;
+  color: #4f5b67;
+}

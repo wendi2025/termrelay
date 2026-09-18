@@ -37,9 +37,22 @@ onMounted(async () => {
       error.value = 'Stripe failed to load'
       return
     }
+    const light = document.documentElement.dataset.theme === 'light'
     elements = stripe.elements({
       clientSecret: props.order.client_secret,
-      appearance: { theme: 'night', labels: 'floating' },
+      appearance: {
+        theme: light ? 'stripe' : 'night',
+        labels: 'floating',
+        variables: light
+          ? {
+              colorPrimary: '#2878b7',
+              colorBackground: '#ffffff',
+              colorText: '#20262d',
+              colorDanger: '#b74a4a',
+              borderRadius: '8px',
+            }
+          : undefined,
+      },
     })
     const paymentElement = elements.create('payment', { layout: 'tabs' })
     paymentElement.mount(containerRef.value)
@@ -78,7 +91,6 @@ async function submit() {
       submitting.value = false
       return
     }
-    // success path: poll verify
     const verified = await paymentApi.verifyOrder({ out_trade_no: props.order.out_trade_no })
     emit('paid', Object.assign({}, props.order, verified || {}))
   } catch (e) {
