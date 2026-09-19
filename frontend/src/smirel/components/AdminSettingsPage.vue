@@ -252,6 +252,15 @@ async function fillFrontendCallback(provider: OAuthProvider) {
   await copyValue(value, text('前端回调地址已生成并复制', 'Frontend callback URL generated and copied'))
 }
 
+function validateTurnstile() {
+  if (!form.turnstile_enabled) return ''
+  if (!form.turnstile_site_key.trim()) return text('Turnstile Site Key 不能为空', 'Turnstile Site Key is required')
+  if (!form.turnstile_secret_key_configured && !form.turnstile_secret_key.trim()) {
+    return text('Turnstile Secret Key 不能为空', 'Turnstile Secret Key is required')
+  }
+  return ''
+}
+
 function validateOAuth(provider: OAuthProvider) {
   const enabled = provider === 'google' ? form.google_oauth_enabled : form.github_oauth_enabled
   if (!enabled) return ''
@@ -271,10 +280,12 @@ function validateOAuth(provider: OAuthProvider) {
 
 async function saveSettings() {
   if (saving.value || loading.value) return
-  const validationError = validateOAuth('google') || validateOAuth('github')
+  const oauthValidationError = validateOAuth('google') || validateOAuth('github')
+  const turnstileValidationError = validateTurnstile()
+  const validationError = oauthValidationError || turnstileValidationError
   if (validationError) {
     error.value = validationError
-    activeTab.value = 'auth'
+    activeTab.value = turnstileValidationError ? 'security' : 'auth'
     return
   }
 

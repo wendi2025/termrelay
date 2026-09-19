@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   api,
@@ -15,6 +15,25 @@ import { interfacePreferences } from '../core/preferences'
 const route = useRoute()
 const router = useRouter()
 const { login, register, isAdmin } = useSession()
+
+interface PublicAuthSettings {
+  turnstile_enabled?: boolean
+  turnstile_site_key?: string
+}
+
+interface TurnstileApi {
+  render: (container: HTMLElement, options: Record<string, unknown>) => string
+  reset: (widgetId?: string) => void
+  remove?: (widgetId: string) => void
+}
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi
+  }
+}
+
+const TURNSTILE_SCRIPT_ID = 'smirel-turnstile-script'
 const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
 const email = ref('')
 const password = ref('')
@@ -23,8 +42,22 @@ const token = ref(String(route.query.token || ''))
 const loading = ref(false)
 const message = ref('')
 const error = ref('')
+const turnstileContainer = ref<HTMLElement | null>(null)
+const turnstileEnabled = ref(false)
+const turnstileSiteKey = ref('')
+const turnstileToken = ref('')
+const turnstileLoadError = ref('')
+let turnstileWidgetId: string | undefined
+
 const kind = computed(() => String(route.meta.authKind || 'login'))
 const showOAuth = computed(() => kind.value === 'login' || kind.value === 'register')
+const needsTurnstile = computed(() =>
+  !previewMode
+  && turnstileEnabled.value
+  && Boolean(turnstileSiteKey.value)
+  && ['login', 'register', 'forgot'].includes(kind.value),
+)
+const turnstilePending = computed(() => needsTurnstile.value && !turnstileToken.value && !turnstileLoadError.value)
 const titles: Record<string, string> = {
   login: '登录 Smirel',
   register: '创建 Smirel 账户',
@@ -46,6 +79,124 @@ const submitLabels: Record<string, string> = {
 const title = computed(() => titles[kind.value] || titles.login)
 const subtitle = computed(() => subtitles[kind.value] || '')
 const submitLabel = computed(() => submitLabels[kind.value] || submitLabels.login)
+
+function loadTurnstileScript(): Promise<void> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return Promise.resolve()
+  if (window.turnstile) return Promise.resolve()
+
+  return new Promise((resolve, reject) => {
+    const existing = document.getElementById(TURNSTILE_SCRIPT_ID) as HTMLScriptElement | null
+    const handleLoad = () => {
+      if (window.turnstile) resolve()
+      else reject(new Error('Cloudflare Turnstile API unavailable'))
+    }
+    const handleError = () => reject(new Error('Cloudflare Turnstile script failed to load'))
+
+    if (existing) {
+      existing.addEventListener('load', handleLoad, { once: true })
+      existing.addEventListener('error', handleError, { once: true })
+      window.setTimeout(() => {
+        if (window.turnstile) resolve()
+      }, 0)
+      return
+    }
+
+    const script = document.createElement('script')
+    script.id = TURNSTILE_SCRIPT_ID
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+    script.async = true
+    script.defer = true
+    script.addEventListener('load', handleLoad, { once: true })
+    script.addEventListener('error', handleError, { once: true })
+    document.head.appendChild(script)
+  })
+}
+
+function disposeTurnstile() {
+  turnstileToken.value = ''
+  if (turnstileWidgetId && window.turnstile?.remove) {
+    try {
+      window.turnstile.remove(turnstileWidgetId)
+    } catch {
+      // The widget may already have been removed by navigation.
+    }
+  }
+  turnstileWidgetId = undefined
+  if (turnstileContainer.value) turnstileContainer.value.replaceChildren()
+}
+
+function resetTurnstile() {
+  turnstileToken.value = ''
+  if (!turnstileWidgetId || !window.turnstile) return
+  try {
+    window.turnstile.reset(turnstileWidgetId)
+  } catch {
+    turnstileWidgetId = undefined
+    void renderTurnstile()
+  }
+}
+
+async function renderTurnstile() {
+  disposeTurnstile()
+  turnstileLoadError.value = ''
+  if (!needsTurnstile.value) return
+
+  await nextTick()
+  const container = turnstileContainer.value
+  if (!container) return
+
+  try {
+    await loadTurnstileScript()
+    if (!window.turnstile) throw new Error('Cloudflare Turnstile API unavailable')
+
+    turnstileWidgetId = window.turnstile.render(container, {
+      sitekey: turnstileSiteKey.value,
+      theme: 'auto',
+      appearance: 'interaction-only',
+      callback: (value: unknown) => {
+        turnstileToken.value = typeof value === 'string' ? value : ''
+        turnstileLoadError.value = ''
+      },
+      'expired-callback': () => {
+        turnstileToken.value = ''
+      },
+      'timeout-callback': () => {
+        turnstileToken.value = ''
+      },
+      'error-callback': () => {
+        turnstileToken.value = ''
+        turnstileLoadError.value = '安全验证暂时不可用，请稍后重试。'
+      },
+    })
+  } catch {
+    turnstileLoadError.value = '安全验证加载失败，请刷新页面后重试。'
+  }
+}
+
+async function loadPublicAuthSettings() {
+  if (previewMode) return
+  try {
+    const { data } = await api.get<PublicAuthSettings>('/settings/public')
+    turnstileEnabled.value = Boolean(data.turnstile_enabled)
+    turnstileSiteKey.value = String(data.turnstile_site_key || '').trim()
+    if (turnstileEnabled.value && !turnstileSiteKey.value) {
+      turnstileLoadError.value = '安全验证尚未完成配置，请联系管理员。'
+    }
+  } catch {
+    // Keep authentication available when public settings cannot be loaded.
+    // A server that requires Turnstile will still reject a tokenless request safely.
+    turnstileEnabled.value = false
+    turnstileSiteKey.value = ''
+  }
+}
+
+watch(
+  () => [kind.value, turnstileEnabled.value, turnstileSiteKey.value],
+  () => void renderTurnstile(),
+)
+
+onMounted(() => void loadPublicAuthSettings())
+onBeforeUnmount(disposeTurnstile)
 
 function startOAuth(provider: OAuthProvider) {
   error.value = ''
@@ -71,7 +222,12 @@ async function submit() {
     error.value = '两次输入的密码不一致'
     return
   }
+  if (needsTurnstile.value && !turnstileToken.value) {
+    error.value = turnstileLoadError.value || '请先完成人机验证。'
+    return
+  }
 
+  const turnstileTokenForRequest = turnstileToken.value
   loading.value = true
   try {
     if (previewMode) {
@@ -80,16 +236,19 @@ async function submit() {
     }
 
     if (kind.value === 'login') {
-      await login(email.value.trim(), password.value)
+      await login(email.value.trim(), password.value, turnstileTokenForRequest)
       const redirect = typeof route.query.redirect === 'string'
         ? route.query.redirect
         : (isAdmin.value ? '/admin/dashboard' : '/dashboard')
       await router.push(redirect)
     } else if (kind.value === 'register') {
-      await register(email.value.trim(), password.value)
+      await register(email.value.trim(), password.value, turnstileTokenForRequest)
       await router.push('/dashboard')
     } else if (kind.value === 'forgot') {
-      await api.post('/auth/forgot-password', { email: email.value.trim() })
+      await api.post('/auth/forgot-password', {
+        email: email.value.trim(),
+        turnstile_token: turnstileTokenForRequest,
+      })
       message.value = '重置链接已发送，请检查邮箱。'
     } else {
       await api.post('/auth/reset-password', {
@@ -103,6 +262,7 @@ async function submit() {
     error.value = getErrorMessage(caught)
   } finally {
     loading.value = false
+    if (turnstileTokenForRequest) resetTurnstile()
   }
 }
 </script>
@@ -223,11 +383,25 @@ async function submit() {
             <input v-model="token" type="text" required placeholder="Reset token" />
           </label>
 
+          <div v-if="needsTurnstile" class="turnstile-shell" :class="{ ready: Boolean(turnstileToken), failed: Boolean(turnstileLoadError) }">
+            <div ref="turnstileContainer" class="turnstile-widget" aria-label="Cloudflare Turnstile 人机验证"></div>
+            <div class="turnstile-meta" aria-live="polite">
+              <span><i></i>Cloudflare Turnstile</span>
+              <small v-if="turnstileLoadError">{{ turnstileLoadError }}</small>
+              <small v-else-if="turnstileToken">安全验证已通过</small>
+              <small v-else>正在进行安全检查</small>
+            </div>
+          </div>
+
           <p v-if="error" class="form-error">{{ error }}</p>
           <p v-if="message" class="form-success">{{ message }}</p>
 
-          <button class="auth-submit" type="submit" :disabled="loading">
-            <span>{{ loading ? '处理中…' : (previewMode ? '进入预览控制台' : submitLabel) }}</span>
+          <button
+            class="auth-submit"
+            type="submit"
+            :disabled="loading || turnstilePending || Boolean(turnstileLoadError)"
+          >
+            <span>{{ loading ? '处理中…' : (previewMode ? '进入预览控制台' : (turnstilePending ? '完成安全验证' : submitLabel)) }}</span>
             <b aria-hidden="true">→</b>
           </button>
         </form>
@@ -584,6 +758,89 @@ async function submit() {
   border-color: #3a6f9b;
   background: #0b0f14;
   box-shadow: 0 0 0 3px rgba(60,126,178,.10);
+}
+
+.turnstile-shell {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid #27313a;
+  border-radius: 10px;
+  background: #090c10;
+  transition: border-color .16s ease, background-color .16s ease;
+}
+
+.turnstile-shell.ready {
+  border-color: #28503f;
+  background: #0a110e;
+}
+
+.turnstile-shell.failed {
+  border-color: #4b2a30;
+  background: #130c0e;
+}
+
+.turnstile-widget {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.turnstile-widget:empty {
+  display: none;
+}
+
+.turnstile-meta {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #697783;
+  font-size: .65rem;
+  line-height: 1.35;
+}
+
+.turnstile-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  color: #788794;
+  font-weight: 650;
+}
+
+.turnstile-meta i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6f7b86;
+  box-shadow: 0 0 0 3px rgba(111,123,134,.08);
+}
+
+.turnstile-shell.ready .turnstile-meta i {
+  background: #53bf8e;
+  box-shadow: 0 0 0 3px rgba(83,191,142,.09);
+}
+
+.turnstile-shell.failed .turnstile-meta i {
+  background: #d46e78;
+  box-shadow: 0 0 0 3px rgba(212,110,120,.08);
+}
+
+.turnstile-meta small {
+  min-width: 0;
+  color: #68737e;
+  font-size: .64rem;
+  text-align: right;
+}
+
+.turnstile-shell.ready .turnstile-meta small {
+  color: #6ea98f;
+}
+
+.turnstile-shell.failed .turnstile-meta small {
+  color: #cc7780;
 }
 
 .auth-submit {
