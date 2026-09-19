@@ -137,7 +137,7 @@ func buildPublicPlans(plans []*dbent.SubscriptionPlan, groups map[int64]service.
 		result = append(result, publicPlan{
 			ID: int64(p.ID), Platform: group.Platform, GroupName: group.Name,
 			SupportedModelScopes: group.ModelScopes,
-			Name: p.Name, Description: p.Description, Price: p.Price, OriginalPrice: p.OriginalPrice,
+			Name:                 p.Name, Description: p.Description, Price: p.Price, OriginalPrice: p.OriginalPrice,
 			Currency: p.Currency, ValidityDays: p.ValidityDays, ValidityUnit: p.ValidityUnit,
 			Features: parseFeatures(decoded.Features), ProductName: p.ProductName,
 			CardTier: decoded.Card.Tier, CardBadge: decoded.Card.Badge, CardFeatured: decoded.Card.Featured,
