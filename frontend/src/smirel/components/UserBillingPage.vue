@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useSession } from '../core/session'
 import { paymentApi, type CheckoutInfoResponse, type CheckoutPlan, type LedgerBalanceBreakdown, type MethodLimits, type PaymentType, type RefundLedgerEntry, type CreateOrderResponse } from '../api/payment'
 import { usePaymentCheckout } from '../composables/usePaymentCheckout'
@@ -11,6 +12,7 @@ import PaymentOrderSummary from './payment/PaymentOrderSummary.vue'
 
 const props = defineProps<{ balance: number }>()
 const { t, locale } = useI18n()
+const route = useRoute()
 const { isAuthenticated } = useSession()
 
 const tab = ref<'recharge' | 'subscription'>('recharge')
@@ -140,6 +142,18 @@ const sortedPlans = computed(() => {
   const list = [...plans.value]
   return list.sort((a, b) => a.price - b.price)
 })
+
+function selectPlanFromRoute() {
+  const requested = Number(route.query.plan)
+  if (!Number.isSafeInteger(requested) || requested <= 0) return
+  if (sortedPlans.value.some((plan) => plan.id === requested)) {
+    tab.value = 'subscription'
+    selectedPlanId.value = requested
+  }
+}
+
+watch(sortedPlans, selectPlanFromRoute, { immediate: true })
+watch(() => route.query.plan, selectPlanFromRoute)
 
 const isZh = computed(() => String(locale.value || '').toLowerCase().startsWith('zh'))
 

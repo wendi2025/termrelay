@@ -14,8 +14,8 @@ export const interfacePreferences = reactive<{
   resolvedTheme: ResolvedTheme
 }>({
   locale: 'zh-CN',
-  theme: 'dark',
-  resolvedTheme: 'dark',
+  theme: 'light',
+  resolvedTheme: 'light',
 })
 
 function isLocale(value: string | null): value is SmirelLocale {
@@ -63,7 +63,7 @@ export function restoreInterfacePreferences() {
   const storedTheme = window.localStorage.getItem(THEME_KEY)
 
   setLocale(isLocale(storedLocale) ? storedLocale : 'zh-CN')
-  applyTheme(isTheme(storedTheme) ? storedTheme : 'dark')
+  applyTheme(isTheme(storedTheme) ? storedTheme : 'light')
 
   themeMedia?.addEventListener('change', () => {
     if (interfacePreferences.theme === 'system') applyTheme('system')

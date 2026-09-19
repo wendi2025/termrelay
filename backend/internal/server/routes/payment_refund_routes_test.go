@@ -41,6 +41,8 @@ func TestRegisterPaymentRoutesRegistersRefundPreviewAndLedger(t *testing.T) {
 	}
 
 	for _, want := range []string{
+		// 公开首页套餐目录：无需 JWT，且不与支付恢复端点冲突。
+		"GET /api/v1/payment/public/plans",
 		// 用户视角：退款预览（方案 9.1/9.2/9.3 明细）
 		"GET /api/v1/payment/orders/:id/refund-preview",
 		// 用户视角：余额分账账本

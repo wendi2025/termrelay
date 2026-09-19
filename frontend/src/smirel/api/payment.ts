@@ -161,6 +161,32 @@ export interface CheckoutPlan {
   product_name: string
 }
 
+export interface PublicSubscriptionPlan {
+  id: number
+  platform: string
+  group_name: string
+  supported_model_scopes: string[]
+  name: string
+  description: string
+  price: number
+  original_price?: number | null
+  currency?: string
+  validity_days: number
+  validity_unit: string
+  features: string[]
+  product_name: string
+  card_tier?: string
+  card_badge?: string
+  card_featured?: boolean
+  card_footnote?: string
+  seat_limit?: number
+  concurrency_limit?: number
+  purchase_policy?: string
+  daily_limit_usd?: number | null
+  weekly_limit_usd?: number | null
+  monthly_limit_usd?: number | null
+}
+
 export interface CheckoutInfoResponse {
   methods: Record<string, MethodLimits>
   global_min: number
@@ -535,6 +561,7 @@ export const paymentApi = {
   getConfig: () => ok(api.get('/payment/config')),
   getCheckoutInfo: () => ok(api.get('/payment/checkout-info')),
   listPlans: () => ok(api.get('/payment/plans')),
+  listPublicPlans: () => ok<PublicSubscriptionPlan[]>(api.get('/payment/public/plans')),
   getLimits: () => ok(api.get('/payment/limits')),
   createOrder: (body: CreateOrderRequest) => ok<CreateOrderResponse>(api.post('/payment/orders', body)),
   verifyOrder: (body: any) => ok<any>(api.post('/payment/orders/verify', body)),

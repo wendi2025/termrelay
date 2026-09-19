@@ -1,590 +1,105 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import HomeAccountMenu from '../components/HomeAccountMenu.vue'
 import HomeTopbarControls from '../components/HomeTopbarControls.vue'
+import { paymentApi, type PublicSubscriptionPlan } from '../api/payment'
+import { interfacePreferences, setLocale, setTheme, type ThemePreference } from '../core/preferences'
+import { type SmirelLocale } from '../core/i18n'
 import { useSession } from '../core/session'
-import '../styles/home-layout.css'
-import '../styles/home-gateway.css'
-import '../styles/home-light.css'
-import '../styles/home-entry.css'
-import '../styles/home-motion.css'
-import '../styles/home-button-motion.css'
+import claudeLogo from '../assets/providers/claude.svg'
+import geminiLogo from '../assets/providers/gemini.svg'
+import grokLogo from '../assets/providers/grok.svg'
+import openaiLogo from '../assets/providers/openai.svg'
+import '../styles/home-landing.css'
 
 const { isAuthenticated, isAdmin } = useSession()
+const plans = ref<PublicSubscriptionPlan[]>([])
+const plansState = ref<'loading' | 'ready' | 'unavailable'>('loading')
+const mobileMenuOpen = ref(false)
 const copied = ref(false)
-const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
 const apiBase = 'https://api.smirel.com/v1'
+const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
 const consolePath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
-const homeRoot = ref<HTMLElement | null>(null)
-let revealObserver: IntersectionObserver | undefined
-
-function revealImmediately(nodes: HTMLElement[]) {
-  nodes.forEach((node) => node.classList.add('is-visible'))
-}
-
-function setupHomeMotion() {
-  const root = homeRoot.value
-  if (!root) return
-
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const groups: Array<{ selector: string; variant?: string; step?: number }> = [
-    { selector: '.workspace-copy > span, .workspace-copy > h2, .workspace-copy > p', variant: 'copy', step: 78 },
-    { selector: '.workspace-links > a', variant: 'card', step: 92 },
-    { selector: '.closing-status, .closing-copy > h2, .closing-copy > p, .closing-meta', variant: 'copy', step: 76 },
-    { selector: '.closing-actions', variant: 'panel', step: 0 },
-    { selector: '.home-footer > span', variant: 'copy', step: 70 },
-  ]
-
-  const nodes: HTMLElement[] = []
-  groups.forEach(({ selector, variant = 'copy', step = 70 }) => {
-    Array.from(root.querySelectorAll<HTMLElement>(selector)).forEach((node, index) => {
-      node.dataset.homeReveal = variant
-      node.style.setProperty('--home-reveal-delay', `${Math.min(index * step, 360)}ms`)
-      nodes.push(node)
-    })
+const isEnglish = computed(() => interfacePreferences.locale === 'en-US')
+const copy = computed<any>(() => isEnglish.value ? en : zh)
+const providers = [{ name: 'OpenAI', src: openaiLogo }, { name: 'Claude', src: claudeLogo }, { name: 'Gemini', src: geminiLogo }, { name: 'Grok', src: grokLogo }]
+const tools = [['CC', 'Claude Code'], ['CX', 'Codex'], ['OA', 'OpenAI SDK'], ['AN', 'Anthropic SDK'], ['GM', 'Gemini SDK'], ['IDE', 'Editors & clients']]
+const groups = computed(() => {
+  const result = new Map<string, PublicSubscriptionPlan[]>()
+  plans.value.forEach((plan) => {
+    const key = plan.group_name || plan.platform || 'Smirel'
+    result.set(key, [...(result.get(key) || []), plan])
   })
-
-  root.classList.add('home-motion-ready')
-
-  if (reducedMotion || !('IntersectionObserver' in window)) {
-    revealImmediately(nodes)
-    return
-  }
-
-  revealObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return
-      const node = entry.target as HTMLElement
-      node.classList.add('is-visible')
-      observer.unobserve(node)
-    })
-  }, {
-    threshold: 0.14,
-    rootMargin: '0px 0px -9% 0px',
-  })
-
-  nodes.forEach((node) => revealObserver?.observe(node))
-}
-
-onMounted(() => {
-  void nextTick(setupHomeMotion)
+  return [...result.entries()].map(([name, items]) => ({ name, items }))
 })
 
-onBeforeUnmount(() => {
-  revealObserver?.disconnect()
-  revealObserver = undefined
-})
-
+function planTarget(plan: PublicSubscriptionPlan) {
+  const target = `/subscriptions?plan=${plan.id}`
+  return isAuthenticated.value ? target : `/register?redirect=${encodeURIComponent(target)}`
+}
+function formatPrice(plan: PublicSubscriptionPlan) {
+  const value = Number(plan.price || 0).toLocaleString(interfacePreferences.locale, { maximumFractionDigits: 2 })
+  return (plan.currency || 'CNY') === 'CNY' ? `¥${value}` : `${plan.currency} ${value}`
+}
+function validity(plan: PublicSubscriptionPlan) {
+  if (!isEnglish.value && String(plan.validity_unit).toLowerCase().startsWith('day')) return `${plan.validity_days} 天`
+  return `${plan.validity_days} ${plan.validity_unit}`
+}
+function chooseLocale(event: Event) { setLocale((event.target as HTMLSelectElement).value as SmirelLocale) }
+function chooseTheme(event: Event) { setTheme((event.target as HTMLSelectElement).value as ThemePreference) }
 async function copyBase() {
   await navigator.clipboard.writeText(apiBase)
   copied.value = true
   window.setTimeout(() => { copied.value = false }, 1400)
 }
+onMounted(async () => {
+  try { plans.value = await paymentApi.listPublicPlans(); plansState.value = 'ready' } catch { plansState.value = 'unavailable' }
+})
+
+const zh = {
+  nav: ['平台能力', '工具兼容', '套餐', '常见问题'],
+  hero: ['SMIREL AI API GATEWAY', 'Smirel AI API 网关', '一个 Base URL，连接主流大模型。', '沿用熟悉的 SDK 和调用方式，在一个控制台中管理模型、API Key、用量与套餐。', '开始使用', '查看模型与价格', '已接入主流模型'],
+  pain: ['01 · 痛点', '调用多个模型，不该意味着管理多套系统。', '将分散的账号、密钥、接口和用量归到一处，让模型选择回到产品与工程本身。', [['多份配置', '每个服务商都有独立地址、密钥和调用差异。'], ['模型切换成本高', '替换模型常常意味着调整 SDK、环境变量和业务代码。'], ['用量难追踪', '请求、Token 与费用散落在不同账户和后台。'], ['团队缺少边界', '项目之间的 Key、配额和使用记录不容易隔离。']]],
+  cap: ['02 · 能力', '把接入复杂度留给平台。', '面向开发工作流的统一入口，不改变你已经习惯的调用方式。', [['统一接口', '使用统一 Base URL 和 API Key，按需切换可用模型。'], ['兼容现有工具', '基于常见协议与 SDK 接入，减少迁移成本。'], ['用量可见', '集中查看请求、Token、费用与主要模型消耗。'], ['灵活计费', '按量充值与订阅套餐并行，按团队需要选择。']]],
+  tools: ['03 · 工具', '融入已有的开发工作流。', '从终端、编辑器到 SDK，统一通过 Smirel 文档完成接入。', '查看接入文档'],
+  compare: ['04 · 对比', '一个入口，保留选择权。', ['对比项', '分别接入服务商', 'Smirel'], [['模型入口', '按服务商分别配置', '一个 Base URL 统一接入'], ['认证管理', '多套账号与密钥', '集中管理 API Key'], ['用量查看', '分散在不同后台', '请求、Token 和费用集中查看'], ['接入方式', '逐项适配调用差异', '保留熟悉 SDK 与工作流']]],
+  steps: ['05 · 接入', '三步开始调用。', '从创建账号到第一次请求，路径保持简单清晰。', [['01', '创建账户', '注册后进入控制台，创建独立的 API Key。'], ['02', '选择模型与套餐', '查看可用模型，按量充值或选择适合的订阅。'], ['03', '替换 Base URL', '在现有工具中填入 Smirel 地址，开始调用。']], '复制地址', '已复制'],
+  pricing: ['06 · 套餐', '选择适合当前工作流的方案。', '套餐、价格和在售状态直接来自控制台配置。', '正在加载当前套餐…', '套餐暂时不可用，请登录控制台查看最新信息。', '查看并开通', '查看申请方式', '有效期', '月额度', '席', '并发'],
+  faq: ['07 · 答疑', '常见问题', '先把常见的接入与计费问题说清楚。', [['支持哪些模型和协议？', '以模型广场和当前账户可见模型为准。Smirel 提供统一 API 入口，并保留常见 SDK 的接入方式。'], ['现有项目需要重写吗？', '通常只需替换 Base URL 和 API Key。具体参数和模型名称请以接入文档为准。'], ['按量充值与订阅套餐如何选择？', '按量充值适合弹性调用；订阅套餐适合有稳定模型和额度需求的工作流。'], ['如何管理团队或项目用量？', '可为不同项目创建独立 Key，在控制台查看请求、Token 和费用记录。']]],
+  closing: ['准备好把模型接入，变成一件简单的事了吗？', '创建账户，生成 API Key，然后继续使用你熟悉的工具。', '进入控制台', '阅读接入文档'],
+}
+const en = {
+  nav: ['Capabilities', 'Tools', 'Plans', 'FAQ'],
+  hero: ['SMIREL AI API GATEWAY', 'Smirel AI API Gateway', 'One Base URL for leading AI models.', 'Keep familiar SDKs while managing models, API keys, usage, and plans from one console.', 'Get started', 'Models and pricing', 'Leading models available'],
+  pain: ['01 · Problems', 'More models should not mean more systems to manage.', 'Bring accounts, keys, endpoints, and usage into one place so teams can focus on the product.', [['Fragmented setup', 'Every provider has separate endpoints, keys, and conventions.'], ['Costly switching', 'Changing models often means updating SDKs, environment variables, and code.'], ['Usage is scattered', 'Requests, tokens, and costs live in disconnected dashboards.'], ['Weak boundaries', 'Projects need isolated keys, quotas, and usage history.']]],
+  cap: ['02 · Capabilities', 'Leave integration complexity to the platform.', 'A unified developer entry point that preserves the workflows you already know.', [['Unified endpoint', 'Use one Base URL and API key to access available models.'], ['Compatible tools', 'Use familiar protocols and SDKs to reduce migration work.'], ['Visible usage', 'Review requests, tokens, costs, and top models in one place.'], ['Flexible billing', 'Choose between pay-as-you-go balance and subscriptions.']]],
+  tools: ['03 · Tools', 'Fits into your existing developer workflow.', 'From terminal tools and editors to SDKs, start from the Smirel integration docs.', 'Read integration docs'],
+  compare: ['04 · Compare', 'One entry point, with room to choose.', ['Area', 'Separate providers', 'Smirel'], [['Model access', 'Configure each provider separately', 'One Base URL'], ['Credentials', 'Multiple accounts and keys', 'Centralized API keys'], ['Usage', 'Distributed dashboards', 'Requests, tokens, and costs together'], ['Integration', 'Adapt to each API', 'Keep familiar SDK workflows']]],
+  steps: ['05 · Connect', 'Start in three steps.', 'From account creation to the first request, the path stays direct.', [['01', 'Create an account', 'Enter the console and create a dedicated API key.'], ['02', 'Choose models and plans', 'Review available models, then add balance or choose a plan.'], ['03', 'Replace the Base URL', 'Use the Smirel endpoint in your existing tools.']], 'Copy URL', 'Copied'],
+  pricing: ['06 · Plans', 'Choose a plan for your workflow.', 'Plan availability and pricing come directly from the console configuration.', 'Loading current plans…', 'Plans are temporarily unavailable. Sign in to view the latest catalog.', 'View and activate', 'View application process', 'Validity', 'Monthly quota', 'seats', 'concurrency'],
+  faq: ['07 · FAQ', 'Frequently asked questions', 'The common integration and billing questions, answered upfront.', [['Which models and protocols are supported?', 'Use the model catalog and the models visible to your account as the source of truth.'], ['Do existing projects need a rewrite?', 'Usually you only need to replace the Base URL and API key.'], ['How do balance and subscriptions differ?', 'Balance works for variable usage. Subscriptions suit stable model and quota needs.'], ['How can teams manage usage?', 'Create separate keys for projects and review requests, tokens, and costs in the console.']]],
+  closing: ['Ready to make model integration simpler?', 'Create an account, generate an API key, and keep using the tools you know.', 'Open console', 'Read integration docs'],
+}
 </script>
 
 <template>
-  <div ref="homeRoot" class="home-page">
-    <header class="home-topbar" :class="{ 'home-topbar--signed-in': isAuthenticated }">
-      <RouterLink to="/home" class="brand-link">
-        <img :src="logoUrl" alt="Smirel" />
-        <span><strong>Smirel</strong><small>API SERVICE</small></span>
-      </RouterLink>
-
-      <nav class="home-nav">
-        <RouterLink to="/model-plaza">模型与价格</RouterLink>
-        <RouterLink to="/key-usage">用量查询</RouterLink>
-        <a href="https://api.smirel.com" target="_blank" rel="noreferrer">接入文档</a>
-      </nav>
-
-      <div class="home-actions">
-        <template v-if="isAuthenticated">
-          <HomeTopbarControls />
-          <HomeAccountMenu variant="toolbar" />
-        </template>
-        <template v-else>
-          <RouterLink to="/login" class="quiet-link">登录</RouterLink>
-          <RouterLink to="/register" class="top-console">注册</RouterLink>
-        </template>
-      </div>
+  <div class="home-page">
+    <header class="home-topbar">
+      <RouterLink to="/home" class="home-brand"><img :src="logoUrl" alt="Smirel"><span><strong>Smirel</strong><small>API SERVICE</small></span></RouterLink>
+      <nav class="home-nav" :class="{ 'is-open': mobileMenuOpen }"><a href="#capabilities">{{ copy.nav[0] }}</a><a href="#tools">{{ copy.nav[1] }}</a><a href="#pricing">{{ copy.nav[2] }}</a><a href="#faq">{{ copy.nav[3] }}</a></nav>
+      <div class="home-actions"><template v-if="isAuthenticated"><HomeTopbarControls /><HomeAccountMenu variant="toolbar" /></template><template v-else><select :value="interfacePreferences.locale" aria-label="Language" @change="chooseLocale"><option value="zh-CN">中文</option><option value="en-US">EN</option></select><select :value="interfacePreferences.theme" aria-label="Theme" @change="chooseTheme"><option value="light">☀</option><option value="dark">◐</option><option value="system">◌</option></select><RouterLink to="/login">{{ isEnglish ? 'Log in' : '登录' }}</RouterLink><RouterLink class="home-register" to="/register">{{ isEnglish ? 'Sign up' : '注册' }}</RouterLink></template><button class="home-menu" type="button" @click="mobileMenuOpen = !mobileMenuOpen">{{ isEnglish ? 'Menu' : '菜单' }}</button></div>
     </header>
-
-    <main class="home-content">
-      <section class="hero-section">
-        <div class="hero-copy-block">
-          <span class="hero-kicker">SMIREL / MODEL API</span>
-          <h1>统一的大模型接口，<br>让您的 vibecoding 更高效。</h1>
-          <p>OpenAI、Claude、Gemini、Grok 共用一个 Base URL。保留熟悉的 SDK 和调用方式，把模型切换、Key 和用量留给 Smirel。</p>
-
-          <div class="hero-actions">
-            <RouterLink :to="isAuthenticated ? consolePath : '/register'" class="primary-button">
-              {{ isAuthenticated ? '进入控制台' : '开始使用' }}
-            </RouterLink>
-            <RouterLink to="/model-plaza" class="secondary-button">查看模型</RouterLink>
-          </div>
-
-          <div class="hero-trust">
-            <span>OpenAI Compatible</span>
-            <span>按实际用量计费</span>
-          </div>
-        </div>
-
-        <div class="gateway-preview" aria-label="Smirel API 接入信息">
-          <div class="gateway-preview-head">
-            <div>
-              <span>SMIREL API</span>
-              <strong>生产接口</strong>
-            </div>
-            <RouterLink :to="isAuthenticated ? '/keys' : '/register'" class="gateway-key-link">
-              {{ isAuthenticated ? 'API Keys' : '创建 API Key' }} <b>↗</b>
-            </RouterLink>
-          </div>
-
-          <div class="gateway-endpoint">
-            <div class="gateway-endpoint-label">
-              <span>BASE URL</span>
-              <button type="button" @click="copyBase">{{ copied ? '已复制' : '复制地址' }}</button>
-            </div>
-            <code>{{ apiBase }}</code>
-          </div>
-
-          <div class="gateway-details">
-            <div class="gateway-detail">
-              <span>接口格式</span>
-              <strong>OpenAI-compatible API</strong>
-            </div>
-            <div class="gateway-detail">
-              <span>认证方式</span>
-              <strong>Bearer API Key</strong>
-            </div>
-            <div class="gateway-detail">
-              <span>可用模型</span>
-              <div class="gateway-models">
-                <b>OpenAI</b>
-                <b>Claude</b>
-                <b>Gemini</b>
-                <b>Grok</b>
-              </div>
-            </div>
-          </div>
-
-          <div class="gateway-preview-foot">
-            <RouterLink to="/model-plaza">模型目录 <b>→</b></RouterLink>
-            <RouterLink :to="isAuthenticated ? '/usage' : '/key-usage'">用量与日志 <b>→</b></RouterLink>
-          </div>
-        </div>
-      </section>
-
-      <section class="workspace-section">
-        <div class="workspace-copy">
-          <span>工作区</span>
-          <h2>模型、Key 和用量，<br>放在一个地方。</h2>
-          <p>首页只负责让您快速开始。后续的模型选择、密钥和调用记录都回到控制台处理。</p>
-        </div>
-
-        <div class="workspace-links">
-          <RouterLink to="/model-plaza">
-            <span>MODEL</span>
-            <strong>查看模型与价格</strong>
-            <p>挑选模型，查看当前价格和可用状态。</p>
-            <b>→</b>
-          </RouterLink>
-          <RouterLink :to="isAuthenticated ? '/keys' : '/register'">
-            <span>KEYS</span>
-            <strong>管理 API Key</strong>
-            <p>为不同项目创建独立访问凭证。</p>
-            <b>→</b>
-          </RouterLink>
-          <RouterLink :to="isAuthenticated ? '/usage' : '/key-usage'">
-            <span>USAGE</span>
-            <strong>查看调用与用量</strong>
-            <p>请求、Token 和费用集中查看。</p>
-            <b>→</b>
-          </RouterLink>
-        </div>
-      </section>
-
-      <section class="closing-section closing-cta">
-        <div class="closing-copy">
-          <span class="closing-status"><i></i>接入准备就绪</span>
-          <h2>创建一个 Key，开始调用。</h2>
-          <p>保留现有 SDK，只需要换上 Smirel 的 Base URL 和 API Key，几分钟内即可完成接入。</p>
-          <div class="closing-meta">
-            <span>统一 Base URL</span>
-            <span>OpenAI Compatible</span>
-            <span>按量计费</span>
-          </div>
-        </div>
-        <div class="closing-actions">
-          <RouterLink :to="isAuthenticated ? consolePath : '/register'" class="closing-primary">
-            <span>{{ isAuthenticated ? '进入控制台' : '开始使用' }}</span><b>→</b>
-          </RouterLink>
-          <a class="closing-secondary" href="https://api.smirel.com" target="_blank" rel="noreferrer">查看接入文档</a>
-        </div>
-      </section>
+    <main>
+      <section class="home-hero"><p class="home-eyebrow">{{ copy.hero[0] }}</p><h1>{{ copy.hero[1] }}</h1><p class="home-hero-lead">{{ copy.hero[2] }}</p><p class="home-hero-copy">{{ copy.hero[3] }}</p><div class="home-hero-actions"><RouterLink class="home-primary" :to="isAuthenticated ? consolePath : '/register'">{{ copy.hero[4] }}</RouterLink><RouterLink class="home-secondary" to="/model-plaza">{{ copy.hero[5] }}</RouterLink></div><div class="home-model-rail"><span>{{ copy.hero[6] }}</span><div><img v-for="provider in providers" :key="provider.name" :src="provider.src" :alt="provider.name"><b>+</b></div></div></section>
+      <section class="home-section"><div class="home-heading"><span>{{ copy.pain[0] }}</span><h2>{{ copy.pain[1] }}</h2><p>{{ copy.pain[2] }}</p></div><div class="home-card-grid"><article v-for="([title, text], index) in copy.pain[3]" :key="title"><span>0{{ index + 1 }}</span><h3>{{ title }}</h3><p>{{ text }}</p></article></div></section>
+      <section id="capabilities" class="home-section home-capabilities"><div class="home-heading"><span>{{ copy.cap[0] }}</span><h2>{{ copy.cap[1] }}</h2><p>{{ copy.cap[2] }}</p></div><div class="home-card-grid"><article v-for="([title, text], index) in copy.cap[3]" :key="title"><span>0{{ index + 1 }}</span><h3>{{ title }}</h3><p>{{ text }}</p></article></div></section>
+      <section id="tools" class="home-section"><div class="home-heading"><span>{{ copy.tools[0] }}</span><h2>{{ copy.tools[1] }}</h2><p>{{ copy.tools[2] }}</p></div><div class="home-tool-grid"><a v-for="tool in tools" :key="tool[1]" href="https://api.smirel.com" target="_blank" rel="noreferrer"><b>{{ tool[0] }}</b><span>{{ tool[1] }}</span><i>↗</i></a></div><a class="home-inline-link" href="https://api.smirel.com" target="_blank" rel="noreferrer">{{ copy.tools[3] }} →</a></section>
+      <section class="home-section"><div class="home-heading"><span>{{ copy.compare[0] }}</span><h2>{{ copy.compare[1] }}</h2></div><div class="home-table"><div><b v-for="cell in copy.compare[2]" :key="cell">{{ cell }}</b></div><div v-for="row in copy.compare[3]" :key="row[0]"><span v-for="cell in row" :key="cell">{{ cell }}</span></div></div></section>
+      <section class="home-section"><div class="home-heading"><span>{{ copy.steps[0] }}</span><h2>{{ copy.steps[1] }}</h2><p>{{ copy.steps[2] }}</p></div><div class="home-steps"><article v-for="([number, title, text], index) in copy.steps[3]" :key="number"><span>{{ number }}</span><h3>{{ title }}</h3><p>{{ text }}</p><div v-if="index === 2" class="home-code"><code>{{ apiBase }}</code><button type="button" @click="copyBase">{{ copied ? copy.steps[5] : copy.steps[4] }}</button></div></article></div></section>
+      <section id="pricing" class="home-section"><div class="home-heading"><span>{{ copy.pricing[0] }}</span><h2>{{ copy.pricing[1] }}</h2><p>{{ copy.pricing[2] }}</p></div><p v-if="plansState === 'loading'" class="home-state">{{ copy.pricing[3] }}</p><div v-else-if="plansState === 'ready' && groups.length" class="home-plan-groups"><section v-for="group in groups" :key="group.name"><header><h3>{{ group.name }}</h3><span>{{ group.items.length }}</span></header><div class="home-plan-grid"><article v-for="plan in group.items" :key="plan.id" class="home-plan" :class="{ 'is-featured': plan.card_featured }"><div><span>{{ plan.card_badge || plan.card_tier || plan.platform || 'SMIREL' }}</span><small v-if="plan.card_featured">FEATURED</small></div><h4>{{ plan.name }}</h4><p>{{ plan.description }}</p><strong>{{ formatPrice(plan) }}</strong><em>/ {{ validity(plan) }}</em><dl><div><dt>{{ copy.pricing[7] }}</dt><dd>{{ validity(plan) }}</dd></div><div v-if="plan.monthly_limit_usd"><dt>{{ copy.pricing[8] }}</dt><dd>${{ Number(plan.monthly_limit_usd).toLocaleString() }}</dd></div><div v-if="plan.seat_limit"><dt>{{ copy.pricing[9] }}</dt><dd>{{ plan.seat_limit }}</dd></div><div v-if="plan.concurrency_limit"><dt>{{ copy.pricing[10] }}</dt><dd>{{ plan.concurrency_limit }}</dd></div></dl><ul><li v-for="feature in plan.features.slice(0, 4)" :key="feature">{{ feature }}</li></ul><RouterLink :to="planTarget(plan)">{{ plan.purchase_policy === 'approval' ? copy.pricing[6] : copy.pricing[5] }} →</RouterLink></article></div></section></div><div v-else class="home-state"><p>{{ copy.pricing[4] }}</p><RouterLink class="home-secondary" :to="isAuthenticated ? '/subscriptions' : '/login'">{{ isEnglish ? 'View plans' : '查看套餐' }}</RouterLink></div></section>
+      <section id="faq" class="home-section"><div class="home-heading"><span>{{ copy.faq[0] }}</span><h2>{{ copy.faq[1] }}</h2><p>{{ copy.faq[2] }}</p></div><div class="home-faq"><details v-for="([question, answer], index) in copy.faq[3]" :key="question" :open="index === 0"><summary>{{ question }}<b>+</b></summary><p>{{ answer }}</p></details></div></section>
+      <section class="home-closing"><div><span>SMIREL API</span><h2>{{ copy.closing[0] }}</h2><p>{{ copy.closing[1] }}</p></div><div><RouterLink class="home-primary" :to="isAuthenticated ? consolePath : '/register'">{{ copy.closing[2] }}</RouterLink><a class="home-secondary" href="https://api.smirel.com" target="_blank" rel="noreferrer">{{ copy.closing[3] }}</a></div></section>
     </main>
-
-    <footer class="home-footer">
-      <span>© {{ new Date().getFullYear() }} Smirel</span>
-      <span>api.smirel.com/v1</span>
-    </footer>
+    <footer class="home-footer"><div><RouterLink to="/home" class="home-brand"><img :src="logoUrl" alt="Smirel"><span><strong>Smirel</strong><small>API SERVICE</small></span></RouterLink><p>{{ isEnglish ? 'Smirel unified AI API gateway.' : 'Smirel 一站式 AI API 网关平台。' }}</p></div><div><RouterLink to="/model-plaza">{{ isEnglish ? 'Models and pricing' : '模型与价格' }}</RouterLink><RouterLink to="/key-usage">{{ isEnglish ? 'Usage lookup' : '用量查询' }}</RouterLink><a href="https://api.smirel.com" target="_blank" rel="noreferrer">{{ isEnglish ? 'Integration docs' : '接入文档' }}</a></div><small>© {{ new Date().getFullYear() }} Smirel</small></footer>
   </div>
 </template>
-
-<style scoped>
-.brand-link {
-  gap: 12px;
-}
-
-.brand-link img {
-  width: 84px;
-  height: auto;
-  object-fit: contain;
-}
-
-.brand-link strong {
-  font-size: 1.12rem;
-}
-
-.brand-link small {
-  margin-top: 5px;
-  font-size: .75rem;
-}
-
-/*
- * The workspace used to be a split editorial/table layout. That forced the
- * headline into a narrow sticky column and made the three destinations read
- * like rows in a settings table. Keep one reading axis instead: copy first,
- * then a single three-column navigation surface underneath it.
- */
-.workspace-section {
-  display: block !important;
-  padding: 112px 0 118px !important;
-}
-
-.workspace-copy {
-  position: static !important;
-  max-width: 860px;
-}
-
-.workspace-copy h2 {
-  max-width: 860px;
-  font-size: clamp(2.65rem, 4.25vw, 4rem) !important;
-  line-height: 1.06 !important;
-}
-
-.workspace-copy h2 br {
-  display: none;
-}
-
-.workspace-copy p {
-  max-width: 640px !important;
-  margin-top: 21px !important;
-  font-size: .95rem !important;
-}
-
-.workspace-links {
-  margin-top: 52px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid #272c34 !important;
-  border-radius: 14px;
-  background: #0c0e12;
-}
-
-.workspace-links a {
-  position: relative;
-  min-height: 224px !important;
-  padding: 28px 30px 26px !important;
-  display: flex !important;
-  flex-direction: column;
-  align-items: flex-start !important;
-  gap: 0 !important;
-  border: 0 !important;
-  border-right: 1px solid #272c34 !important;
-  background: transparent;
-  transition: background-color .18s ease, color .18s ease !important;
-}
-
-.workspace-links a:last-child {
-  border-right: 0 !important;
-}
-
-.workspace-links a::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 1px;
-  background: transparent;
-  transition: background-color .18s ease;
-}
-
-.workspace-links a:hover {
-  background: #11141a !important;
-}
-
-.workspace-links a:hover::before {
-  background: #2499e6;
-}
-
-.workspace-links span {
-  padding-left: 0 !important;
-  color: #5c6673 !important;
-  font-size: .68rem !important;
-  letter-spacing: .1em !important;
-}
-
-.workspace-links strong {
-  margin-top: 30px;
-  color: #f0f2f5 !important;
-  font-size: 1.18rem !important;
-  font-weight: 640 !important;
-  letter-spacing: -.018em;
-}
-
-.workspace-links p {
-  max-width: 280px;
-  margin: 12px 0 0 !important;
-  color: #777f8a !important;
-  font-size: .83rem !important;
-  line-height: 1.65 !important;
-}
-
-.workspace-links b {
-  width: 34px;
-  height: 34px;
-  margin-top: auto;
-  align-self: flex-end;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #2c323b;
-  border-radius: 50%;
-  color: #8695a3 !important;
-  font-size: .95rem !important;
-  font-weight: 500 !important;
-  transition: border-color .18s ease, color .18s ease, transform .18s ease;
-}
-
-.workspace-links a:hover b {
-  border-color: #3b4652;
-  color: #d7e7f2 !important;
-  transform: translateX(2px);
-}
-
-.closing-cta {
-  position: relative;
-  min-height: 280px;
-  margin: 28px 0 30px;
-  padding: 46px 50px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 190px;
-  align-items: center;
-  gap: clamp(40px, 6vw, 84px);
-  overflow: hidden;
-  border: 1px solid #262b33;
-  border-radius: 16px;
-  background: #0f1115;
-}
-
-.closing-cta::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: #2499e6;
-}
-
-.closing-copy {
-  max-width: 760px;
-}
-
-.closing-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #8c949f !important;
-  font-size: .78rem !important;
-  font-weight: 650 !important;
-  letter-spacing: .02em !important;
-}
-
-.closing-status i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #3bd09a;
-}
-
-.closing-cta h2 {
-  max-width: 760px;
-  margin: 17px 0 0;
-  font-size: clamp(2.35rem, 3.7vw, 3.45rem);
-  line-height: 1.08;
-  letter-spacing: -.05em;
-}
-
-.closing-copy > p {
-  max-width: 650px;
-  margin: 18px 0 0;
-  color: #858c96;
-  font-size: .95rem;
-  line-height: 1.75;
-}
-
-.closing-meta {
-  margin-top: 24px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px 0;
-  color: #69717c;
-  font-size: .78rem;
-}
-
-.closing-meta span {
-  display: inline-flex;
-  align-items: center;
-}
-
-.closing-meta span + span::before {
-  content: '·';
-  margin: 0 13px;
-  color: #343a43;
-}
-
-.closing-actions {
-  width: 190px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.closing-primary,
-.closing-secondary {
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9px;
-  font-size: .86rem;
-  font-weight: 620;
-  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
-}
-
-.closing-primary {
-  padding: 0 16px;
-  justify-content: space-between;
-  border: 1px solid #2498e5;
-  background: #2499e6;
-  color: #fff;
-}
-
-.closing-primary:hover {
-  border-color: #39aff9;
-  background: #31a7f3;
-}
-
-.closing-primary b {
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.closing-secondary {
-  border: 1px solid #30353e;
-  background: #111318;
-  color: #aeb4bd;
-}
-
-.closing-secondary:hover {
-  border-color: #464c56;
-  background: #16191f;
-  color: #fff;
-}
-
-@media (max-width: 820px) {
-  .workspace-section {
-    padding: 84px 0 92px !important;
-  }
-
-  .workspace-links {
-    margin-top: 40px;
-    grid-template-columns: 1fr;
-  }
-
-  .workspace-links a {
-    min-height: 168px !important;
-    border-right: 0 !important;
-    border-bottom: 1px solid #272c34 !important;
-  }
-
-  .workspace-links a:last-child {
-    border-bottom: 0 !important;
-  }
-
-  .workspace-links strong {
-    margin-top: 22px;
-  }
-
-  .workspace-links b {
-    position: absolute;
-    right: 26px;
-    bottom: 24px;
-  }
-
-  .closing-cta {
-    min-height: 0;
-    padding: 38px 32px;
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-
-  .closing-actions {
-    width: 100%;
-    flex-direction: row;
-  }
-
-  .closing-primary,
-  .closing-secondary {
-    flex: 1 1 0;
-  }
-}
-
-@media (max-width: 560px) {
-  .workspace-section {
-    padding: 72px 0 80px !important;
-  }
-
-  .workspace-copy h2 {
-    font-size: 2.35rem !important;
-  }
-
-  .workspace-links {
-    margin-top: 34px;
-    border-radius: 12px;
-  }
-
-  .workspace-links a {
-    min-height: 158px !important;
-    padding: 24px 22px !important;
-  }
-
-  .workspace-links b {
-    right: 20px;
-    bottom: 20px;
-  }
-
-  .closing-cta {
-    padding: 32px 24px;
-    border-radius: 12px;
-  }
-
-  .closing-cta h2 {
-    font-size: 2.25rem;
-  }
-
-  .closing-actions {
-    flex-direction: column;
-  }
-}
-</style>

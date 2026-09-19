@@ -101,6 +101,67 @@ func (h *PaymentHandler) GetPlans(c *gin.Context) {
 	response.Success(c, result)
 }
 
+// publicPlan contains only the sales information safe to expose on the public
+// homepage. Routing configuration and payment-provider details stay private.
+type publicPlan struct {
+	ID                   int64    `json:"id"`
+	Platform             string   `json:"platform"`
+	GroupName            string   `json:"group_name"`
+	SupportedModelScopes []string `json:"supported_model_scopes"`
+	Name                 string   `json:"name"`
+	Description          string   `json:"description"`
+	Price                float64  `json:"price"`
+	OriginalPrice        *float64 `json:"original_price,omitempty"`
+	Currency             string   `json:"currency,omitempty"`
+	ValidityDays         int      `json:"validity_days"`
+	ValidityUnit         string   `json:"validity_unit"`
+	Features             []string `json:"features"`
+	ProductName          string   `json:"product_name"`
+	CardTier             string   `json:"card_tier,omitempty"`
+	CardBadge            string   `json:"card_badge,omitempty"`
+	CardFeatured         bool     `json:"card_featured,omitempty"`
+	CardFootnote         string   `json:"card_footnote,omitempty"`
+	SeatLimit            int      `json:"seat_limit,omitempty"`
+	ConcurrencyLimit     int      `json:"concurrency_limit,omitempty"`
+	PurchasePolicy       string   `json:"purchase_policy,omitempty"`
+	DailyLimitUSD        *float64 `json:"daily_limit_usd,omitempty"`
+	WeeklyLimitUSD       *float64 `json:"weekly_limit_usd,omitempty"`
+	MonthlyLimitUSD      *float64 `json:"monthly_limit_usd,omitempty"`
+}
+
+func buildPublicPlans(plans []*dbent.SubscriptionPlan, groups map[int64]service.PlanGroupInfo) []publicPlan {
+	result := make([]publicPlan, 0, len(plans))
+	for _, p := range plans {
+		group := groups[p.GroupID]
+		decoded := service.DecodePlanFeatures(p.Features)
+		result = append(result, publicPlan{
+			ID: int64(p.ID), Platform: group.Platform, GroupName: group.Name,
+			SupportedModelScopes: group.ModelScopes,
+			Name: p.Name, Description: p.Description, Price: p.Price, OriginalPrice: p.OriginalPrice,
+			Currency: p.Currency, ValidityDays: p.ValidityDays, ValidityUnit: p.ValidityUnit,
+			Features: parseFeatures(decoded.Features), ProductName: p.ProductName,
+			CardTier: decoded.Card.Tier, CardBadge: decoded.Card.Badge, CardFeatured: decoded.Card.Featured,
+			CardFootnote: decoded.Card.Footnote, SeatLimit: decoded.Card.SeatLimit,
+			ConcurrencyLimit: decoded.Card.ConcurrencyLimit, PurchasePolicy: decoded.Card.PurchasePolicy,
+			DailyLimitUSD: group.DailyLimitUSD, WeeklyLimitUSD: group.WeeklyLimitUSD,
+			MonthlyLimitUSD: group.MonthlyLimitUSD,
+		})
+	}
+	return result
+}
+
+// GetPublicPlans returns the current sale catalog for the public homepage.
+// GET /api/v1/payment/public/plans
+func (h *PaymentHandler) GetPublicPlans(c *gin.Context) {
+	plans, err := h.configService.ListPlansForSale(c.Request.Context())
+	if err != nil {
+		response.ErrorFrom(c, err)
+		return
+	}
+	c.Header("Cache-Control", "no-cache")
+	response.Success(c, buildPublicPlans(plans, h.configService.GetGroupInfoMap(c.Request.Context(), plans)))
+}
+
 // GetCheckoutInfo returns all data the payment page needs in a single call:
 // payment methods with limits, subscription plans, and configuration.
 // GET /api/v1/payment/checkout-info
