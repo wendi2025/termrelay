@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { api, getErrorMessage } from '../core/api'
 
-type Account = { id: number; name?: string; notes?: string | null; platform?: string; concurrency?: number; priority?: number; rate_multiplier?: number; group_ids?: number[] }
+type Account = { id: number; name?: string; notes?: string | null; platform?: string; type?: string; concurrency?: number; priority?: number; rate_multiplier?: number; group_ids?: number[]; credentials?: Record<string, unknown> }
 type Group = { id: number; name?: string; platform?: string; status?: string }
 
 const props = defineProps<{ show: boolean; account: Account | null }>()
@@ -12,6 +12,8 @@ const notes = ref('')
 const concurrency = ref(1)
 const priority = ref(0)
 const rateMultiplier = ref(1)
+const baseUrl = ref('')
+const apiKey = ref('')
 const groupIds = ref<number[]>([])
 const groups = ref<Group[]>([])
 const saving = ref(false)
@@ -29,6 +31,8 @@ async function load() {
   concurrency.value = Math.max(1, Number(account.concurrency || 1))
   priority.value = Math.max(0, Number(account.priority || 0))
   rateMultiplier.value = Math.max(0, Number(account.rate_multiplier ?? 1))
+  baseUrl.value = String(account.credentials?.base_url || '')
+  apiKey.value = ''
   groupIds.value = [...(account.group_ids || [])]
   error.value = ''
   try {
@@ -43,12 +47,19 @@ async function submit() {
   saving.value = true
   error.value = ''
   try {
-    await api.put(`/admin/accounts/${account.id}`, {
+    const payload: Record<string, unknown> = {
       name: name.value.trim(), notes: notes.value.trim(),
       concurrency: Math.max(1, Math.round(Number(concurrency.value) || 1)),
       priority: Math.max(0, Math.round(Number(priority.value) || 0)),
       rate_multiplier: Math.max(0, Number(rateMultiplier.value) || 0), group_ids: groupIds.value,
-    })
+    }
+    if (account.type === 'apikey') {
+      const credentials = { ...(account.credentials || {}) }
+      if (baseUrl.value.trim()) credentials.base_url = baseUrl.value.trim()
+      if (apiKey.value.trim()) credentials.api_key = apiKey.value.trim()
+      payload.credentials = credentials
+    }
+    await api.put(`/admin/accounts/${account.id}`, payload)
     emit('updated'); emit('close')
   } catch (caught) { error.value = getErrorMessage(caught) } finally { saving.value = false }
 }
@@ -62,6 +73,10 @@ watch(() => props.show, (visible) => { if (visible) void load() })
     <main>
       <label>账户名称<input v-model="name" maxlength="80" /></label>
       <label>备注<textarea v-model="notes" rows="2" maxlength="300" /></label>
+      <template v-if="account.type === 'apikey'">
+        <label>上游 Base URL<input v-model="baseUrl" placeholder="https://api.example.com" /></label>
+        <label>替换 API Key<input v-model="apiKey" type="password" autocomplete="new-password" placeholder="留空则保留原 API Key" /></label>
+      </template>
       <div class="numbers"><label>最大并发<input v-model.number="concurrency" type="number" min="1" max="10000" /></label><label>优先级<input v-model.number="priority" type="number" min="0" max="9999" /></label><label>倍率<input v-model.number="rateMultiplier" type="number" min="0" step="0.01" /></label></div>
       <section><strong>调度分组</strong><div v-if="groups.length" class="groups"><button v-for="group in groups" :key="group.id" type="button" :class="{ selected: groupIds.includes(group.id) }" @click="toggleGroup(group.id)">{{ groupIds.includes(group.id) ? '✓ ' : '' }}{{ group.name || `Group #${group.id}` }}</button></div><p v-else>没有可选择的同平台分组。</p></section>
       <p v-if="error" class="error">{{ error }}</p>
