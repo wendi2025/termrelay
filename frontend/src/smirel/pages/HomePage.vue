@@ -26,7 +26,8 @@ const providers = [{ name: 'OpenAI', src: openaiLogo }, { name: 'Claude', src: c
 const tools = [['CC', 'Claude Code'], ['CX', 'Codex'], ['OA', 'OpenAI SDK'], ['AN', 'Anthropic SDK'], ['GM', 'Gemini SDK'], ['IDE', 'Editors & clients']]
 const groups = computed(() => {
   const result = new Map<string, PublicSubscriptionPlan[]>()
-  plans.value.forEach((plan) => {
+  const visiblePlans = Array.isArray(plans.value) ? plans.value : []
+  visiblePlans.forEach((plan) => {
     const key = plan.group_name || plan.platform || 'Smirel'
     result.set(key, [...(result.get(key) || []), plan])
   })
@@ -53,7 +54,12 @@ async function copyBase() {
   window.setTimeout(() => { copied.value = false }, 1400)
 }
 onMounted(async () => {
-  try { plans.value = await paymentApi.listPublicPlans(); plansState.value = 'ready' } catch { plansState.value = 'unavailable' }
+  try {
+    const response: unknown = await paymentApi.listPublicPlans()
+    if (!Array.isArray(response)) throw new Error('Public plans response is not an array')
+    plans.value = response
+    plansState.value = 'ready'
+  } catch { plansState.value = 'unavailable' }
 })
 
 const zh = {
