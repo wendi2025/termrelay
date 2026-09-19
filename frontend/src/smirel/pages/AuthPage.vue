@@ -276,32 +276,37 @@ async function submit() {
 .auth-brand {
   position: absolute;
   z-index: 3;
-  top: 34px;
-  left: 40px;
-  gap: 11px;
+  top: 32px;
+  left: 44px;
+  min-height: 54px;
+  gap: 14px;
+  align-items: center;
 }
 
 .auth-brand img {
-  width: 39px;
-  height: 39px;
+  width: 58px;
+  height: 46px;
+  object-fit: contain;
 }
 
 .auth-brand > span {
-  gap: 2px;
+  gap: 5px;
 }
 
 .auth-brand strong {
   color: #f4f6f8;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -.025em;
+  font-size: 1.22rem;
+  font-weight: 720;
+  line-height: 1;
+  letter-spacing: -.03em;
 }
 
 .auth-brand small {
   color: #6f7a86;
-  font-size: .60rem;
-  font-weight: 650;
-  letter-spacing: .16em;
+  font-size: .68rem;
+  font-weight: 680;
+  line-height: 1;
+  letter-spacing: .17em;
 }
 
 .auth-layout {
@@ -858,13 +863,23 @@ async function submit() {
   }
 
   .auth-brand {
-    top: 22px;
-    left: 22px;
+    top: 20px;
+    left: 20px;
+    min-height: 48px;
+    gap: 11px;
   }
 
   .auth-brand img {
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 40px;
+  }
+
+  .auth-brand strong {
+    font-size: 1.08rem;
+  }
+
+  .auth-brand small {
+    font-size: .62rem;
   }
 
   .auth-layout {
