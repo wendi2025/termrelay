@@ -10,6 +10,7 @@ import {
   type OAuthProvider,
 } from '../core/api'
 import { useSession } from '../core/session'
+import { interfacePreferences } from '../core/preferences'
 
 const route = useRoute()
 const router = useRouter()
@@ -107,7 +108,7 @@ async function submit() {
 </script>
 
 <template>
-  <div class="auth-page">
+  <div class="auth-page" :class="{ 'is-light': interfacePreferences.resolvedTheme === 'light' }">
     <RouterLink to="/home" class="auth-brand brand-link">
       <img :src="logoUrl" alt="Smirel" />
       <span>
@@ -666,6 +667,176 @@ async function submit() {
   color: #444e58;
   font-size: .64rem;
   letter-spacing: .04em;
+}
+
+/* Auth pages follow Smirel's resolved global theme instead of forcing dark. */
+.auth-page.is-light {
+  color-scheme: light;
+  color: #202830;
+  background:
+    radial-gradient(circle at 74% 38%, rgba(59, 145, 207, .10), transparent 31%),
+    radial-gradient(circle at 18% 82%, rgba(83, 119, 148, .055), transparent 35%),
+    #f4f7f9;
+}
+
+.auth-page.is-light::before {
+  background:
+    linear-gradient(90deg, transparent 0 49.96%, rgba(40, 61, 78, .035) 50%, transparent 50.04%),
+    linear-gradient(180deg, rgba(255,255,255,.72), transparent 18%);
+  opacity: .75;
+}
+
+.auth-page.is-light .auth-brand strong {
+  color: #202830;
+}
+
+.auth-page.is-light .auth-brand small {
+  color: #7a8793;
+}
+
+.auth-page.is-light .auth-kicker {
+  color: #6f7f8d;
+}
+
+.auth-page.is-light .auth-kicker::before {
+  background: #4b9bd3;
+}
+
+.auth-page.is-light .auth-intro h2 {
+  color: #202830;
+}
+
+.auth-page.is-light .auth-intro > p {
+  color: #697783;
+}
+
+.auth-page.is-light .auth-capabilities {
+  border-top-color: #dce4ea;
+}
+
+.auth-page.is-light .auth-capabilities > div {
+  border-bottom-color: #dce4ea;
+}
+
+.auth-page.is-light .auth-capabilities b {
+  color: #7d8a96;
+}
+
+.auth-page.is-light .auth-capabilities strong {
+  color: #34414c;
+}
+
+.auth-page.is-light .auth-capabilities small {
+  color: #7b8792;
+}
+
+.auth-page.is-light .auth-card {
+  border-color: #d7e0e7;
+  background: rgba(255, 255, 255, .92);
+  box-shadow:
+    0 24px 70px rgba(36, 53, 67, .12),
+    inset 0 1px rgba(255,255,255,.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.auth-page.is-light .auth-card-meta {
+  color: #74828f;
+}
+
+.auth-page.is-light .auth-card-meta i {
+  color: #678676;
+}
+
+.auth-page.is-light .auth-card header h1 {
+  color: #202830;
+}
+
+.auth-page.is-light .auth-card header p {
+  color: #71808d;
+}
+
+.auth-page.is-light .oauth-button {
+  border-color: #d8e1e8;
+  color: #34414c;
+  background: #fbfcfd;
+}
+
+.auth-page.is-light .oauth-button:hover {
+  border-color: #c5d2dc;
+  background: #f4f8fb;
+}
+
+.auth-page.is-light .oauth-provider-mark {
+  border-color: #d3dde5;
+  color: #34414c;
+  background: #ffffff;
+}
+
+.auth-page.is-light .oauth-divider {
+  color: #8a96a1;
+}
+
+.auth-page.is-light .oauth-divider::before,
+.auth-page.is-light .oauth-divider::after {
+  background: #dfe6eb;
+}
+
+.auth-page.is-light .auth-card label {
+  color: #52616e;
+}
+
+.auth-page.is-light .auth-card input {
+  border-color: #d3dde5;
+  background: #ffffff;
+  color: #202830;
+  box-shadow: inset 0 1px 0 rgba(28, 44, 57, .018);
+}
+
+.auth-page.is-light .auth-card input::placeholder {
+  color: #9aa4ad;
+}
+
+.auth-page.is-light .auth-card input:hover {
+  border-color: #becbd5;
+}
+
+.auth-page.is-light .auth-card input:focus {
+  border-color: #62a8d8;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(38, 143, 216, .12);
+}
+
+.auth-page.is-light .auth-submit {
+  border-color: #268fd8;
+  background: #268fd8;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(38, 143, 216, .16);
+}
+
+.auth-page.is-light .auth-submit:hover:not(:disabled) {
+  border-color: #1d82c9;
+  background: #1d82c9;
+}
+
+.auth-page.is-light .auth-card footer {
+  color: #7a8792;
+}
+
+.auth-page.is-light .auth-card footer a {
+  color: #586976;
+}
+
+.auth-page.is-light .auth-card footer a:hover {
+  color: #202830;
+}
+
+.auth-page.is-light .auth-card footer span a {
+  color: #2c82bb;
+}
+
+.auth-page.is-light .auth-page-footer {
+  color: #8c98a2;
 }
 
 @media (max-width: 980px) {
