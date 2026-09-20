@@ -177,6 +177,116 @@ html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstre
   color: #586571;
 }
 
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row:hover,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row.expanded {
+  background: #f8fafc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row.selected {
+  background: #f4f8fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row:hover::before,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row.expanded::before {
+  background: #93a4b3;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-row.selected::before {
+  background: var(--ar-accent);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .selection-toggle > span {
+  border-color: #c7d0d8;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .selection-toggle.selected > span {
+  border-color: var(--ar-accent);
+  background: var(--ar-accent);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .selection-toggle.selected > span::after {
+  border-color: #fff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-models > b,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-last-used > b,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .batch-toolbar strong,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .models-detail > header strong {
+  color: #44515e;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .quick-button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .expand-button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .batch-actions button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .detail-actions button,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .models-detail button {
+  border-color: #d5dce3;
+  background: #ffffff;
+  color: #66727d;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .quick-button:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .expand-button:hover,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .batch-actions button:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .detail-actions button:hover:not(:disabled),
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .models-detail button:hover:not(:disabled) {
+  border-color: #b9c5cf;
+  background: #f7f9fb;
+  color: #28323c;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .quick-button.power.active {
+  border-color: #b9dfd1;
+  background: var(--ar-success-soft);
+  color: var(--ar-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .batch-toolbar {
+  border-color: #d5e1eb;
+  background: #f5f9fc;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .batch-count {
+  background: var(--ar-accent);
+  color: #fff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-detail {
+  background: #fbfcfd;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .upstream-detail > .detail-card,
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .models-detail {
+  border-color: #e0e5ea;
+  background: #ffffff;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .model-chips span {
+  border-color: #dce3e9;
+  background: #f6f8fa;
+  color: #5f6d79;
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .test-result.success {
+  border-color: #c7e7da;
+  background: var(--ar-success-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .test-result.success strong {
+  color: var(--ar-success);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .test-result.error {
+  border-color: #efcccc;
+  background: var(--ar-danger-soft);
+}
+
+html.smirel-app[data-theme='light'] .workspace-root .admin-accounts-page .test-result.error strong {
+  color: var(--ar-danger);
+}
+
 /* Channel/catalog admin. */
 html.smirel-app[data-theme='light'] .workspace-root .channels-page {
   --border: #dfe4e9;
