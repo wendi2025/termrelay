@@ -151,7 +151,10 @@ async function publishCatalog(g: GroupRow, explicitModels?: string[]) {
     model_mapping: { [g.platform]: map },
     model_pricing: [],
     billing_model_source: 'requested',
-    restrict_models: true,
+    // Auto-catalogs do not carry channel_model_pricing rows. Enabling
+    // channel restriction here would reject every request before account
+    // model-mapping checks can run.
+    restrict_models: false,
     features: '',
     features_config: {},
     apply_pricing_to_account_stats: false,
