@@ -4,7 +4,6 @@ import HomeAccountMenu from '../components/HomeAccountMenu.vue'
 import HomeTopbarControls from '../components/HomeTopbarControls.vue'
 import { paymentApi, type PublicSubscriptionPlan } from '../api/payment'
 import { interfacePreferences, setLocale, setTheme } from '../core/preferences'
-import { type SmirelLocale } from '../core/i18n'
 import { useSession } from '../core/session'
 import claudeLogo from '../assets/providers/claude.svg'
 import geminiLogo from '../assets/providers/gemini.svg'
@@ -61,7 +60,7 @@ function validity(plan: PublicSubscriptionPlan) {
   if (!isEnglish.value && String(plan.validity_unit).toLowerCase().startsWith('day')) return `${plan.validity_days} 天`
   return `${plan.validity_days} ${plan.validity_unit}`
 }
-function chooseLocale(event: Event) { setLocale((event.target as HTMLSelectElement).value as SmirelLocale) }
+function toggleLocale() { setLocale(isEnglish.value ? 'zh-CN' : 'en-US') }
 function toggleTheme() { setTheme(interfacePreferences.resolvedTheme === 'dark' ? 'light' : 'dark') }
 async function copyBase() {
   await navigator.clipboard.writeText(apiBase)
@@ -106,9 +105,9 @@ const en = {
 <template>
   <div class="home-page">
     <header class="home-topbar">
-      <RouterLink to="/home" class="home-brand"><img :src="logoUrl" alt="Muxway"><span><strong>Muxway</strong><small>模枢 · API SERVICE</small></span></RouterLink>
+      <RouterLink to="/home" class="home-brand"><img :src="logoUrl" alt="Muxway"><span><strong>Muxway</strong><small>· 模枢</small></span></RouterLink>
       <nav class="home-nav" :class="{ 'is-open': mobileMenuOpen }"><a href="#capabilities">{{ copy.nav[0] }}</a><a href="#tools">{{ copy.nav[1] }}</a><a href="#pricing">{{ copy.nav[2] }}</a><a href="#faq">{{ copy.nav[3] }}</a></nav>
-      <div class="home-actions"><template v-if="isAuthenticated"><HomeTopbarControls /><HomeAccountMenu variant="toolbar" /></template><template v-else><select :value="interfacePreferences.locale" aria-label="Language" @change="chooseLocale"><option value="zh-CN">中文</option><option value="en-US">EN</option></select><button class="home-theme-toggle" type="button" :aria-label="isEnglish ? 'Toggle dark mode' : '切换暗夜模式'" :title="isEnglish ? 'Toggle dark mode' : '切换暗夜模式'" @click="toggleTheme"><svg v-if="interfacePreferences.resolvedTheme === 'dark'" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.3A8.5 8.5 0 0 1 8.7 3.8 8.5 8.5 0 1 0 20.2 15.3Z" /></svg><svg v-else viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg></button><RouterLink to="/login">{{ isEnglish ? 'Log in' : '登录' }}</RouterLink><RouterLink class="home-register" to="/register">{{ isEnglish ? 'Sign up' : '注册' }}</RouterLink></template><button class="home-menu" type="button" @click="mobileMenuOpen = !mobileMenuOpen">{{ isEnglish ? 'Menu' : '菜单' }}</button></div>
+      <div class="home-actions"><template v-if="isAuthenticated"><HomeTopbarControls /><HomeAccountMenu variant="toolbar" /></template><template v-else><button class="home-language-toggle" type="button" :aria-label="isEnglish ? '切换至中文' : 'Switch to English'" :title="isEnglish ? '切换至中文' : 'Switch to English'" @click="toggleLocale">{{ isEnglish ? '中文' : 'EN' }}</button><button class="home-theme-toggle" type="button" :aria-label="isEnglish ? 'Toggle dark mode' : '切换暗夜模式'" :title="isEnglish ? 'Toggle dark mode' : '切换暗夜模式'" @click="toggleTheme"><svg v-if="interfacePreferences.resolvedTheme === 'dark'" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.3A8.5 8.5 0 0 1 8.7 3.8 8.5 8.5 0 1 0 20.2 15.3Z" /></svg><svg v-else viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg></button><RouterLink to="/login">{{ isEnglish ? 'Log in' : '登录' }}</RouterLink><RouterLink class="home-register" to="/register">{{ isEnglish ? 'Sign up' : '注册' }}</RouterLink></template><button class="home-menu" type="button" @click="mobileMenuOpen = !mobileMenuOpen">{{ isEnglish ? 'Menu' : '菜单' }}</button></div>
     </header>
     <main>
       <section class="home-hero"><p class="home-eyebrow">{{ copy.hero[0] }}</p><h1>{{ copy.hero[1] }}</h1><p class="home-hero-lead">{{ copy.hero[2] }}</p><p class="home-hero-copy">{{ copy.hero[3] }}</p><div class="home-hero-actions"><RouterLink class="home-primary" :to="isAuthenticated ? consolePath : '/register'">{{ copy.hero[4] }}</RouterLink><RouterLink class="home-secondary" to="/model-plaza">{{ copy.hero[5] }}</RouterLink></div><div class="home-model-rail"><span>{{ copy.hero[6] }}</span><div class="home-model-list"><span v-for="provider in providers" :key="provider.name" class="home-model-chip"><img :src="provider.src" :alt="provider.name"><small>{{ provider.name }}</small></span></div></div></section>
@@ -121,6 +120,6 @@ const en = {
       <section id="faq" class="home-section"><div class="home-heading"><span>{{ copy.faq[0] }}</span><h2>{{ copy.faq[1] }}</h2><p>{{ copy.faq[2] }}</p></div><div class="home-faq"><details v-for="([question, answer], index) in copy.faq[3]" :key="question" :open="index === 0"><summary>{{ question }}<b>+</b></summary><p>{{ answer }}</p></details></div></section>
       <section class="home-closing"><div><span>MUXWAY · 模枢</span><h2>{{ copy.closing[0] }}</h2><p>{{ copy.closing[1] }}</p></div><div><RouterLink class="home-primary" :to="isAuthenticated ? consolePath : '/register'">{{ copy.closing[2] }}</RouterLink><a class="home-secondary" href="https://api.smirel.com" target="_blank" rel="noreferrer">{{ copy.closing[3] }}</a></div></section>
     </main>
-    <footer class="home-footer"><div><RouterLink to="/home" class="home-brand"><img :src="logoUrl" alt="Muxway"><span><strong>Muxway</strong><small>模枢 · API SERVICE</small></span></RouterLink><p>{{ isEnglish ? 'Muxway unified AI API gateway.' : 'Muxway 模枢一站式 AI API 网关平台。' }}</p></div><div><RouterLink to="/model-plaza">{{ isEnglish ? 'Models and pricing' : '模型与价格' }}</RouterLink><RouterLink to="/key-usage">{{ isEnglish ? 'Usage lookup' : '用量查询' }}</RouterLink><a href="https://api.smirel.com" target="_blank" rel="noreferrer">{{ isEnglish ? 'Integration docs' : '接入文档' }}</a></div><small>© {{ new Date().getFullYear() }} Muxway 模枢</small></footer>
+    <footer class="home-footer"><div><RouterLink to="/home" class="home-brand"><img :src="logoUrl" alt="Muxway"><span><strong>Muxway</strong><small>· 模枢</small></span></RouterLink><p>{{ isEnglish ? 'Muxway unified AI API gateway.' : 'Muxway 模枢一站式 AI API 网关平台。' }}</p></div><div><RouterLink to="/model-plaza">{{ isEnglish ? 'Models and pricing' : '模型与价格' }}</RouterLink><RouterLink to="/key-usage">{{ isEnglish ? 'Usage lookup' : '用量查询' }}</RouterLink><a href="https://api.smirel.com" target="_blank" rel="noreferrer">{{ isEnglish ? 'Integration docs' : '接入文档' }}</a></div><small>© {{ new Date().getFullYear() }} Muxway 模枢</small></footer>
   </div>
 </template>

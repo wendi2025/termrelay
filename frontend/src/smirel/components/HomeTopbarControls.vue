@@ -17,9 +17,8 @@ import {
   type ThemePreference,
 } from '../core/preferences'
 import { useSession } from '../core/session'
-import { type SmirelLocale } from '../core/i18n'
 
-type UtilityPanel = 'notifications' | 'language' | 'theme'
+type UtilityPanel = 'notifications' | 'theme'
 type WorkspaceMode = 'user' | 'admin'
 
 const router = useRouter()
@@ -41,7 +40,6 @@ const homeMode = ref<WorkspaceMode>(
   isAdmin.value && readSessionValue(MODE_STORAGE_KEY, 'admin') !== 'user' ? 'admin' : 'user',
 )
 
-const currentLocaleShort = computed(() => interfacePreferences.locale === 'zh-CN' ? '中' : 'EN')
 const unreadBadge = computed(() => unreadNotificationCount.value > 99 ? '99+' : String(unreadNotificationCount.value))
 
 const quickLinks = computed(() => homeMode.value === 'admin' && isAdmin.value
@@ -56,11 +54,6 @@ const quickLinks = computed(() => homeMode.value === 'admin' && isAdmin.value
       { label: t('quick.status'), path: '/monitor', icon: 'activity' },
     ])
 
-const languageOptions = computed(() => [
-  { value: 'zh-CN' as SmirelLocale, label: t('utility.chinese') },
-  { value: 'en-US' as SmirelLocale, label: t('utility.english') },
-])
-
 const themeOptions = computed(() => [
   { value: 'dark' as ThemePreference, label: t('utility.dark') },
   { value: 'light' as ThemePreference, label: t('utility.light') },
@@ -71,10 +64,7 @@ function toggleUtility(panel: UtilityPanel) {
   openUtility.value = openUtility.value === panel ? null : panel
 }
 
-function chooseLocale(locale: SmirelLocale) {
-  setLocale(locale)
-  openUtility.value = null
-}
+function toggleLocale() { setLocale(interfacePreferences.locale === 'zh-CN' ? 'en-US' : 'zh-CN') }
 
 function chooseTheme(theme: ThemePreference) {
   setTheme(theme)
@@ -211,38 +201,19 @@ onBeforeUnmount(() => {
       </section>
     </div>
 
-    <div class="home-utility-control">
-      <button
-        class="home-utility-button home-language-button"
-        :class="{ active: openUtility === 'language' }"
-        type="button"
-        :aria-label="t('utility.language')"
-        :title="t('utility.language')"
-        @click="toggleUtility('language')"
-      >
+    <button
+      class="home-utility-button home-language-button"
+      type="button"
+      :aria-label="interfacePreferences.locale === 'zh-CN' ? 'Switch to English' : '切换至中文'"
+      :title="interfacePreferences.locale === 'zh-CN' ? 'Switch to English' : '切换至中文'"
+      @click="toggleLocale"
+    >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
           <path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" />
         </svg>
-        <span>{{ currentLocaleShort }}</span>
-        <svg class="home-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
-      </button>
-
-      <section v-if="openUtility === 'language'" class="home-utility-popover home-choice-panel">
-        <header><strong>{{ t('utility.chooseLanguage') }}</strong></header>
-        <button
-          v-for="option in languageOptions"
-          :key="option.value"
-          class="home-choice-row"
-          :class="{ selected: interfacePreferences.locale === option.value }"
-          type="button"
-          @click="chooseLocale(option.value)"
-        >
-          <span>{{ option.label }}</span>
-          <svg v-if="interfacePreferences.locale === option.value" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8 3 3 7-7" /></svg>
-        </button>
-      </section>
-    </div>
+        <span>{{ interfacePreferences.locale === 'zh-CN' ? 'EN' : '中文' }}</span>
+    </button>
 
     <div class="home-utility-control">
       <button
@@ -440,12 +411,6 @@ onBeforeUnmount(() => {
 .home-language-button > span {
   font-size: .7rem;
   font-weight: 720;
-}
-
-.home-language-button .home-chevron {
-  width: 12px;
-  height: 12px;
-  opacity: .55;
 }
 
 .home-notification-badge {
@@ -780,11 +745,6 @@ onBeforeUnmount(() => {
 @media (max-width: 720px) {
   .home-language-button {
     min-width: 40px;
-  }
-
-  .home-language-button > span,
-  .home-language-button .home-chevron {
-    display: none;
   }
 
   .home-control-divider {
