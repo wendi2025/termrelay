@@ -13,7 +13,7 @@ import '../styles/home-button-motion.css'
 const { isAuthenticated, isAdmin } = useSession()
 const copied = ref(false)
 const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
-const apiBase = 'https://api.smirel.com/v1'
+const apiBase = 'https://muxway.dev/v1'
 const consolePath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
 const homeRoot = ref<HTMLElement | null>(null)
 let revealObserver: IntersectionObserver | undefined
@@ -93,7 +93,7 @@ async function copyBase() {
       <nav class="home-nav">
         <RouterLink to="/model-plaza">模型与价格</RouterLink>
         <RouterLink to="/key-usage">用量查询</RouterLink>
-        <a href="https://api.smirel.com" target="_blank" rel="noreferrer">接入文档</a>
+        <a href="https://muxway.dev" target="_blank" rel="noreferrer">接入文档</a>
       </nav>
 
       <div class="home-actions">
@@ -218,14 +218,14 @@ async function copyBase() {
           <RouterLink :to="isAuthenticated ? consolePath : '/register'" class="closing-primary">
             <span>{{ isAuthenticated ? '进入控制台' : '开始使用' }}</span><b>→</b>
           </RouterLink>
-          <a class="closing-secondary" href="https://api.smirel.com" target="_blank" rel="noreferrer">查看接入文档</a>
+          <a class="closing-secondary" href="https://muxway.dev" target="_blank" rel="noreferrer">查看接入文档</a>
         </div>
       </section>
     </main>
 
     <footer class="home-footer">
       <span>© {{ new Date().getFullYear() }} Smirel</span>
-      <span>api.smirel.com/v1</span>
+      <span>muxway.dev/v1</span>
     </footer>
   </div>
 </template>

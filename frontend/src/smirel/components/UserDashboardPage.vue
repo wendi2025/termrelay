@@ -29,7 +29,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const copied = ref(false)
-const apiBase = 'https://api.smirel.com/v1'
+const apiBase = 'https://muxway.dev/v1'
 
 const activeKeys = computed(() => Number(props.stats?.active_api_keys || 0))
 const totalKeys = computed(() => Number(props.stats?.total_api_keys || 0))

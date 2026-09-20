@@ -169,8 +169,8 @@ function previewSettings(): PlatformSettings {
     invitation_code_enabled: false,
     site_name: 'Smirel',
     site_subtitle: 'API SERVICE',
-    frontend_url: 'https://relay.smirel.com',
-    api_base_url: 'https://api.smirel.com',
+    frontend_url: 'https://muxway.dev',
+    api_base_url: 'https://muxway.dev',
     github_oauth_enabled: false,
     github_oauth_client_id: '',
     github_oauth_client_secret_configured: false,
@@ -521,8 +521,8 @@ onMounted(() => void loadSettings())
             <div class="general-form">
               <label class="settings-field"><span>{{ text('站点名称', 'Site name') }}</span><input v-model="form.site_name" type="text" placeholder="Smirel" /></label>
               <label class="settings-field"><span>{{ text('站点副标题', 'Site subtitle') }}</span><input v-model="form.site_subtitle" type="text" placeholder="API SERVICE" /></label>
-              <label class="settings-field field-wide"><span>{{ text('前端访问地址', 'Frontend URL') }}</span><input v-model="form.frontend_url" type="url" placeholder="https://relay.smirel.com" /><small>{{ text('用于 OAuth 登录完成后返回用户控制台。', 'Used as the return origin after OAuth sign-in.') }}</small></label>
-              <label class="settings-field field-wide"><span>{{ text('API 公网地址', 'Public API URL') }}</span><input v-model="form.api_base_url" type="url" placeholder="https://api.smirel.com" /><small>{{ text('用于生成 OAuth 后端回调地址；可填写域名或完整 /api/v1 地址。', 'Used to generate backend OAuth callbacks; domain or full /api/v1 URL is accepted.') }}</small></label>
+              <label class="settings-field field-wide"><span>{{ text('前端访问地址', 'Frontend URL') }}</span><input v-model="form.frontend_url" type="url" placeholder="https://muxway.dev" /><small>{{ text('用于 OAuth 登录完成后返回用户控制台。', 'Used as the return origin after OAuth sign-in.') }}</small></label>
+              <label class="settings-field field-wide"><span>{{ text('API 公网地址', 'Public API URL') }}</span><input v-model="form.api_base_url" type="url" placeholder="https://muxway.dev" /><small>{{ text('用于生成 OAuth 后端回调地址；可填写域名或完整 /api/v1 地址。', 'Used to generate backend OAuth callbacks; domain or full /api/v1 URL is accepted.') }}</small></label>
             </div>
           </section>
 
