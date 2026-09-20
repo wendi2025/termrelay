@@ -10,6 +10,11 @@ import claudeLogo from '../assets/providers/claude.svg'
 import geminiLogo from '../assets/providers/gemini.svg'
 import grokLogo from '../assets/providers/grok.svg'
 import openaiLogo from '../assets/providers/openai.svg'
+import kimiLogo from '../assets/providers/kimi.svg'
+import glmLogo from '../assets/providers/glm.svg'
+import seedanceLogo from '../assets/providers/seedance.svg'
+import qwenLogo from '../assets/providers/qwen.svg'
+import minimaxLogo from '../assets/providers/minimax.svg'
 import '../styles/home-landing.css'
 
 const { isAuthenticated, isAdmin } = useSession()
@@ -22,7 +27,17 @@ const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
 const consolePath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
 const isEnglish = computed(() => interfacePreferences.locale === 'en-US')
 const copy = computed<any>(() => isEnglish.value ? en : zh)
-const providers = [{ name: 'OpenAI', src: openaiLogo }, { name: 'Claude', src: claudeLogo }, { name: 'Gemini', src: geminiLogo }, { name: 'Grok', src: grokLogo }]
+const providers = [
+  { name: 'OpenAI', src: openaiLogo },
+  { name: 'Claude', src: claudeLogo },
+  { name: 'Gemini', src: geminiLogo },
+  { name: 'Grok', src: grokLogo },
+  { name: 'Kimi', src: kimiLogo },
+  { name: 'GLM', src: glmLogo },
+  { name: 'Seedance', src: seedanceLogo },
+  { name: 'Qwen', src: qwenLogo },
+  { name: 'MiniMax', src: minimaxLogo },
+]
 const tools = [['CC', 'Claude Code'], ['CX', 'Codex'], ['OA', 'OpenAI SDK'], ['AN', 'Anthropic SDK'], ['GM', 'Gemini SDK'], ['IDE', 'Editors & clients']]
 const groups = computed(() => {
   const result = new Map<string, PublicSubscriptionPlan[]>()
@@ -96,7 +111,7 @@ const en = {
       <div class="home-actions"><template v-if="isAuthenticated"><HomeTopbarControls /><HomeAccountMenu variant="toolbar" /></template><template v-else><select :value="interfacePreferences.locale" aria-label="Language" @change="chooseLocale"><option value="zh-CN">中文</option><option value="en-US">EN</option></select><button class="home-theme-toggle" type="button" :aria-label="isEnglish ? 'Toggle dark mode' : '切换暗夜模式'" :title="isEnglish ? 'Toggle dark mode' : '切换暗夜模式'" @click="toggleTheme"><svg v-if="interfacePreferences.resolvedTheme === 'dark'" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.3A8.5 8.5 0 0 1 8.7 3.8 8.5 8.5 0 1 0 20.2 15.3Z" /></svg><svg v-else viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg></button><RouterLink to="/login">{{ isEnglish ? 'Log in' : '登录' }}</RouterLink><RouterLink class="home-register" to="/register">{{ isEnglish ? 'Sign up' : '注册' }}</RouterLink></template><button class="home-menu" type="button" @click="mobileMenuOpen = !mobileMenuOpen">{{ isEnglish ? 'Menu' : '菜单' }}</button></div>
     </header>
     <main>
-      <section class="home-hero"><p class="home-eyebrow">{{ copy.hero[0] }}</p><h1>{{ copy.hero[1] }}</h1><p class="home-hero-lead">{{ copy.hero[2] }}</p><p class="home-hero-copy">{{ copy.hero[3] }}</p><div class="home-hero-actions"><RouterLink class="home-primary" :to="isAuthenticated ? consolePath : '/register'">{{ copy.hero[4] }}</RouterLink><RouterLink class="home-secondary" to="/model-plaza">{{ copy.hero[5] }}</RouterLink></div><div class="home-model-rail"><span>{{ copy.hero[6] }}</span><div class="home-model-list"><span v-for="provider in providers" :key="provider.name" class="home-model-chip"><img :src="provider.src" :alt="provider.name"><small>{{ provider.name }}</small></span><b title="More models">+</b></div></div></section>
+      <section class="home-hero"><p class="home-eyebrow">{{ copy.hero[0] }}</p><h1>{{ copy.hero[1] }}</h1><p class="home-hero-lead">{{ copy.hero[2] }}</p><p class="home-hero-copy">{{ copy.hero[3] }}</p><div class="home-hero-actions"><RouterLink class="home-primary" :to="isAuthenticated ? consolePath : '/register'">{{ copy.hero[4] }}</RouterLink><RouterLink class="home-secondary" to="/model-plaza">{{ copy.hero[5] }}</RouterLink></div><div class="home-model-rail"><span>{{ copy.hero[6] }}</span><div class="home-model-list"><span v-for="provider in providers" :key="provider.name" class="home-model-chip"><img :src="provider.src" :alt="provider.name"><small>{{ provider.name }}</small></span></div></div></section>
       <section class="home-section home-pain"><div class="home-heading"><span>{{ copy.pain[0] }}</span><h2>{{ copy.pain[1] }}</h2><p>{{ copy.pain[2] }}</p></div><div class="home-card-grid"><article v-for="([title, text], index) in copy.pain[3]" :key="title" :class="{ 'is-emphasis': index === 3 }"><span>0{{ index + 1 }}</span><h3>{{ title }}</h3><p>{{ text }}</p></article></div></section>
       <section id="capabilities" class="home-section home-capabilities"><div class="home-heading"><span>{{ copy.cap[0] }}</span><h2>{{ copy.cap[1] }}</h2><p>{{ copy.cap[2] }}</p></div><div class="home-card-grid"><article v-for="([title, text], index) in copy.cap[3]" :key="title" :class="{ 'is-emphasis': index === 0 || index === 3 }"><span>0{{ index + 1 }}</span><h3>{{ title }}</h3><p>{{ text }}</p></article></div></section>
       <section id="tools" class="home-section"><div class="home-heading"><span>{{ copy.tools[0] }}</span><h2>{{ copy.tools[1] }}</h2><p>{{ copy.tools[2] }}</p></div><div class="home-tool-grid"><a v-for="tool in tools" :key="tool[1]" href="https://api.smirel.com" target="_blank" rel="noreferrer"><b>{{ tool[0] }}</b><span>{{ tool[1] }}</span><i>↗</i></a></div><a class="home-inline-link" href="https://api.smirel.com" target="_blank" rel="noreferrer">{{ copy.tools[3] }} →</a></section>
