@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>Muxway</title>
+  <defs>
+    <linearGradient id="muxway-gradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#55bdf8"/>
+      <stop offset=".52" stop-color="#626cf2"/>
+      <stop offset="1" stop-color="#a35bea"/>
+    </linearGradient>
+  </defs>
+  <rect x="3" y="3" width="58" height="58" rx="15" fill="#0b1526"/>
+  <path d="M15 45V19h7l10 13 10-13h7v26h-8V31L32 42 23 31v14h-8Z" fill="url(#muxway-gradient)"/>
+  <path d="M10 52h44" stroke="#75cfff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>
+</svg>

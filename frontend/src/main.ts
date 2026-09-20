@@ -38,7 +38,7 @@ import './smirel/styles/route-transitions.css'
 
 async function bootstrap() {
   document.documentElement.classList.add('smirel-app')
-  document.title = 'Smirel API · Unified AI Gateway'
+  document.title = 'Muxway 模枢 · One API. Every model.'
   restoreInterfacePreferences()
   restoreNotifications()
   await restoreSession()

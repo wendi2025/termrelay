@@ -68,7 +68,7 @@ const copy = computed(() => isZh.value
   ? {
       kicker: 'ACCESS CREDENTIALS',
       title: 'API 密钥',
-      description: '创建和管理用于调用 Smirel API 的访问凭证，并明确绑定计费与路由分组。',
+      description: '创建和管理用于调用 Muxway API 的访问凭证，并明确绑定计费与路由分组。',
       refresh: '刷新',
       refreshing: '刷新中…',
       create: '创建 API Key',
@@ -78,7 +78,7 @@ const copy = computed(() => isZh.value
       keys: 'API Keys',
       unbound: '个密钥未绑定分组',
       unboundHint: '未绑定分组的旧密钥可能无法进入完整路由与计费链路，建议重新创建并绑定可用分组。',
-      empty: '还没有 API Key。创建第一个密钥后即可开始调用 Smirel API。',
+      empty: '还没有 API Key。创建第一个密钥后即可开始调用 Muxway API。',
       createTitle: '创建 API Key',
       createHint: '先完成名称、分组和有效期。额度、IP 与时间窗口限制放在高级设置中。',
       name: '名称',
@@ -114,7 +114,7 @@ const copy = computed(() => isZh.value
       cancel: '取消',
       creating: '创建中…',
       successTitle: 'API Key 已创建',
-      successHint: '密钥已经绑定到所选分组，可以直接用于 Smirel API。请保存在安全位置。',
+      successHint: '密钥已经绑定到所选分组，可以直接用于 Muxway API。请保存在安全位置。',
       credential: '完整密钥',
       copyKey: '复制密钥',
       copied: '已复制',
@@ -130,7 +130,7 @@ const copy = computed(() => isZh.value
   : {
       kicker: 'ACCESS CREDENTIALS',
       title: 'API Keys',
-      description: 'Create and manage credentials for the Smirel API with explicit billing and routing groups.',
+      description: 'Create and manage credentials for the Muxway API with explicit billing and routing groups.',
       refresh: 'Refresh',
       refreshing: 'Refreshing…',
       create: 'Create API Key',
@@ -140,7 +140,7 @@ const copy = computed(() => isZh.value
       keys: 'API Keys',
       unbound: 'keys are not bound to a group',
       unboundHint: 'Legacy keys without a group may not enter the full routing and billing path. Recreate them with an available group.',
-      empty: 'No API keys yet. Create your first key to start using the Smirel API.',
+      empty: 'No API keys yet. Create your first key to start using the Muxway API.',
       createTitle: 'Create API Key',
       createHint: 'Start with a name, routing group, and lifetime. Quotas, IP rules, and window limits stay under advanced settings.',
       name: 'Name',
@@ -176,7 +176,7 @@ const copy = computed(() => isZh.value
       cancel: 'Cancel',
       creating: 'Creating…',
       successTitle: 'API Key created',
-      successHint: 'The key is bound to the selected group and is ready for the Smirel API. Store it somewhere safe.',
+      successHint: 'The key is bound to the selected group and is ready for the Muxway API. Store it somewhere safe.',
       credential: 'Full credential',
       copyKey: 'Copy key',
       copied: 'Copied',
@@ -563,7 +563,7 @@ onBeforeUnmount(() => {
                 <div>
                   <span>{{ selectedGroup.platform || 'API' }}</span>
                   <strong>{{ selectedGroup.name }}</strong>
-                  <p>{{ selectedGroup.description || 'Smirel API routing group' }}</p>
+                  <p>{{ selectedGroup.description || 'Muxway API routing group' }}</p>
                 </div>
                 <dl>
                   <div><dt>{{ copy.rate }}</dt><dd>{{ effectiveRate(selectedGroup).toFixed(2) }}×</dd></div>

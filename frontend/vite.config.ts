@@ -91,8 +91,8 @@ function injectStandaloneSmirelBranding(publicBase: string, enabled: boolean): P
         if (!enabled) return html
         const normalizedBase = publicBase.endsWith('/') ? publicBase : `${publicBase}/`
         return injectBranding(html, {
-          site_name: 'Smirel API',
-          site_logo: `${normalizedBase}smirel-logo.png`,
+          site_name: 'Muxway 模枢',
+          site_logo: `${normalizedBase}muxway-mark.svg`,
         })
       },
     },

@@ -42,7 +42,7 @@ const mobileOpen = ref(false)
 const workspaceMain = ref<HTMLElement | null>(null)
 const openUtility = ref<UtilityPanel | null>(null)
 const { state, isAdmin } = useSession()
-const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
+const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg`
 const sharedKeysNavigation = userNavigation.find((item) => item.feature === 'keys')
 const MODE_STORAGE_KEY = 'smirel.workspace.mode'
 const LAST_ADMIN_ROUTE_KEY = 'smirel.workspace.last-admin-route'
@@ -87,7 +87,7 @@ const navigation = computed<NavItem[]>(() => {
   return [adminNavigation[0], sharedKeysNavigation, ...adminNavigation.slice(1), modelCatalogNavItem.value]
 })
 const initials = computed(() => (state.user?.username || state.user?.email || 'S').slice(0, 1).toUpperCase())
-const accountName = computed(() => state.user?.username || state.user?.email?.split('@')[0] || 'Smirel')
+const accountName = computed(() => state.user?.username || state.user?.email?.split('@')[0] || 'Muxway')
 const accountRole = computed(() => isAdmin.value ? t('shell.roleAdmin') : t('shell.roleUser'))
 const currentLocaleShort = computed(() => interfacePreferences.locale === 'zh-CN' ? '中' : 'EN')
 const unreadBadge = computed(() => unreadNotificationCount.value > 99 ? '99+' : String(unreadNotificationCount.value))
@@ -295,8 +295,8 @@ watch(() => route.path, () => {
     <aside class="workspace-sidebar glass" :class="{ open: mobileOpen }">
       <div class="workspace-brand-row">
         <RouterLink to="/home" class="brand-link" @click="mobileOpen = false">
-          <img :src="logoUrl" alt="Smirel" />
-          <span class="workspace-brand-copy"><strong>Smirel</strong><small>API SERVICE</small></span>
+          <img :src="logoUrl" alt="Muxway" />
+          <span class="workspace-brand-copy"><strong>Muxway</strong><small>模枢 · API SERVICE</small></span>
         </RouterLink>
         <button class="mobile-close" type="button" :aria-label="t('shell.closeNav')" @click="mobileOpen = false">×</button>
       </div>

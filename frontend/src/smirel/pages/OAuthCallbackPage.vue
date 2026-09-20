@@ -19,7 +19,7 @@ interface PendingOAuthPayload extends OAuthTokenResult {
 type CallbackPhase = 'loading' | 'registration' | 'error'
 
 const router = useRouter()
-const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
+const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg`
 const phase = ref<CallbackPhase>('loading')
 const pending = ref<PendingOAuthPayload | null>(null)
 const provider = ref<OAuthProvider | null>(null)
@@ -151,30 +151,30 @@ onMounted(initialize)
 <template>
   <div class="oauth-page">
     <RouterLink to="/home" class="oauth-brand">
-      <img :src="logoUrl" alt="Smirel" />
+      <img :src="logoUrl" alt="Muxway" />
       <span>
-        <strong>Smirel</strong>
-        <small>API SERVICE</small>
+        <strong>Muxway</strong>
+        <small>模枢 · API SERVICE</small>
       </span>
     </RouterLink>
 
     <main class="oauth-card">
       <div class="oauth-card-meta">
-        <span>SMIREL ACCOUNT</span>
+        <span>MUXWAY ACCOUNT</span>
         <i><b></b>SECURE ACCESS</i>
       </div>
 
       <section v-if="phase === 'loading'" class="oauth-state" aria-live="polite">
         <span class="oauth-spinner" aria-hidden="true"></span>
         <h1>正在完成登录</h1>
-        <p>正在验证第三方账户并建立 Smirel 会话。</p>
+        <p>正在验证第三方账户并建立 Muxway 会话。</p>
       </section>
 
       <section v-else-if="phase === 'registration'" class="oauth-registration">
         <header>
           <span class="provider-badge">{{ providerName }}</span>
           <h1>完成账户创建</h1>
-          <p>第三方身份已验证。设置一个 Smirel 密码，用于后续账户管理与备用登录。</p>
+          <p>第三方身份已验证。设置一个 Muxway 密码，用于后续账户管理与备用登录。</p>
         </header>
 
         <div v-if="accountEmail" class="verified-email">

@@ -15,11 +15,10 @@ html.smirel-app .oauth-page::before {
     linear-gradient(180deg, rgba(255, 255, 255, .012), transparent 24%);
 }
 
-/* The source logo is a 366x120 horizontal lockup. Do not force it into a square. */
 html.smirel-app .oauth-page .oauth-brand {
   top: 32px;
   left: 38px;
-  gap: 0;
+  gap: 11px;
   min-height: 42px;
   display: inline-flex;
   align-items: center;
@@ -33,16 +32,15 @@ html.smirel-app .oauth-page .oauth-brand:hover {
 }
 
 html.smirel-app .oauth-page .oauth-brand img {
-  width: 122px !important;
-  height: auto !important;
-  max-height: 40px;
+  width: 39px !important;
+  height: 39px !important;
   display: block;
   object-fit: contain;
   object-position: left center;
 }
 
 html.smirel-app .oauth-page .oauth-brand > span {
-  display: none;
+  display: flex;
 }
 
 html.smirel-app .oauth-page .oauth-card {

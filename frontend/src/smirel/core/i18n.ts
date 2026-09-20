@@ -7,7 +7,7 @@ const messages = {
   'zh-CN': {
     shell: {
       adminConsole: '管理后台',
-      userConsole: 'Smirel Console',
+      userConsole: 'Muxway 模枢',
       roleAdmin: '管理员',
       roleUser: '个人账户',
       closeNav: '关闭导航',
@@ -87,7 +87,7 @@ const messages = {
     workspace: {
       descriptions: {
         dashboard: '余额、API Key 和调用情况都在这里。',
-        keys: '创建和管理用于调用 Smirel API 的访问密钥。',
+        keys: '创建和管理用于调用 Muxway API 的访问密钥。',
         usage: '查看最近请求、Token 与费用。',
         profile: '查看当前账户信息。',
         adminUsers: '管理平台用户、角色与账户状态。',
@@ -103,7 +103,7 @@ const messages = {
         adminPaymentConfig: '维护平台级支付参数、限额、取消订单限流与展示策略。',
         adminRevenueSplit: '维护共建者分成比例，按笔计提、生成结算单并登记线下打款。',
         adminSettings: '配置平台级参数与商业控制台设置。',
-        generic: '管理当前 Smirel 服务。',
+        generic: '管理当前 Muxway 服务。',
       },
       refresh: '刷新',
       refreshing: '刷新中…',
@@ -241,7 +241,7 @@ const messages = {
       receiveLabel: '预计入账',
       submit: '立即支付',
       submitting: '正在创建订单…',
-      secure: '支付信息将由支付服务商安全处理，Smirel 不保存完整卡片信息。',
+      secure: '支付信息将由支付服务商安全处理，Muxway 不保存完整卡片信息。',
       // ---- 二维码 / 第三方支付页 ----
       qrcodeTitle: '扫码支付',
       qrcodeHint: '使用 {method} 扫描二维码完成支付',
@@ -768,7 +768,7 @@ const messages = {
     admin: {
       title: '总览',
       description: '平台核心指标、资源健康度与实时请求动态',
-      eyebrow: 'SMIREL 运营中心',
+      eyebrow: 'MUXWAY 运营中心',
       dataSynced: '数据已同步',
       waitingData: '等待数据',
       waitingFirstSync: '等待首次同步',
@@ -805,7 +805,7 @@ const messages = {
   'en-US': {
     shell: {
       adminConsole: 'Admin Console',
-      userConsole: 'Smirel Console',
+      userConsole: 'Muxway Console',
       roleAdmin: 'Administrator',
       roleUser: 'Personal account',
       closeNav: 'Close navigation',
@@ -885,7 +885,7 @@ const messages = {
     workspace: {
       descriptions: {
         dashboard: 'Balance, API keys, and usage in one place.',
-        keys: 'Create and manage credentials for the Smirel API.',
+        keys: 'Create and manage credentials for the Muxway API.',
         usage: 'Review recent requests, tokens, and cost.',
         profile: 'Review the current account.',
         adminUsers: 'Manage platform users, roles, and account status.',
@@ -901,7 +901,7 @@ const messages = {
         adminPaymentConfig: 'Maintain platform payment parameters, limits, cancel rate limit and display strategies.',
         adminRevenueSplit: 'Maintain co-builder split ratios, accrue per payment, create settlements and record offline payouts.',
         adminSettings: 'Configure platform-level and commercial console settings.',
-        generic: 'Manage the current Smirel service.',
+        generic: 'Manage the current Muxway service.',
       },
       refresh: 'Refresh',
       refreshing: 'Refreshing…',
@@ -1032,7 +1032,7 @@ const messages = {
       receiveLabel: 'Expected credit',
       submit: 'Pay now',
       submitting: 'Creating order…',
-      secure: 'Payment details will be handled securely by the payment provider. Smirel will not store complete card data.',
+      secure: 'Payment details will be handled securely by the payment provider. Muxway will not store complete card data.',
       qrcodeTitle: 'Scan to pay',
       qrcodeHint: 'Scan the QR code with {method} to complete payment',
       qrcodeAmount: 'Amount',
@@ -1542,7 +1542,7 @@ const messages = {
     admin: {
       title: 'Dashboard',
       description: 'Core platform metrics, resource health, and real-time request activity.',
-      eyebrow: 'SMIREL OPERATIONS',
+      eyebrow: 'MUXWAY OPERATIONS',
       dataSynced: 'Data synced',
       waitingData: 'Waiting for data',
       waitingFirstSync: 'Waiting for first sync',

@@ -68,7 +68,7 @@ const previewCatalog: PlazaResponse = {
   groups: [
     {
       id: 101,
-      name: 'Smirel OpenAI',
+      name: 'Muxway OpenAI',
       description: 'OpenAI-compatible preview route',
       platform: 'openai',
       subscription_type: 'shared',
@@ -81,7 +81,7 @@ const previewCatalog: PlazaResponse = {
     },
     {
       id: 102,
-      name: 'Smirel Anthropic',
+      name: 'Muxway Anthropic',
       description: 'Messages API preview route',
       platform: 'anthropic',
       subscription_type: 'shared',
@@ -93,7 +93,7 @@ const previewCatalog: PlazaResponse = {
     },
     {
       id: 103,
-      name: 'Smirel Gemini',
+      name: 'Muxway Gemini',
       description: 'Gemini API preview route',
       platform: 'gemini',
       subscription_type: 'shared',
@@ -105,7 +105,7 @@ const previewCatalog: PlazaResponse = {
     },
     {
       id: 104,
-      name: 'Smirel xAI',
+      name: 'Muxway xAI',
       description: 'OpenAI-compatible xAI preview route',
       platform: 'xai',
       subscription_type: 'shared',
@@ -117,7 +117,7 @@ const previewCatalog: PlazaResponse = {
     },
     {
       id: 105,
-      name: 'Smirel Composite',
+      name: 'Muxway Composite',
       description: 'Cross-provider preview routes',
       platform: 'composite',
       subscription_type: 'shared',
@@ -374,7 +374,7 @@ function providerInfoForGroup(group: PlazaGroup): ProviderInfo {
   if (platform === 'composite') {
     const normalizedName = String(group.name || '').trim().toLowerCase()
     if (normalizedName.includes('composite')) {
-      return { key: 'composite', name: 'Smirel', mark: 'S' }
+      return { key: 'composite', name: 'Muxway', mark: 'M' }
     }
   }
 

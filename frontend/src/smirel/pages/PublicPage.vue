@@ -26,7 +26,7 @@ type ProviderCatalog = {
 const route = useRoute()
 const { isAuthenticated, isAdmin } = useSession()
 const kind = computed(() => String(route.meta.publicKind || 'public'))
-const logoUrl = `${import.meta.env.BASE_URL}smirel-logo.png`
+const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg`
 const consolePath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
 
 const providers: ProviderCatalog[] = [
@@ -76,11 +76,11 @@ function selectProvider(provider: ProviderKey) {
 }
 
 const copy = computed(() => {
-  if (kind.value === 'key-usage') return { eyebrow: 'USAGE LOOKUP', title: '用量查询', text: '登录后可在工作区查看请求、Token 与实际费用。公开 Key 查询能力会在 Smirel 原生页面中提供。' }
-  if (kind.value === 'legal') return { eyebrow: 'LEGAL', title: '服务条款与隐私', text: '法律文档属于 Smirel 公共页面体系，不再使用旧站点模板。' }
-  if (kind.value === 'payment') return { eyebrow: 'PAYMENT', title: '支付服务', text: '支付流程保留后端能力，前端入口已经切换到 Smirel 原生页面。' }
-  if (kind.value === 'callback') return { eyebrow: 'AUTH CALLBACK', title: '正在完成账户验证', text: '身份回调会返回 Smirel 登录流程。若页面长时间没有变化，请返回登录页。' }
-  return { eyebrow: 'SMIREL', title: String(route.meta.title || 'Smirel'), text: '该公共功能已经进入 Smirel 独立页面体系。' }
+  if (kind.value === 'key-usage') return { eyebrow: 'USAGE LOOKUP', title: '用量查询', text: '登录后可在工作区查看请求、Token 与实际费用。公开 Key 查询能力会在 Muxway 原生页面中提供。' }
+  if (kind.value === 'legal') return { eyebrow: 'LEGAL', title: '服务条款与隐私', text: '法律文档属于 Muxway 公共页面体系，不再使用旧站点模板。' }
+  if (kind.value === 'payment') return { eyebrow: 'PAYMENT', title: '支付服务', text: '支付流程保留后端能力，前端入口已经切换到 Muxway 原生页面。' }
+  if (kind.value === 'callback') return { eyebrow: 'AUTH CALLBACK', title: '正在完成账户验证', text: '身份回调会返回 Muxway 登录流程。若页面长时间没有变化，请返回登录页。' }
+  return { eyebrow: 'MUXWAY', title: String(route.meta.title || 'Muxway'), text: '该公共功能已经进入 Muxway 独立页面体系。' }
 })
 </script>
 
@@ -90,8 +90,8 @@ const copy = computed(() => {
 
     <header class="public-topbar glass">
       <RouterLink to="/home" class="brand-link">
-        <img :src="logoUrl" alt="Smirel" />
-        <span><strong>Smirel</strong><small>API SERVICE</small></span>
+        <img :src="logoUrl" alt="Muxway" />
+        <span><strong>Muxway</strong><small>模枢 · API SERVICE</small></span>
       </RouterLink>
       <div>
         <RouterLink to="/home">首页</RouterLink>

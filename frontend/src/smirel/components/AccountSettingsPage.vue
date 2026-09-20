@@ -56,7 +56,7 @@ const displayProfile = computed<AccountProfile>(() => profile.value || {
   created_at: state.user?.created_at || '',
 })
 
-const displayName = computed(() => displayProfile.value.username || displayProfile.value.email?.split('@')[0] || 'Smirel Account')
+const displayName = computed(() => displayProfile.value.username || displayProfile.value.email?.split('@')[0] || 'Muxway Account')
 const initials = computed(() => displayName.value.slice(0, 1).toUpperCase())
 const avatarSrc = computed(() => avatarDraft.value || displayProfile.value.avatar_url || '')
 const roleLabel = computed(() => displayProfile.value.role === 'admin' ? '管理员' : '用户')
@@ -400,7 +400,7 @@ onMounted(() => void loadProfile())
           <div>
             <span class="account-card-kicker">PROFILE</span>
             <h3>个人资料</h3>
-            <p>管理你在 Smirel 中显示的基础账户信息。</p>
+            <p>管理你在 Muxway 中显示的基础账户信息。</p>
           </div>
         </header>
 
@@ -554,7 +554,7 @@ onMounted(() => void loadProfile())
           <div>
             <span class="account-card-kicker danger-kicker">DANGER ZONE</span>
             <h3>注销账户</h3>
-            <p>永久停止使用当前 Smirel 账户。此操作与“退出登录”不同。</p>
+            <p>永久停止使用当前 Muxway 账户。此操作与“退出登录”不同。</p>
           </div>
         </header>
 

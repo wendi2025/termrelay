@@ -108,7 +108,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
-  document.title = `${String(to.meta.title || 'Smirel')} · Smirel API`
+  document.title = `${String(to.meta.title || 'Muxway')} · Muxway 模枢`
 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     return { path: '/login', query: { redirect: to.fullPath } }

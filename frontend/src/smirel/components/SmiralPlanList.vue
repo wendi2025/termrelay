@@ -102,7 +102,7 @@ onMounted(loadPlans)
   <section class="smiral-plans">
     <header class="smiral-plans__header">
       <div>
-        <h2>Smirel 订阅套餐</h2>
+        <h2>Muxway 订阅套餐</h2>
         <p>无日限额 · 周/月额度控制 · 企业试运行档含并发与独享 quota</p>
         <p v-if="loadError" class="smiral-plans__note">
           正在使用本地配置（API 暂不可用：{{ loadError }}）

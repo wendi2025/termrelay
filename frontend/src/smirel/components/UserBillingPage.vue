@@ -218,7 +218,7 @@ function planBadge(plan: CheckoutPlan): string {
   const group = String(plan.group_name || '').replace(/^Smirel\s*[·・-]\s*/i, '').trim()
   if (group) return group
   if (plan.group_platform) return String(plan.group_platform).toUpperCase()
-  return 'SMIREL'
+  return 'MUXWAY'
 }
 
 function planTier(plan: CheckoutPlan): string {
