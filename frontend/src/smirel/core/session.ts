@@ -91,18 +91,26 @@ export async function restoreSession() {
   state.ready = true
 }
 
-export async function login(email: string, password: string) {
+export async function login(email: string, password: string, turnstileToken = '') {
   if (previewMode) return
-  const { data } = await api.post<AuthResult>('/auth/login', { email, password })
+  const { data } = await api.post<AuthResult>('/auth/login', {
+    email,
+    password,
+    turnstile_token: turnstileToken,
+  })
   if (data.requires_2fa) {
     throw new Error('该账户启用了两步验证，请在完整账户流程中继续验证')
   }
   persist(data)
 }
 
-export async function register(email: string, password: string) {
+export async function register(email: string, password: string, turnstileToken = '') {
   if (previewMode) return
-  const { data } = await api.post<AuthResult>('/auth/register', { email, password })
+  const { data } = await api.post<AuthResult>('/auth/register', {
+    email,
+    password,
+    turnstile_token: turnstileToken,
+  })
   persist(data)
 }
 

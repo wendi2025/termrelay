@@ -21,8 +21,15 @@ interface UpstreamAccount {
   group_ids?: number[]
   last_used_at?: string | null
   expires_at?: number | null
-  credentials_status?: string
+  credentials_status?: Record<string, boolean> | string
+  credentials?: Record<string, unknown>
   [key: string]: unknown
+}
+
+interface GroupSummary {
+  id: number
+  name?: string
+  status?: string
 }
 
 interface AccountListResponse {
@@ -45,6 +52,12 @@ const accountType = ref('')
 const expandedAccountId = ref<number | null>(null)
 const showCreate = ref(false)
 const editingAccount = ref<UpstreamAccount | null>(null)
+const groups = ref<GroupSummary[]>([])
+const selectedIds = ref<number[]>([])
+const modelCache = ref<Record<number, string[]>>({})
+const testState = ref<Record<number, { state: 'idle' | 'running' | 'success' | 'error'; message: string }>>({})
+const busyAccountId = ref<number | null>(null)
+const batchBusy = ref('')
 let searchTimer: ReturnType<typeof setTimeout> | undefined
 
 const previewAccounts: UpstreamAccount[] = [
@@ -72,6 +85,8 @@ const providerCount = computed(() => new Set(accounts.value.map((item) => item.p
 const hasFilters = computed(() => Boolean(search.value.trim() || platform.value || status.value || accountType.value))
 const healthPercent = computed(() => accounts.value.length ? Math.round((schedulableCount.value / accounts.value.length) * 100) : 0)
 const concurrencyPercent = computed(() => maxConcurrency.value > 0 ? Math.min(100, Math.round((currentConcurrency.value / maxConcurrency.value) * 100)) : 0)
+const selectedCount = computed(() => selectedIds.value.length)
+const allPageSelected = computed(() => accounts.value.length > 0 && accounts.value.every(item => selectedIds.value.includes(item.id)))
 
 function platformLabel(value?: string) {
   const labels: Record<string, string> = {
@@ -114,23 +129,214 @@ function accountTypeLabel(value?: string) {
 }
 
 function healthLabel(item: UpstreamAccount) {
+  const kind = errorKind(item)
+  if (kind) return kind
   if (item.status === 'error') return '异常'
-  if (item.status === 'inactive') return '已停用'
+  if (item.status === 'inactive' || item.status === 'disabled') return '已停用'
   if (item.schedulable === false) return '暂停调度'
   return '可调度'
 }
 
 function healthHint(item: UpstreamAccount) {
+  const test = testState.value[item.id]
+  if (test?.state === 'running') return '连接测试中'
+  if (test?.state === 'success') return test.message
+  if (test?.state === 'error') return '最近测试失败'
   if (item.status === 'error') return '需要处理'
-  if (item.status === 'inactive') return '手动停用'
+  if (item.status === 'inactive' || item.status === 'disabled') return '手动停用'
   if (item.schedulable === false) return '调度关闭'
   return '运行正常'
 }
 
 function healthClass(item: UpstreamAccount) {
-  if (item.status === 'error') return 'danger'
-  if (item.status === 'inactive' || item.schedulable === false) return 'muted'
+  const message = String(item.error_message || '').toLowerCase()
+  if (item.status === 'error' || /invalid token|invalid api|unauthorized|401|forbidden|403/.test(message)) return 'danger'
+  if (item.status === 'inactive' || item.status === 'disabled' || item.schedulable === false) return 'muted'
   return 'good'
+}
+
+function groupName(id: number) {
+  return groups.value.find(group => group.id === id)?.name || `#${id}`
+}
+
+function mappedModels(item: UpstreamAccount): string[] {
+  const cached = modelCache.value[item.id]
+  if (cached?.length) return cached
+  const mapping = item.credentials?.model_mapping
+  if (!mapping || typeof mapping !== 'object' || Array.isArray(mapping)) return []
+  return Object.keys(mapping as Record<string, unknown>).filter(Boolean).sort((a, b) => a.localeCompare(b))
+}
+
+function modelCount(item: UpstreamAccount) {
+  return mappedModels(item).length
+}
+
+function modelSummary(item: UpstreamAccount) {
+  const count = modelCount(item)
+  if (!count) return '未同步'
+  return `${count} 个模型`
+}
+
+function credentialsLabel(item: UpstreamAccount) {
+  const status = item.credentials_status
+  if (typeof status === 'string') return status
+  if (status && typeof status === 'object') {
+    if (status.has_api_key) return 'API Key 已配置'
+    if (status.has_access_token || status.has_refresh_token) return 'OAuth 凭据已配置'
+    const present = Object.entries(status).filter(([, value]) => value).map(([key]) => key.replace(/^has_/, ''))
+    if (present.length) return `${present.join(' / ')} 已配置`
+  }
+  return item.type === 'apikey' ? 'API Key 状态未知' : '已配置'
+}
+
+function errorKind(item: UpstreamAccount) {
+  const message = String(item.error_message || '').toLowerCase()
+  if (/invalid token|invalid api|unauthorized|401/.test(message)) return '认证失败'
+  if (/insufficient.*balance|balance|quota/.test(message)) return '余额不足'
+  if (/model_not_found|model.*not found|no available channel/.test(message)) return '模型不可用'
+  return item.error_message ? '调用异常' : ''
+}
+
+function togglePageSelection() {
+  const ids = accounts.value.map(item => item.id)
+  if (allPageSelected.value) {
+    selectedIds.value = selectedIds.value.filter(id => !ids.includes(id))
+  } else {
+    selectedIds.value = Array.from(new Set([...selectedIds.value, ...ids]))
+  }
+}
+
+function toggleSelection(id: number) {
+  selectedIds.value = selectedIds.value.includes(id)
+    ? selectedIds.value.filter(value => value !== id)
+    : [...selectedIds.value, id]
+}
+
+async function loadGroups() {
+  if (previewMode) {
+    groups.value = [
+      { id: 1, name: 'Default' },
+      { id: 2, name: 'Claude Pool' },
+      { id: 3, name: 'GPT Pro' },
+      { id: 4, name: 'Gemini Pool' },
+    ]
+    return
+  }
+  try {
+    const response = await api.get<GroupSummary[]>('/admin/groups/all')
+    groups.value = Array.isArray(response.data) ? response.data : []
+  } catch {
+    groups.value = []
+  }
+}
+
+async function setAccountEnabled(item: UpstreamAccount, enabled: boolean) {
+  if (previewMode) {
+    item.status = enabled ? 'active' : 'inactive'
+    item.schedulable = enabled
+    return
+  }
+
+  if (enabled && errorKind(item)) {
+    await testAccount(item)
+    if (testState.value[item.id]?.state !== 'success') {
+      error.value = `「${item.name || item.id}」连接测试未通过，已保持暂停调度`
+      return
+    }
+  }
+
+  busyAccountId.value = item.id
+  error.value = ''
+  try {
+    if (enabled && item.status !== 'active') {
+      await api.put(`/admin/accounts/${item.id}`, { status: 'active' })
+    }
+    await api.post(`/admin/accounts/${item.id}/schedulable`, { schedulable: enabled })
+    await loadAccounts()
+  } catch (caught) {
+    error.value = getErrorMessage(caught)
+  } finally {
+    busyAccountId.value = null
+  }
+}
+
+async function syncModels(item: UpstreamAccount) {
+  if (previewMode) {
+    modelCache.value = { ...modelCache.value, [item.id]: mappedModels(item).length ? mappedModels(item) : ['gpt-5.6-sol', 'gpt-6-astra'] }
+    return
+  }
+  busyAccountId.value = item.id
+  error.value = ''
+  try {
+    const response = await api.post<{ models?: unknown[] }>(`/admin/accounts/${item.id}/models/sync-upstream`)
+    const raw = Array.isArray(response.data?.models) ? response.data.models : []
+    const models = raw.map((entry) => {
+      if (typeof entry === 'string') return entry
+      if (entry && typeof entry === 'object') return String((entry as Record<string, unknown>).id || (entry as Record<string, unknown>).name || '')
+      return ''
+    }).filter(Boolean)
+    if (models.length) {
+      const modelMapping = Object.fromEntries(models.map(model => [model, model]))
+      await api.put(`/admin/accounts/${item.id}`, {
+        credentials: { ...(item.credentials || {}), model_mapping: modelMapping },
+      })
+    }
+    modelCache.value = { ...modelCache.value, [item.id]: models }
+    await loadAccounts()
+  } catch (caught) {
+    error.value = getErrorMessage(caught)
+  } finally {
+    busyAccountId.value = null
+  }
+}
+
+async function testAccount(item: UpstreamAccount) {
+  if (previewMode) {
+    testState.value = { ...testState.value, [item.id]: { state: 'success', message: '测试通过' } }
+    return
+  }
+  testState.value = { ...testState.value, [item.id]: { state: 'running', message: '测试中…' } }
+  busyAccountId.value = item.id
+  error.value = ''
+  try {
+    const response = await api.post<string>(`/admin/accounts/${item.id}/test`, { prompt: 'Hi' }, { responseType: 'text', timeout: 90000 })
+    const raw = String(response.data || '')
+    const errorMatch = raw.match(/"type"\s*:\s*"error"[\s\S]*?"error"\s*:\s*"([^"]+)"/)
+    if (errorMatch?.[1]) throw new Error(errorMatch[1])
+    if (!raw.includes('"type":"test_complete"') && !raw.includes('"success":true')) {
+      throw new Error('测试未返回完成状态')
+    }
+    testState.value = { ...testState.value, [item.id]: { state: 'success', message: '刚刚测试通过' } }
+    await loadAccounts()
+  } catch (caught) {
+    const message = getErrorMessage(caught)
+    testState.value = { ...testState.value, [item.id]: { state: 'error', message } }
+  } finally {
+    busyAccountId.value = null
+  }
+}
+
+async function batchSetSchedulable(enabled: boolean) {
+  if (!selectedIds.value.length) return
+  batchBusy.value = enabled ? 'enable' : 'disable'
+  const selected = accounts.value.filter(item => selectedIds.value.includes(item.id))
+  try {
+    for (const item of selected) await setAccountEnabled(item, enabled)
+    selectedIds.value = []
+  } finally {
+    batchBusy.value = ''
+  }
+}
+
+async function batchTest() {
+  if (!selectedIds.value.length) return
+  batchBusy.value = 'test'
+  const selected = accounts.value.filter(item => selectedIds.value.includes(item.id))
+  try {
+    await Promise.allSettled(selected.map(item => testAccount(item)))
+  } finally {
+    batchBusy.value = ''
+  }
 }
 
 function loadPercent(item: UpstreamAccount) {
@@ -238,7 +444,10 @@ watch(search, () => {
 })
 
 watch(page, () => void loadAccounts())
-onMounted(() => void loadAccounts())
+onMounted(() => {
+  void loadGroups()
+  void loadAccounts()
+})
 </script>
 
 <template>
@@ -350,6 +559,7 @@ onMounted(() => void loadAccounts())
               <option value="">全部</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
+              <option value="disabled">Disabled</option>
               <option value="error">Error</option>
             </select>
             <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
@@ -361,30 +571,63 @@ onMounted(() => void loadAccounts())
 
       <p v-if="error" class="accounts-error">{{ error }}</p>
 
+      <div v-if="selectedCount" class="batch-toolbar">
+        <div>
+          <span class="batch-count">{{ selectedCount }}</span>
+          <strong>个账户已选择</strong>
+          <small>可直接批量调整调度状态或执行连接测试</small>
+        </div>
+        <div class="batch-actions">
+          <button type="button" :disabled="Boolean(batchBusy)" @click="batchSetSchedulable(true)">
+            {{ batchBusy === 'enable' ? '启用中…' : '批量启用' }}
+          </button>
+          <button type="button" :disabled="Boolean(batchBusy)" @click="batchSetSchedulable(false)">
+            {{ batchBusy === 'disable' ? '暂停中…' : '批量暂停' }}
+          </button>
+          <button type="button" :disabled="Boolean(batchBusy)" @click="batchTest">
+            {{ batchBusy === 'test' ? '测试中…' : '批量测试' }}
+          </button>
+          <button class="batch-clear" type="button" @click="selectedIds = []">取消选择</button>
+        </div>
+      </div>
+
       <div class="upstream-table" :class="{ loading }">
         <div class="upstream-table-head">
+          <button class="selection-toggle" type="button" :class="{ selected: allPageSelected }" aria-label="选择当前页" @click="togglePageSelection">
+            <span></span>
+          </button>
           <span>账户</span>
           <span>状态</span>
+          <span>模型</span>
           <span>负载</span>
-          <span>调度策略</span>
           <span>分组</span>
           <span>最近使用</span>
-          <span></span>
+          <span class="actions-head">快捷操作</span>
         </div>
 
         <template v-for="item in accounts" :key="item.id">
-          <button class="upstream-row" type="button" @click="toggleExpanded(item.id)">
+          <div class="upstream-row" :class="{ expanded: expandedAccountId === item.id, selected: selectedIds.includes(item.id) }" @click="toggleExpanded(item.id)">
+            <button class="selection-toggle" type="button" :class="{ selected: selectedIds.includes(item.id) }" :aria-label="`选择 ${item.name || item.id}`" @click.stop="toggleSelection(item.id)">
+              <span></span>
+            </button>
+
             <span class="upstream-identity">
               <i class="provider-mark" :data-platform="String(item.platform || '').toLowerCase()">{{ platformMark(item.platform) }}</i>
               <span>
                 <strong>{{ item.name || `Account #${item.id}` }}</strong>
                 <small>{{ platformLabel(item.platform) }}<b>·</b>{{ accountTypeLabel(item.type) }}<b>·</b>#{{ item.id }}</small>
+                <em v-if="item.notes">{{ item.notes }}</em>
               </span>
             </span>
 
             <span class="upstream-health">
               <span class="health-badge" :class="healthClass(item)"><i></i>{{ healthLabel(item) }}</span>
               <small>{{ healthHint(item) }}</small>
+            </span>
+
+            <span class="upstream-models">
+              <b>{{ modelCount(item) || '—' }}</b>
+              <small>{{ modelCount(item) ? '已配置' : '待同步' }}</small>
             </span>
 
             <span class="upstream-load">
@@ -395,49 +638,108 @@ onMounted(() => void loadAccounts())
               <i class="load-track"><b :style="{ width: `${loadPercent(item)}%` }"></b></i>
             </span>
 
-            <span class="upstream-routing">
-              <b>P{{ Number(item.priority || 0) }}</b>
-              <small>倍率 ×{{ Number(item.rate_multiplier ?? 1).toFixed(2) }}</small>
-            </span>
-
             <span class="upstream-groups">
               <template v-if="item.group_ids?.length">
-                <b v-for="id in item.group_ids.slice(0, 2)" :key="id">#{{ id }}</b>
+                <b v-for="id in item.group_ids.slice(0, 2)" :key="id">{{ groupName(id) }}</b>
                 <b v-if="item.group_ids.length > 2">+{{ item.group_ids.length - 2 }}</b>
               </template>
               <small v-else>未分组</small>
             </span>
 
-            <span class="upstream-last-used">{{ formatTime(item.last_used_at) }}</span>
-
-            <span class="row-action" :class="{ open: expandedAccountId === item.id }" aria-hidden="true">
-              <svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" /></svg>
+            <span class="upstream-last-used">
+              <b>{{ formatTime(item.last_used_at) }}</b>
+              <small>P{{ Number(item.priority || 0) }} · ×{{ Number(item.rate_multiplier ?? 1).toFixed(3) }}</small>
             </span>
-          </button>
 
-          <div v-if="expandedAccountId === item.id" class="upstream-detail">
-            <div class="detail-intro">
-              <span>账户说明</span>
-              <strong>{{ item.notes || '暂无备注' }}</strong>
-            </div>
-            <div>
-              <span>凭据状态</span>
-              <strong>{{ item.credentials_status || '—' }}</strong>
-            </div>
-            <div>
-              <span>到期时间</span>
-              <strong>{{ formatExpiry(item.expires_at) }}</strong>
-            </div>
-            <div>
-              <span>调度分组</span>
-              <strong>{{ item.group_ids?.length ? item.group_ids.map((id) => `#${id}`).join(' · ') : '未分组' }}</strong>
-            </div>
-            <p v-if="item.error_message" class="account-warning">
-              <span>异常原因</span>
-              <strong>{{ item.error_message }}</strong>
-            </p>
-            <button class="edit-account-button" type="button" @click="editAccount(item)">编辑账户</button>
+            <span class="quick-actions" @click.stop>
+              <button
+                class="quick-button power"
+                :class="{ active: item.status === 'active' && item.schedulable !== false }"
+                type="button"
+                :disabled="busyAccountId === item.id"
+                :title="item.status === 'active' && item.schedulable !== false ? '暂停调度' : '启用调度'"
+                @click="setAccountEnabled(item, !(item.status === 'active' && item.schedulable !== false))"
+              >
+                <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.5v6M4.7 5.2a6 6 0 1 0 8.6 0" /></svg>
+                <span>{{ item.status === 'active' && item.schedulable !== false ? '暂停' : '启用' }}</span>
+              </button>
+              <button class="quick-button" type="button" :disabled="busyAccountId === item.id" title="测试连接" @click="testAccount(item)">
+                <svg viewBox="0 0 18 18" aria-hidden="true"><path d="m3 9 3.2 3.2L15 4.8" /></svg>
+                <span>测试</span>
+              </button>
+              <button class="quick-button" type="button" title="编辑账户" @click="editAccount(item)">
+                <svg viewBox="0 0 18 18" aria-hidden="true"><path d="m4 13.8.7-3.3 7.7-7.7 2.8 2.8-7.7 7.7-3.5.5Z" /></svg>
+                <span>编辑</span>
+              </button>
+              <button class="expand-button" type="button" :class="{ open: expandedAccountId === item.id }" title="查看详情" @click="toggleExpanded(item.id)">
+                <svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" /></svg>
+              </button>
+            </span>
           </div>
+
+          <Transition name="account-detail">
+            <div v-if="expandedAccountId === item.id" class="upstream-detail">
+              <div class="detail-card detail-intro">
+                <span>账户说明</span>
+                <strong>{{ item.notes || '暂无备注' }}</strong>
+              </div>
+              <div class="detail-card">
+                <span>上游地址</span>
+                <strong>{{ String(item.credentials?.base_url || '默认官方地址') }}</strong>
+              </div>
+              <div class="detail-card">
+                <span>凭据状态</span>
+                <strong>{{ credentialsLabel(item) }}</strong>
+              </div>
+              <div class="detail-card">
+                <span>调度策略</span>
+                <strong>P{{ Number(item.priority || 0) }} · 倍率 ×{{ Number(item.rate_multiplier ?? 1).toFixed(3) }}</strong>
+              </div>
+              <div class="detail-card">
+                <span>到期时间</span>
+                <strong>{{ formatExpiry(item.expires_at) }}</strong>
+              </div>
+              <div class="detail-card">
+                <span>调度分组</span>
+                <strong>{{ item.group_ids?.length ? item.group_ids.map(groupName).join(' · ') : '未分组' }}</strong>
+              </div>
+              <div class="detail-card test-result" :class="testState[item.id]?.state || 'idle'">
+                <span>连接测试</span>
+                <strong>{{ testState[item.id]?.message || '尚未在本页测试' }}</strong>
+              </div>
+
+              <section class="models-detail">
+                <header>
+                  <div>
+                    <span>模型能力</span>
+                    <strong>{{ modelSummary(item) }}</strong>
+                  </div>
+                  <button type="button" :disabled="busyAccountId === item.id" @click="syncModels(item)">
+                    {{ busyAccountId === item.id ? '处理中…' : '同步模型' }}
+                  </button>
+                </header>
+                <div v-if="mappedModels(item).length" class="model-chips">
+                  <span v-for="model in mappedModels(item).slice(0, 12)" :key="model">{{ model }}</span>
+                  <span v-if="mappedModels(item).length > 12">+{{ mappedModels(item).length - 12 }}</span>
+                </div>
+                <p v-else>当前还没有已保存的模型映射，可点击“同步模型”从上游读取。</p>
+              </section>
+
+              <p v-if="item.error_message" class="account-warning">
+                <span>{{ errorKind(item) || '异常原因' }}</span>
+                <strong>{{ item.error_message }}</strong>
+              </p>
+
+              <div class="detail-actions">
+                <button type="button" :disabled="busyAccountId === item.id" @click="setAccountEnabled(item, !(item.status === 'active' && item.schedulable !== false))">
+                  {{ item.status === 'active' && item.schedulable !== false ? '暂停调度' : '启用调度' }}
+                </button>
+                <button type="button" :disabled="busyAccountId === item.id" @click="testAccount(item)">测试连接</button>
+                <button type="button" :disabled="busyAccountId === item.id" @click="syncModels(item)">同步模型</button>
+                <button class="edit-account-button" type="button" @click="editAccount(item)">编辑账户</button>
+              </div>
+            </div>
+          </Transition>
         </template>
 
         <div v-if="!accounts.length && !loading" class="accounts-empty">
@@ -1497,6 +1799,589 @@ onMounted(() => void loadAccounts())
 
   .upstream-detail {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Accounts pool v2 — operational, compact, and action-first. */
+.upstream-table-head,
+.upstream-row {
+  grid-template-columns: 30px minmax(235px, 1.45fr) minmax(118px, .66fr) minmax(84px, .42fr) minmax(120px, .66fr) minmax(125px, .72fr) minmax(118px, .66fr) minmax(238px, 1.06fr);
+  gap: 12px;
+}
+
+.upstream-table-head {
+  min-height: 46px;
+  padding: 0 14px;
+}
+
+.upstream-row {
+  min-height: 82px;
+  padding: 0 14px;
+  position: relative;
+  cursor: pointer;
+}
+
+.upstream-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background .16s ease, top .16s ease, bottom .16s ease;
+}
+
+.upstream-row:hover,
+.upstream-row.expanded {
+  background: #14171c;
+  box-shadow: none;
+}
+
+.upstream-row:hover::before,
+.upstream-row.expanded::before {
+  top: 10px;
+  bottom: 10px;
+  background: #6c7884;
+}
+
+.upstream-row.selected {
+  background: rgba(115, 145, 173, .07);
+}
+
+.upstream-row.selected::before {
+  background: #7fa6c9;
+}
+
+.selection-toggle {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.selection-toggle > span {
+  width: 14px;
+  height: 14px;
+  border: 1px solid #3a4048;
+  border-radius: 4px;
+  background: #111318;
+  position: relative;
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+
+.selection-toggle:hover > span {
+  border-color: #687481;
+}
+
+.selection-toggle.selected > span {
+  border-color: #7fa6c9;
+  background: #7fa6c9;
+}
+
+.selection-toggle.selected > span::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 5px;
+  height: 8px;
+  border: solid #0d1115;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.upstream-identity {
+  gap: 12px;
+}
+
+.provider-mark {
+  width: 38px;
+  height: 38px;
+  flex-basis: 38px;
+  border-radius: 11px;
+}
+
+.upstream-identity strong {
+  font-size: .84rem;
+}
+
+.upstream-identity em {
+  max-width: 260px;
+  margin-top: 5px;
+  overflow: hidden;
+  color: #5f6974;
+  font-size: .61rem;
+  font-style: normal;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upstream-models {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.upstream-models > b {
+  color: #d9dde2;
+  font-size: .88rem;
+  font-weight: 680;
+}
+
+.upstream-models > small {
+  color: #626b76;
+  font-size: .61rem;
+}
+
+.upstream-last-used {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.upstream-last-used > b {
+  color: #aeb5bd;
+  font-size: .67rem;
+  font-weight: 570;
+  white-space: nowrap;
+}
+
+.upstream-last-used > small {
+  color: #5f6873;
+  font-size: .60rem;
+  white-space: nowrap;
+}
+
+.actions-head {
+  text-align: right;
+  padding-right: 7px;
+}
+
+.quick-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-button,
+.expand-button {
+  height: 32px;
+  border: 1px solid #2f343c;
+  border-radius: 7px;
+  background: #14171c;
+  color: #8c959f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease, transform .15s ease;
+}
+
+.quick-button {
+  padding: 0 9px;
+  font-size: .64rem;
+  font-weight: 620;
+}
+
+.quick-button svg,
+.expand-button svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.quick-button:hover:not(:disabled),
+.expand-button:hover {
+  border-color: #47515c;
+  background: #1a1e24;
+  color: #e4e7ea;
+  transform: translateY(-1px);
+}
+
+.quick-button:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
+.quick-button.power.active {
+  border-color: rgba(67, 205, 152, .22);
+  background: rgba(67, 205, 152, .065);
+  color: #86d3b4;
+}
+
+.expand-button {
+  width: 32px;
+  padding: 0;
+}
+
+.expand-button svg {
+  transition: transform .18s ease;
+}
+
+.expand-button.open svg {
+  transform: rotate(90deg);
+}
+
+.batch-toolbar {
+  margin: 10px 14px;
+  min-height: 54px;
+  padding: 9px 10px 9px 13px;
+  border: 1px solid #2e3540;
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(94, 121, 147, .10), rgba(94, 121, 147, .055));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.batch-toolbar > div:first-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.batch-count {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 7px;
+  background: #dfe9f2;
+  color: #17202a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .70rem;
+  font-weight: 720;
+}
+
+.batch-toolbar strong {
+  color: #d8dde3;
+  font-size: .73rem;
+}
+
+.batch-toolbar small {
+  color: #727d89;
+  font-size: .64rem;
+}
+
+.batch-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.batch-actions button,
+.detail-actions button,
+.models-detail button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #343a43;
+  border-radius: 7px;
+  background: #15181d;
+  color: #b9c0c7;
+  font-size: .65rem;
+  font-weight: 610;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+
+.batch-actions button:hover:not(:disabled),
+.detail-actions button:hover:not(:disabled),
+.models-detail button:hover:not(:disabled) {
+  border-color: #4a5561;
+  background: #1a1f25;
+  color: #fff;
+}
+
+.batch-actions button:disabled,
+.detail-actions button:disabled,
+.models-detail button:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
+.batch-actions .batch-clear {
+  border-color: transparent;
+  background: transparent;
+  color: #727c87;
+}
+
+.upstream-detail {
+  margin: 0;
+  padding: 15px 14px 18px 56px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  background: #0d0f13;
+  border-bottom: 1px solid var(--aa-border);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .012);
+}
+
+.upstream-detail > .detail-card {
+  min-height: 62px;
+  padding: 11px 12px;
+  border: 1px solid #242830;
+  border-radius: 8px;
+  background: #101217;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.upstream-detail > .detail-card strong {
+  white-space: nowrap;
+}
+
+.test-result.success {
+  border-color: rgba(67, 205, 152, .17);
+  background: rgba(67, 205, 152, .045);
+}
+
+.test-result.success strong {
+  color: #86d3b4;
+}
+
+.test-result.error {
+  border-color: rgba(225, 108, 115, .20);
+  background: rgba(225, 108, 115, .045);
+}
+
+.test-result.error strong {
+  color: #dda0a4;
+}
+
+.models-detail {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #242830;
+  border-radius: 9px;
+  background: #101217;
+}
+
+.models-detail > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.models-detail > header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.models-detail > header span {
+  color: #626b76;
+  font-size: .62rem;
+}
+
+.models-detail > header strong {
+  color: #c6ccd2;
+  font-size: .72rem;
+  font-weight: 620;
+}
+
+.models-detail > p {
+  margin: 10px 0 0;
+  color: #67717c;
+  font-size: .65rem;
+}
+
+.model-chips {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.model-chips span {
+  padding: 5px 7px;
+  border: 1px solid #2b3139;
+  border-radius: 6px;
+  background: #0d0f13;
+  color: #9fa8b1;
+  font: 570 .60rem/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.account-warning {
+  align-items: flex-start;
+}
+
+.account-warning > span {
+  flex: 0 0 auto;
+  min-width: 58px;
+  color: #c98086;
+  font-weight: 650;
+}
+
+.detail-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.account-detail-enter-active,
+.account-detail-leave-active {
+  overflow: hidden;
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.account-detail-enter-from,
+.account-detail-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+@media (max-width: 1380px) {
+  .upstream-table-head,
+  .upstream-row {
+    grid-template-columns: 30px minmax(220px, 1.4fr) minmax(118px, .72fr) minmax(78px, .42fr) minmax(120px, .7fr) minmax(120px, .72fr) minmax(205px, 1fr);
+  }
+
+  .upstream-table-head > span:nth-child(7),
+  .upstream-row > .upstream-last-used {
+    display: none;
+  }
+}
+
+@media (max-width: 1120px) {
+  .upstream-table-head,
+  .upstream-row {
+    grid-template-columns: 30px minmax(210px, 1.4fr) minmax(112px, .72fr) minmax(76px, .42fr) minmax(118px, .72fr) minmax(190px, 1fr);
+  }
+
+  .upstream-table-head > span:nth-child(4),
+  .upstream-table-head > span:nth-child(6) {
+    display: block;
+  }
+
+  .upstream-row > .upstream-models,
+  .upstream-row > .upstream-groups {
+    display: flex;
+  }
+
+  .upstream-table-head > span:nth-child(5),
+  .upstream-row > .upstream-load {
+    display: none;
+  }
+
+  .quick-button span {
+    display: none;
+  }
+
+  .quick-button {
+    width: 32px;
+    padding: 0;
+  }
+
+  .upstream-detail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .upstream-table-head,
+  .upstream-row {
+    grid-template-columns: 30px minmax(190px, 1fr) minmax(108px, .65fr) minmax(150px, .8fr);
+  }
+
+  .upstream-table-head > span:nth-child(4),
+  .upstream-table-head > span:nth-child(5),
+  .upstream-table-head > span:nth-child(6),
+  .upstream-row > .upstream-models,
+  .upstream-row > .upstream-load,
+  .upstream-row > .upstream-groups {
+    display: none;
+  }
+
+  .batch-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .upstream-table-head {
+    display: none;
+  }
+
+  .upstream-row {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    min-height: 78px;
+    gap: 8px;
+  }
+
+  .upstream-row > .upstream-health,
+  .upstream-row > .upstream-models,
+  .upstream-row > .upstream-load,
+  .upstream-row > .upstream-groups,
+  .upstream-row > .upstream-last-used {
+    display: none;
+  }
+
+  .upstream-row > span.quick-actions {
+    display: flex !important;
+    gap: 4px;
+  }
+
+  .quick-button {
+    display: none;
+  }
+
+  .expand-button {
+    display: inline-flex;
+  }
+
+  .upstream-detail {
+    padding-left: 14px;
+    grid-template-columns: 1fr;
+  }
+
+  .models-detail,
+  .account-warning,
+  .detail-actions {
+    grid-column: 1;
+  }
+
+  .detail-actions {
+    justify-content: stretch;
+    flex-wrap: wrap;
+  }
+
+  .detail-actions button {
+    flex: 1 1 42%;
+  }
+
+  .batch-toolbar > div:first-child {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .batch-toolbar small {
+    width: 100%;
+  }
+
+  .batch-actions {
+    width: 100%;
+    flex-wrap: wrap;
   }
 }
 </style>

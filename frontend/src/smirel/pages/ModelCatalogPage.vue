@@ -646,7 +646,7 @@ onBeforeUnmount(() => {
         </div>
         <div>
           <span>Base URL</span>
-          <code>https://api.smirel.com/v1</code>
+          <code>https://muxway.dev/v1</code>
           <button class="catalog-refresh" type="button" :disabled="loading" @click="loadCatalog">{{ loading ? '…' : '↻' }}</button>
         </div>
       </section>

@@ -169,8 +169,8 @@ function previewSettings(): PlatformSettings {
     invitation_code_enabled: false,
     site_name: 'Muxway 模枢',
     site_subtitle: 'API SERVICE',
-    frontend_url: 'https://relay.smirel.com',
-    api_base_url: 'https://api.smirel.com',
+    frontend_url: 'https://muxway.dev',
+    api_base_url: 'https://muxway.dev',
     github_oauth_enabled: false,
     github_oauth_client_id: '',
     github_oauth_client_secret_configured: false,
@@ -252,6 +252,15 @@ async function fillFrontendCallback(provider: OAuthProvider) {
   await copyValue(value, text('前端回调地址已生成并复制', 'Frontend callback URL generated and copied'))
 }
 
+function validateTurnstile() {
+  if (!form.turnstile_enabled) return ''
+  if (!form.turnstile_site_key.trim()) return text('Turnstile Site Key 不能为空', 'Turnstile Site Key is required')
+  if (!form.turnstile_secret_key_configured && !form.turnstile_secret_key.trim()) {
+    return text('Turnstile Secret Key 不能为空', 'Turnstile Secret Key is required')
+  }
+  return ''
+}
+
 function validateOAuth(provider: OAuthProvider) {
   const enabled = provider === 'google' ? form.google_oauth_enabled : form.github_oauth_enabled
   if (!enabled) return ''
@@ -271,10 +280,12 @@ function validateOAuth(provider: OAuthProvider) {
 
 async function saveSettings() {
   if (saving.value || loading.value) return
-  const validationError = validateOAuth('google') || validateOAuth('github')
+  const oauthValidationError = validateOAuth('google') || validateOAuth('github')
+  const turnstileValidationError = validateTurnstile()
+  const validationError = oauthValidationError || turnstileValidationError
   if (validationError) {
     error.value = validationError
-    activeTab.value = 'auth'
+    activeTab.value = turnstileValidationError ? 'security' : 'auth'
     return
   }
 
@@ -510,8 +521,8 @@ onMounted(() => void loadSettings())
             <div class="general-form">
               <label class="settings-field"><span>{{ text('站点名称', 'Site name') }}</span><input v-model="form.site_name" type="text" placeholder="Muxway 模枢" /></label>
               <label class="settings-field"><span>{{ text('站点副标题', 'Site subtitle') }}</span><input v-model="form.site_subtitle" type="text" placeholder="API SERVICE" /></label>
-              <label class="settings-field field-wide"><span>{{ text('前端访问地址', 'Frontend URL') }}</span><input v-model="form.frontend_url" type="url" placeholder="https://relay.smirel.com" /><small>{{ text('用于 OAuth 登录完成后返回用户控制台。', 'Used as the return origin after OAuth sign-in.') }}</small></label>
-              <label class="settings-field field-wide"><span>{{ text('API 公网地址', 'Public API URL') }}</span><input v-model="form.api_base_url" type="url" placeholder="https://api.smirel.com" /><small>{{ text('用于生成 OAuth 后端回调地址；可填写域名或完整 /api/v1 地址。', 'Used to generate backend OAuth callbacks; domain or full /api/v1 URL is accepted.') }}</small></label>
+              <label class="settings-field field-wide"><span>{{ text('前端访问地址', 'Frontend URL') }}</span><input v-model="form.frontend_url" type="url" placeholder="https://muxway.dev" /><small>{{ text('用于 OAuth 登录完成后返回用户控制台。', 'Used as the return origin after OAuth sign-in.') }}</small></label>
+              <label class="settings-field field-wide"><span>{{ text('API 公网地址', 'Public API URL') }}</span><input v-model="form.api_base_url" type="url" placeholder="https://muxway.dev" /><small>{{ text('用于生成 OAuth 后端回调地址；可填写域名或完整 /api/v1 地址。', 'Used to generate backend OAuth callbacks; domain or full /api/v1 URL is accepted.') }}</small></label>
             </div>
           </section>
 

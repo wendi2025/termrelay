@@ -6,11 +6,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://api.smirel.com/api/:path*"
+      "destination": "https://muxway.dev/api/:path*"
     },
     {
       "source": "/v1/:path*",
-      "destination": "https://api.smirel.com/v1/:path*"
+      "destination": "https://muxway.dev/v1/:path*"
     },
     {
       "source": "/:path*",

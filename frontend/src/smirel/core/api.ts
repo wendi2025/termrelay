@@ -79,10 +79,6 @@ function resolveOAuthApiBase(): string {
   if (/^https?:\/\//i.test(configuredBase)) return configuredBase
 
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname.toLowerCase()
-    if (hostname === 'relay.smirel.com' || hostname === 'www.relay.smirel.com') {
-      return 'https://api.smirel.com/api/v1'
-    }
     return new URL(configuredBase || '/api/v1', window.location.origin).toString().replace(/\/+$/, '')
   }
 
