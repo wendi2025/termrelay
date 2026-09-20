@@ -15,7 +15,7 @@ import { interfacePreferences } from '../core/preferences'
 const route = useRoute()
 const router = useRouter()
 const { login, register, isAdmin } = useSession()
-const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg`
+const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg?v=20260920-ribbon`
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')

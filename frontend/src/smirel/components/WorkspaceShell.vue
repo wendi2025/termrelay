@@ -42,7 +42,7 @@ const mobileOpen = ref(false)
 const workspaceMain = ref<HTMLElement | null>(null)
 const openUtility = ref<UtilityPanel | null>(null)
 const { state, isAdmin } = useSession()
-const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg`
+const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg?v=20260920-ribbon`
 const sharedKeysNavigation = userNavigation.find((item) => item.feature === 'keys')
 const MODE_STORAGE_KEY = 'smirel.workspace.mode'
 const LAST_ADMIN_ROUTE_KEY = 'smirel.workspace.last-admin-route'

@@ -19,7 +19,7 @@ interface PendingOAuthPayload extends OAuthTokenResult {
 type CallbackPhase = 'loading' | 'registration' | 'error'
 
 const router = useRouter()
-const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg`
+const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg?v=20260920-ribbon`
 const phase = ref<CallbackPhase>('loading')
 const pending = ref<PendingOAuthPayload | null>(null)
 const provider = ref<OAuthProvider | null>(null)

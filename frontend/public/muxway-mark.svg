@@ -1,18 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
   <title>Muxway</title>
   <defs>
-    <linearGradient id="muxway-gradient" x1="7" y1="7" x2="57" y2="57" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#13dcff"/>
-      <stop offset=".48" stop-color="#5366ff"/>
-      <stop offset="1" stop-color="#d83cff"/>
+    <linearGradient id="ribbon-top" x1="5" y1="10" x2="59" y2="42" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#19e6ff"/>
+      <stop offset=".5" stop-color="#3975ff"/>
+      <stop offset="1" stop-color="#8b3dff"/>
     </linearGradient>
-    <linearGradient id="muxway-letter" x1="19" y1="19" x2="45" y2="45" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fff"/>
-      <stop offset="1" stop-color="#a9b8ff"/>
+    <linearGradient id="ribbon-bottom" x1="7" y1="52" x2="58" y2="24" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#246bff"/>
+      <stop offset=".52" stop-color="#7045ff"/>
+      <stop offset="1" stop-color="#e43dff"/>
     </linearGradient>
+    <linearGradient id="ribbon-shine" x1="10" y1="12" x2="52" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity=".5"/>
+      <stop offset=".55" stop-color="#fff" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#2335bb" flood-opacity=".24"/>
+    </filter>
   </defs>
-  <path d="M32 2 57.98 17v30L32 62 6.02 47V17L32 2Z" fill="url(#muxway-gradient)"/>
-  <path d="M32 6.5 54.08 19.25v25.5L32 57.5 9.92 44.75v-25.5L32 6.5Z" fill="#080d20"/>
-  <path d="M17 44V20h6.6L32 31.2 40.4 20H47v24h-7.2V31.1L32 41l-7.8-9.9V44H17Z" fill="url(#muxway-letter)"/>
-  <path d="m13.5 47 9.2 5.3M50.5 17l-9.2-5.3" stroke="#42e5ff" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>
+  <g filter="url(#soft-shadow)">
+    <path d="M7.5 14.7C10.7 10.9 15.4 9.4 20 11.2l10.4 5.9c5.1 2.9 8.7 3.2 13.6.3l7.3-4.4c5.1-3.1 10.7.6 10.7 6.5v7c0 3.5-1.9 6.7-4.9 8.4l-11.7 6.7c-7.8 4.5-15.3 4.5-23.1 0L6.9 32.8A9.7 9.7 0 0 1 2 24.4v-2.8c0-2.5 2.8-5 5.5-6.9Z" fill="url(#ribbon-top)"/>
+    <path d="M56.5 49.3c-3.2 3.8-7.9 5.3-12.5 3.5l-10.4-5.9c-5.1-2.9-8.7-3.2-13.6-.3L12.7 51C7.6 54.1 2 50.4 2 44.5v-7c0-3.5 1.9-6.7 4.9-8.4l11.7-6.7c7.8-4.5 15.3-4.5 23.1 0l15.4 8.8a9.7 9.7 0 0 1 4.9 8.4v2.8c0 2.5-2.8 5-5.5 6.9Z" fill="url(#ribbon-bottom)"/>
+    <path d="M7.5 14.7C10.7 10.9 15.4 9.4 20 11.2l10.4 5.9c5.1 2.9 8.7 3.2 13.6.3l7.3-4.4c5.1-3.1 10.7.6 10.7 6.5v2.1c-4.3 1.8-8 4.8-12.4 7.4-6.2 3.6-11.7 3.7-17.9.1L2.1 18.4c.6-1.4 3.3-2.9 5.4-3.7Z" fill="url(#ribbon-shine)"/>
+  </g>
 </svg>

@@ -26,7 +26,7 @@ type ProviderCatalog = {
 const route = useRoute()
 const { isAuthenticated, isAdmin } = useSession()
 const kind = computed(() => String(route.meta.publicKind || 'public'))
-const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg`
+const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg?v=20260920-ribbon`
 const consolePath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
 
 const providers: ProviderCatalog[] = [

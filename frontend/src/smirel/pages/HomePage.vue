@@ -22,7 +22,7 @@ const plansState = ref<'loading' | 'ready' | 'unavailable'>('loading')
 const mobileMenuOpen = ref(false)
 const copied = ref(false)
 const apiBase = 'https://api.smirel.com/v1'
-const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg`
+const logoUrl = `${import.meta.env.BASE_URL}muxway-mark.svg?v=20260920-ribbon`
 const consolePath = computed(() => isAdmin.value ? '/admin/dashboard' : '/dashboard')
 const isEnglish = computed(() => interfacePreferences.locale === 'en-US')
 const copy = computed<any>(() => isEnglish.value ? en : zh)
